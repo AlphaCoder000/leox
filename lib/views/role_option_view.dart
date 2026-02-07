@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:leox/views/employee/employee_login_view.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
 import 'package:leox/views/privacy_policy_view.dart';
 import 'package:leox/views/terms_of_service_view.dart';
@@ -9,16 +10,19 @@ class RoleOptionView extends StatelessWidget {
   const RoleOptionView({super.key});
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromRGBO(245, 247, 250, 1),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor, // Uses Theme
       // ✅ APP BAR WITH BACK BUTTON
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -31,10 +35,10 @@ class RoleOptionView extends StatelessWidget {
 
             Text(
               "Welcome to Leox",
-              style: TextStyle(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
-                color: const Color.fromRGBO(0, 0, 0, 0.87),
+                color: theme.colorScheme.onSurface,
               ),
             ),
 
@@ -42,9 +46,12 @@ class RoleOptionView extends StatelessWidget {
 
             Text(
               "Choose how you'd like to continue",
-              style: TextStyle(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: 14.sp,
-                color: const Color.fromRGBO(0, 0, 0, 0.6),
+                color:
+                    isDark
+                        ? Colors.grey[400]
+                        : const Color.fromRGBO(0, 0, 0, 0.6),
               ),
             ),
 
@@ -52,6 +59,7 @@ class RoleOptionView extends StatelessWidget {
 
             // 🔹 EMPLOYER CARD (TOP)
             _roleCard(
+              context,
               title: "I'm an Employer",
               subtitle: "Post jobs and find the best candidates",
               icon: Icons.business_center_outlined,
@@ -73,6 +81,7 @@ class RoleOptionView extends StatelessWidget {
 
             // 🔹 EMPLOYEE CARD (BOTTOM)
             _roleCard(
+              context,
               title: "I'm an Employee",
               subtitle: "Find and apply for your dream job",
               icon: Icons.person_outline,
@@ -83,7 +92,10 @@ class RoleOptionView extends StatelessWidget {
                 "Get interview notifications",
               ],
               onTap: () {
-                // TODO → Employee Login / Register
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EmployeeLoginView()),
+                );
               },
             ),
 
@@ -101,19 +113,27 @@ class RoleOptionView extends StatelessWidget {
 
   // =============================================================
 
-  Widget _roleCard({
+  Widget _roleCard(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
     required List<String> points,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        color: theme.cardTheme.color,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: theme.dividerColor),
+        ),
         child: Padding(
           padding: EdgeInsets.all(5.w),
           child: Column(
@@ -122,12 +142,8 @@ class RoleOptionView extends StatelessWidget {
               Center(
                 child: CircleAvatar(
                   radius: 30,
-                  backgroundColor: const Color.fromRGBO(66, 133, 244, 0.15),
-                  child: Icon(
-                    icon,
-                    size: 30,
-                    color: const Color.fromRGBO(66, 133, 244, 1),
-                  ),
+                  backgroundColor: theme.primaryColor.withOpacity(0.15),
+                  child: Icon(icon, size: 30, color: theme.primaryColor),
                 ),
               ),
 
@@ -139,6 +155,7 @@ class RoleOptionView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -151,7 +168,10 @@ class RoleOptionView extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: const Color.fromRGBO(0, 0, 0, 0.6),
+                    color:
+                        isDark
+                            ? Colors.grey[400]
+                            : const Color.fromRGBO(0, 0, 0, 0.6),
                   ),
                 ),
               ),
@@ -163,14 +183,20 @@ class RoleOptionView extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: 1.h),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.check_circle,
                         size: 18,
-                        color: Color.fromRGBO(66, 133, 244, 1),
+                        color: theme.primaryColor,
                       ),
                       SizedBox(width: 3.w),
                       Expanded(
-                        child: Text(p, style: TextStyle(fontSize: 12.5.sp)),
+                        child: Text(
+                          p,
+                          style: TextStyle(
+                            fontSize: 12.5.sp,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -186,21 +212,24 @@ class RoleOptionView extends StatelessWidget {
   // =============================================================
 
   Widget _termsAndPrivacy(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
         style: TextStyle(
           fontSize: 13.sp,
-          color: const Color.fromRGBO(0, 0, 0, 0.6),
+          color: isDark ? Colors.grey[500] : const Color.fromRGBO(0, 0, 0, 0.6),
         ),
         children: [
           const TextSpan(text: "By continuing, you agree to our "),
 
           TextSpan(
             text: "Terms of Service",
-            style: const TextStyle(
+            style: TextStyle(
               decoration: TextDecoration.underline,
-              color: Color.fromRGBO(66, 133, 244, 1),
+              color: theme.primaryColor,
               fontWeight: FontWeight.w500,
             ),
             recognizer:
@@ -219,9 +248,9 @@ class RoleOptionView extends StatelessWidget {
 
           TextSpan(
             text: "Privacy Policy",
-            style: const TextStyle(
+            style: TextStyle(
               decoration: TextDecoration.underline,
-              color: Color.fromRGBO(66, 133, 244, 1),
+              color: theme.primaryColor,
               fontWeight: FontWeight.w500,
             ),
             recognizer:

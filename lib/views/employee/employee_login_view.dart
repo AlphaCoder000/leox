@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:leox/providers/employer_auth_provider.dart';
-import 'package:leox/views/employer/employer_dashboard_view.dart';
+import 'package:leox/providers/employee/employee_auth_provider.dart';
+import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
-import 'employer_register_view.dart';
+import 'employee_register_view.dart';
 
-class EmployerLoginView extends StatefulWidget {
-  const EmployerLoginView({super.key});
+class EmployeeLoginView extends StatefulWidget {
+  const EmployeeLoginView({super.key});
 
   @override
-  State<EmployerLoginView> createState() => _EmployerLoginViewState();
+  State<EmployeeLoginView> createState() => _EmployeeLoginViewState();
 }
 
-class _EmployerLoginViewState extends State<EmployerLoginView> {
+class _EmployeeLoginViewState extends State<EmployeeLoginView> {
   bool isEmailSelected = true;
   bool isOtpSent = false;
 
@@ -77,15 +77,17 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                       children: [
                         CircleAvatar(
                           radius: 22,
-                          backgroundColor: colorScheme.primary.withOpacity(0.12),
+                          backgroundColor: colorScheme.primary.withOpacity(
+                            0.12,
+                          ),
                           child: Icon(
-                            Icons.business_center_outlined,
+                            Icons.person_outline_rounded,
                             color: colorScheme.primary,
                           ),
                         ),
                         SizedBox(width: 3.w),
                         Text(
-                          "Employer Login",
+                          "Employee Login",
                           style: TextStyle(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
@@ -98,7 +100,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                     SizedBox(height: 1.2.h),
 
                     Text(
-                      "Sign in to manage jobs and review candidates.",
+                      "Sign in to apply for jobs and track applications.",
                       style: TextStyle(
                         fontSize: 12.5.sp,
                         color: isDark ? Colors.grey[400] : Colors.black54,
@@ -121,11 +123,12 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               context,
                               "Email",
                               selected: isEmailSelected,
-                              onTap:
-                                  () => setState(() {
-                                    isEmailSelected = true;
-                                    isOtpSent = false;
-                                  }),
+                              onTap: () {
+                                setState(() {
+                                  isEmailSelected = true;
+                                  isOtpSent = false;
+                                });
+                              },
                             ),
                           ),
                           Expanded(
@@ -133,11 +136,12 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               context,
                               "Phone",
                               selected: !isEmailSelected,
-                              onTap:
-                                  () => setState(() {
-                                    isEmailSelected = false;
-                                    isOtpSent = false;
-                                  }),
+                              onTap: () {
+                                setState(() {
+                                  isEmailSelected = false;
+                                  isOtpSent = false;
+                                });
+                              },
                             ),
                           ),
                         ],
@@ -150,13 +154,19 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                     if (isEmailSelected) ...[
                       _label(context, "Email"),
                       SizedBox(height: 0.8.h),
-                      _inputField(keyboardType: TextInputType.emailAddress),
+                      _inputField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
 
                       SizedBox(height: 2.5.h),
 
                       _label(context, "Password"),
                       SizedBox(height: 0.8.h),
-                      _inputField(isPassword: true),
+                      _inputField(
+                        controller: passwordController,
+                        isPassword: true,
+                      ),
                     ] else ...[
                       if (!isOtpSent) ...[
                         _label(context, "Phone Number"),
@@ -164,7 +174,6 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
 
                         Row(
                           children: [
-                            // COUNTRY CODE
                             Container(
                               padding: EdgeInsets.symmetric(horizontal: 3.w),
                               decoration: BoxDecoration(
@@ -175,7 +184,6 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               child: DropdownButton<String>(
                                 value: selectedCountryCode,
                                 dropdownColor: theme.cardTheme.color,
-                                style: TextStyle(color: colorScheme.onSurface),
                                 underline: const SizedBox(),
                                 items: const [
                                   DropdownMenuItem(
@@ -197,11 +205,10 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                     ),
                               ),
                             ),
-
                             SizedBox(width: 3.w),
-
                             Expanded(
                               child: _inputField(
+                                controller: phoneController,
                                 keyboardType: TextInputType.phone,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
@@ -215,20 +222,17 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                         _label(context, "Verification Code"),
                         SizedBox(height: 0.8.h),
                         _inputField(
+                          controller: otpController,
                           keyboardType: TextInputType.number,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(6),
                           ],
                         ),
-
                         SizedBox(height: 1.5.h),
-
                         Center(
                           child: TextButton(
-                            onPressed: () {
-                              setState(() => isOtpSent = false);
-                            },
+                            onPressed: () => setState(() => isOtpSent = false),
                             child: const Text("Back"),
                           ),
                         ),
@@ -238,7 +242,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                     SizedBox(height: 3.5.h),
 
                     // 🔹 PRIMARY BUTTON
-                    Consumer<EmployerAuthProvider>(
+                    Consumer<EmployeeAuthProvider>(
                       builder: (context, auth, _) {
                         return SizedBox(
                           width: double.infinity,
@@ -248,7 +252,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                     ? null
                                     : () async {
                                       final provider =
-                                          context.read<EmployerAuthProvider>();
+                                          context.read<EmployeeAuthProvider>();
 
                                       if (!isEmailSelected && !isOtpSent) {
                                         await provider.sendOtp(
@@ -286,9 +290,9 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                           ? "Verify & Sign In"
                                           : "Send Verification Code",
                                       style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12.sp,
-                                          color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12.sp,
+                                        color: Colors.white,
                                       ),
                                     ),
                           ),
@@ -298,36 +302,15 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
 
                     SizedBox(height: 3.h),
 
-                    // 🔹 DIVIDER
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 2.w),
-                          child: Text(
-                            "OR CONTINUE WITH",
-                            style: TextStyle(
-                              fontSize: 10.5.sp,
-                              color: isDark ? Colors.grey[500] : Colors.black54,
-                            ),
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-
-                    SizedBox(height: 2.5.h),
-
                     // 🔹 GOOGLE
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () async {
-                          //await context.read<EmployerAuthProvider>().signInWithGoogle();
+                        onPressed: () {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const EmployerDashboardView(),
+                              builder: (_) => const EmployeeDashboardView(),
                             ),
                           );
                         },
@@ -339,16 +322,9 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                         label: Text(
                           "Sign In with Google",
                           style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
                           ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 1.6.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          side: BorderSide(color: theme.dividerColor),
                         ),
                       ),
                     ),
@@ -371,12 +347,12 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const EmployerRegisterView(),
+                                  builder: (_) => const EmployeeRegisterView(),
                                 ),
                               );
                             },
                             child: const Text(
-                              "Register as Employer",
+                              "Register as Employee",
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -402,7 +378,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -411,12 +387,15 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
         decoration: BoxDecoration(
           color: selected ? theme.cardTheme.color : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: selected ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-            ),
-          ] : null,
+          boxShadow:
+              selected
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                    ),
+                  ]
+                  : null,
         ),
         child: Center(
           child: Text(
@@ -436,7 +415,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 12.sp, 
+        fontSize: 12.sp,
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),
@@ -444,14 +423,16 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
   }
 
   Widget _inputField({
+    required TextEditingController controller,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       keyboardType: keyboardType,
-      inputFormatters: inputFormatters, // Decorator uses Theme
+      inputFormatters: inputFormatters,
     );
   }
 }
