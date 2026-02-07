@@ -1,27 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:leox/providers/employer_auth_provider.dart';
-import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/role_option_view.dart';
-import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
-import 'employer_register_view.dart';
+import 'employee_login_view.dart';
 
-class EmployerLoginView extends StatefulWidget {
-  const EmployerLoginView({super.key});
+class EmployeeRegisterView extends StatefulWidget {
+  const EmployeeRegisterView({super.key});
 
   @override
-  State<EmployerLoginView> createState() => _EmployerLoginViewState();
+  State<EmployeeRegisterView> createState() => _EmployeeRegisterViewState();
 }
 
-class _EmployerLoginViewState extends State<EmployerLoginView> {
+class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
   bool isEmailSelected = true;
   bool isOtpSent = false;
-
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final phoneController = TextEditingController();
-  final otpController = TextEditingController();
 
   String selectedCountryCode = "+91";
 
@@ -34,7 +26,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
 
-      // 🔹 TOP BAR (Change Role)
+      // 🔹 APP BAR
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -77,15 +69,17 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                       children: [
                         CircleAvatar(
                           radius: 22,
-                          backgroundColor: colorScheme.primary.withOpacity(0.12),
+                          backgroundColor: colorScheme.primary.withOpacity(
+                            0.12,
+                          ),
                           child: Icon(
-                            Icons.business_center_outlined,
+                            Icons.person_outline,
                             color: colorScheme.primary,
                           ),
                         ),
                         SizedBox(width: 3.w),
                         Text(
-                          "Employer Login",
+                          "Employee Registration",
                           style: TextStyle(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
@@ -98,7 +92,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                     SizedBox(height: 1.2.h),
 
                     Text(
-                      "Sign in to manage jobs and review candidates.",
+                      "Create an account to apply for jobs and track applications.",
                       style: TextStyle(
                         fontSize: 12.5.sp,
                         color: isDark ? Colors.grey[400] : Colors.black54,
@@ -121,11 +115,12 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               context,
                               "Email",
                               selected: isEmailSelected,
-                              onTap:
-                                  () => setState(() {
-                                    isEmailSelected = true;
-                                    isOtpSent = false;
-                                  }),
+                              onTap: () {
+                                setState(() {
+                                  isEmailSelected = true;
+                                  isOtpSent = false;
+                                });
+                              },
                             ),
                           ),
                           Expanded(
@@ -133,11 +128,12 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               context,
                               "Phone",
                               selected: !isEmailSelected,
-                              onTap:
-                                  () => setState(() {
-                                    isEmailSelected = false;
-                                    isOtpSent = false;
-                                  }),
+                              onTap: () {
+                                setState(() {
+                                  isEmailSelected = false;
+                                  isOtpSent = false;
+                                });
+                              },
                             ),
                           ),
                         ],
@@ -164,7 +160,6 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
 
                         Row(
                           children: [
-                            // COUNTRY CODE
                             Container(
                               padding: EdgeInsets.symmetric(horizontal: 3.w),
                               decoration: BoxDecoration(
@@ -189,6 +184,10 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                   DropdownMenuItem(
                                     value: "+44",
                                     child: Text("+44"),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: "+61",
+                                    child: Text("+61"),
                                   ),
                                 ],
                                 onChanged:
@@ -238,117 +237,36 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                     SizedBox(height: 3.5.h),
 
                     // 🔹 PRIMARY BUTTON
-                    Consumer<EmployerAuthProvider>(
-                      builder: (context, auth, _) {
-                        return SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed:
-                                auth.isLoading
-                                    ? null
-                                    : () async {
-                                      final provider =
-                                          context.read<EmployerAuthProvider>();
-
-                                      if (!isEmailSelected && !isOtpSent) {
-                                        await provider.sendOtp(
-                                          "$selectedCountryCode${phoneController.text}",
-                                        );
-                                        setState(() => isOtpSent = true);
-                                      } else if (!isEmailSelected &&
-                                          isOtpSent) {
-                                        await provider.verifyOtp(
-                                          otpController.text,
-                                        );
-                                      } else {
-                                        await provider.loginWithEmail(
-                                          emailController.text,
-                                          passwordController.text,
-                                        );
-                                      }
-                                    },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.primary,
-                              padding: EdgeInsets.symmetric(vertical: 1.8.h),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child:
-                                auth.isLoading
-                                    ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
-                                    : Text(
-                                      isEmailSelected
-                                          ? "Sign In with Email"
-                                          : isOtpSent
-                                          ? "Verify & Sign In"
-                                          : "Send Verification Code",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12.sp,
-                                          color: Colors.white,
-                                      ),
-                                    ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: 3.h),
-
-                    // 🔹 DIVIDER
-                    Row(
-                      children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 2.w),
-                          child: Text(
-                            "OR CONTINUE WITH",
-                            style: TextStyle(
-                              fontSize: 10.5.sp,
-                              color: isDark ? Colors.grey[500] : Colors.black54,
-                            ),
-                          ),
-                        ),
-                        const Expanded(child: Divider()),
-                      ],
-                    ),
-
-                    SizedBox(height: 2.5.h),
-
-                    // 🔹 GOOGLE
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          //await context.read<EmployerAuthProvider>().signInWithGoogle();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const EmployerDashboardView(),
-                            ),
-                          );
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (!isEmailSelected && !isOtpSent) {
+                            setState(() => isOtpSent = true);
+                          } else if (!isEmailSelected && isOtpSent) {
+                            // TODO: Verify OTP & register employee
+                          } else {
+                            // TODO: Email registration
+                          }
                         },
-                        icon: Image.asset(
-                          'assets/icons/google_logo.png',
-                          height: 24,
-                          width: 24,
-                        ),
-                        label: Text(
-                          "Sign In with Google",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 1.6.h),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          padding: EdgeInsets.symmetric(vertical: 1.8.h),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          side: BorderSide(color: theme.dividerColor),
+                        ),
+                        child: Text(
+                          isEmailSelected
+                              ? "Sign Up with Email"
+                              : isOtpSent
+                              ? "Verify & Create Account"
+                              : "Send Verification Code",
+                          style: TextStyle(
+                            fontSize: 13.5.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -360,7 +278,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                       child: Column(
                         children: [
                           Text(
-                            "Don't have an account?",
+                            "Already have an account?",
                             style: TextStyle(
                               fontSize: 11.5.sp,
                               color: isDark ? Colors.grey[400] : Colors.black54,
@@ -371,12 +289,12 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const EmployerRegisterView(),
+                                  builder: (_) => const EmployeeLoginView(),
                                 ),
                               );
                             },
                             child: const Text(
-                              "Register as Employer",
+                              "Sign in as Employee",
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ),
@@ -402,7 +320,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -411,12 +329,15 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
         decoration: BoxDecoration(
           color: selected ? theme.cardTheme.color : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: selected ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-            ),
-          ] : null,
+          boxShadow:
+              selected
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                    ),
+                  ]
+                  : null,
         ),
         child: Center(
           child: Text(
@@ -436,7 +357,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 12.sp, 
+        fontSize: 12.sp,
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),
@@ -451,7 +372,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
     return TextField(
       obscureText: isPassword,
       keyboardType: keyboardType,
-      inputFormatters: inputFormatters, // Decorator uses Theme
+      inputFormatters: inputFormatters,
     );
   }
 }

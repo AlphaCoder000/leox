@@ -17,13 +17,14 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
 
   String selectedCountryCode = "+91";
 
-  static const primaryBlue = Color.fromRGBO(66, 133, 244, 1);
-  static const bgColor = Color.fromRGBO(245, 247, 250, 1);
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
 
       // 🔹 APP BAR
       appBar: AppBar(
@@ -37,10 +38,10 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
               MaterialPageRoute(builder: (_) => const RoleOptionView()),
             );
           },
-          icon: const Icon(Icons.home, color: Colors.black),
-          label: const Text(
+          icon: Icon(Icons.home, color: theme.iconTheme.color),
+          label: Text(
             "Change Role",
-            style: TextStyle(color: Colors.black),
+            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
           ),
         ),
       ),
@@ -51,10 +52,12 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Card(
+              color: theme.cardTheme.color,
               elevation: 4,
               shadowColor: Colors.black12,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18),
+                side: BorderSide(color: theme.dividerColor),
               ),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
@@ -66,10 +69,10 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                       children: [
                         CircleAvatar(
                           radius: 22,
-                          backgroundColor: primaryBlue.withOpacity(0.12),
-                          child: const Icon(
+                          backgroundColor: colorScheme.primary.withOpacity(0.12),
+                          child: Icon(
                             Icons.business_center_outlined,
-                            color: primaryBlue,
+                            color: colorScheme.primary,
                           ),
                         ),
                         SizedBox(width: 3.w),
@@ -78,6 +81,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           style: TextStyle(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -89,7 +93,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                       "Create an account to post jobs and manage candidates.",
                       style: TextStyle(
                         fontSize: 12.5.sp,
-                        color: Colors.black54,
+                        color: isDark ? Colors.grey[400] : Colors.black54,
                       ),
                     ),
 
@@ -99,13 +103,14 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                     Container(
                       padding: EdgeInsets.all(0.6.w),
                       decoration: BoxDecoration(
-                        color: bgColor,
+                        color: theme.scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: _tabButton(
+                              context,
                               "Email",
                               selected: isEmailSelected,
                               onTap: () {
@@ -118,6 +123,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           ),
                           Expanded(
                             child: _tabButton(
+                              context,
                               "Phone",
                               selected: !isEmailSelected,
                               onTap: () {
@@ -136,18 +142,18 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
 
                     // 🔹 FORM
                     if (isEmailSelected) ...[
-                      _label("Email"),
+                      _label(context, "Email"),
                       SizedBox(height: 0.8.h),
                       _inputField(keyboardType: TextInputType.emailAddress),
 
                       SizedBox(height: 2.5.h),
 
-                      _label("Password"),
+                      _label(context, "Password"),
                       SizedBox(height: 0.8.h),
                       _inputField(isPassword: true),
                     ] else ...[
                       if (!isOtpSent) ...[
-                        _label("Phone Number"),
+                        _label(context, "Phone Number"),
                         SizedBox(height: 0.8.h),
 
                         Row(
@@ -156,11 +162,14 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                             Container(
                               padding: EdgeInsets.symmetric(horizontal: 3.w),
                               decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
+                                border: Border.all(color: theme.dividerColor),
                                 borderRadius: BorderRadius.circular(12),
+                                color: theme.inputDecorationTheme.fillColor,
                               ),
                               child: DropdownButton<String>(
                                 value: selectedCountryCode,
+                                dropdownColor: theme.cardTheme.color,
+                                style: TextStyle(color: colorScheme.onSurface),
                                 underline: const SizedBox(),
                                 items: const [
                                   DropdownMenuItem(
@@ -201,7 +210,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           ],
                         ),
                       ] else ...[
-                        _label("Verification Code"),
+                        _label(context, "Verification Code"),
                         SizedBox(height: 0.8.h),
                         _inputField(
                           keyboardType: TextInputType.number,
@@ -241,7 +250,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryBlue,
+                          backgroundColor: colorScheme.primary,
                           padding: EdgeInsets.symmetric(vertical: 1.8.h),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -255,7 +264,8 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                               : "Send Verification Code",
                           style: TextStyle(
                             fontSize: 13.5.sp,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -271,7 +281,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                             "Already have an account?",
                             style: TextStyle(
                               fontSize: 11.5.sp,
-                              color: Colors.black54,
+                              color: isDark ? Colors.grey[400] : Colors.black54,
                             ),
                           ),
                           TextButton(
@@ -304,18 +314,27 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
   // ================= HELPERS =================
 
   Widget _tabButton(
+    BuildContext context,
     String text, {
     required bool selected,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 1.2.h),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
+          color: selected ? theme.cardTheme.color : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
+          boxShadow: selected ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+            ),
+          ] : null,
         ),
         child: Center(
           child: Text(
@@ -323,6 +342,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ),
@@ -330,10 +350,14 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
     );
   }
 
-  Widget _label(String text) {
+  Widget _label(BuildContext context, String text) {
     return Text(
       text,
-      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+      style: TextStyle(
+        fontSize: 12.sp, 
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
     );
   }
 
@@ -346,10 +370,6 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
       obscureText: isPassword,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
-      ),
     );
   }
 }

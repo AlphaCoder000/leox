@@ -24,7 +24,6 @@ class _CreateJobViewState extends State<CreateJobView> {
   @override
   Widget build(BuildContext context) {
     final jobsProvider = context.read<EmployerJobsProvider>();
-    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Create New Job")),
@@ -35,7 +34,7 @@ class _CreateJobViewState extends State<CreateJobView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionTitle("Job Details"),
+              _sectionTitle(context, "Job Details"),
 
               _field(
                 label: "Job Title",
@@ -85,16 +84,15 @@ class _CreateJobViewState extends State<CreateJobView> {
 
               SizedBox(height: 4.h),
 
-              SizedBox(
-                width: double.infinity,
+              Center(
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.post_add),
+                  icon: const Icon(Icons.check_circle_outline_rounded),
                   label: const Text("Post Job"),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 1.8.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    elevation: 4,
+                    shadowColor: Theme.of(
+                      context,
+                    ).primaryColor.withOpacity(0.4),
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
@@ -108,6 +106,27 @@ class _CreateJobViewState extends State<CreateJobView> {
                           postedOn: DateTime.now(),
                         ),
                       );
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 3.w),
+                              const Text("Job posted successfully!"),
+                            ],
+                          ),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+
                       Navigator.pop(context);
                     }
                   },
@@ -122,12 +141,16 @@ class _CreateJobViewState extends State<CreateJobView> {
 
   // ---------- UI HELPERS ----------
 
-  Widget _sectionTitle(String text) {
+  Widget _sectionTitle(BuildContext context, String text) {
     return Padding(
       padding: EdgeInsets.only(bottom: 2.h),
       child: Text(
         text,
-        style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontSize: 17.sp,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }
@@ -144,18 +167,19 @@ class _CreateJobViewState extends State<CreateJobView> {
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
-        decoration: _inputDecoration(label, helperText: helperText),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: "Enter ${label.toLowerCase()}",
+          helperText: helperText,
+          alignLabelWithHint: maxLines > 1,
+        ),
         validator: (v) => v == null || v.trim().isEmpty ? validator : null,
       ),
     );
   }
 
   InputDecoration _inputDecoration(String label, {String? helperText}) {
-    return InputDecoration(
-      labelText: label,
-      helperText: helperText,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
-    );
+    // Rely on global theme, just adding label
+    return InputDecoration(labelText: label, helperText: helperText);
   }
 }

@@ -15,65 +15,72 @@ class StatCard extends StatelessWidget {
     required this.icon,
   });
 
-  static const Color cardBg = Color.fromRGBO(255, 255, 255, 1);
-  static const Color borderColor = Color.fromRGBO(220, 225, 230, 1);
-  static const Color titleColor = Color.fromRGBO(0, 0, 0, 0.87);
-  static const Color subtitleColor = Color.fromRGBO(0, 0, 0, 0.55);
-  static const Color iconBg = Color.fromRGBO(66, 133, 244, 0.12);
-  static const Color iconColor = Color.fromRGBO(66, 133, 244, 1);
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: iconBg,
-            child: Icon(icon, color: iconColor, size: 20),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Card(
+          elevation: 3,
+          shadowColor: Colors.black.withOpacity(0.08),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
+          child: Padding(
+            padding: EdgeInsets.all(3.5.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ICON
+                Icon(icon, size: 22.sp, color: colorScheme.primary),
 
-          SizedBox(height: 1.5.h),
+                SizedBox(height: 1.h),
 
-          // Title
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11.5.sp,
-              color: subtitleColor,
-              fontWeight: FontWeight.w500,
+                // VALUE
+                Text(
+                  value.toString(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 19.sp,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+
+                SizedBox(height: 0.6.h),
+
+                // TITLE
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+
+                const Spacer(), // ⭐ absorbs remaining space safely
+                // SUBTITLE (smallest text at bottom)
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    height: 1.2, // 🔑 REDUCED line height
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ],
             ),
           ),
-
-          SizedBox(height: 0.8.h),
-
-          // Value
-          Text(
-            value.toString(),
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: titleColor,
-            ),
-          ),
-
-          SizedBox(height: 0.8.h),
-
-          // Subtitle
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 10.5.sp, color: subtitleColor),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
