@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:leox/utils/route_guard.dart';
 import 'package:leox/views/employee/employee_ai_resume_matcher.dart';
 import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/employee/employee_jobs_list_view.dart';
-import 'package:leox/views/employee/employee_profile_provider.dart';
-import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/employee/employee_profile_view.dart';
 import 'package:sizer/sizer.dart';
 
 enum EmployeeDrawerItem { dashboard, jobs, aiMatcher, profile }
@@ -238,11 +238,8 @@ class EmployeeDrawer extends StatelessWidget {
                 ),
                 onPressed: () {
                   Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                    (route) => false,
-                  );
+                  // Use RouteGuard to handle logout with proper cleanup
+                  RouteGuard.handleLogout(context);
                 },
                 child: const Text("Logout"),
               ),

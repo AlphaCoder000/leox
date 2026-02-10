@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 
 class EmployeeAiResumeMatcherView extends StatelessWidget {
   const EmployeeAiResumeMatcherView({super.key});
-
+  //demo writeup
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -24,7 +24,7 @@ class EmployeeAiResumeMatcherView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                color: colorScheme.onBackground,
+                color: colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 0.6.h),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../providers/employee/employee_jobs_provider.dart';
+import '../../providers/employee_providers/employee_jobs_provider.dart';
 import '../../widgets/employee_drawer.dart';
 import '../../widgets/employee_job_card.dart';
 import 'employee_job_details_view.dart';

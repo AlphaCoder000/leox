@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:leox/providers/employee/employee_auth_provider.dart';
+import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +24,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
   final otpController = TextEditingController();
 
   String selectedCountryCode = "+91";
+  String _sentPhoneNumber = ""; // Store phone number for OTP verification
 
   @override
   Widget build(BuildContext context) {
@@ -255,14 +256,16 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                           context.read<EmployeeAuthProvider>();
 
                                       if (!isEmailSelected && !isOtpSent) {
-                                        await provider.sendOtp(
-                                          "$selectedCountryCode${phoneController.text}",
-                                        );
+                                        final phone =
+                                            "$selectedCountryCode${phoneController.text}";
+                                        await provider.sendOtp(phone);
+                                        _sentPhoneNumber = phone;
                                         setState(() => isOtpSent = true);
                                       } else if (!isEmailSelected &&
                                           isOtpSent) {
                                         await provider.verifyOtp(
-                                          otpController.text,
+                                          phone: _sentPhoneNumber,
+                                          otp: otpController.text,
                                         );
                                       } else {
                                         await provider.loginWithEmail(

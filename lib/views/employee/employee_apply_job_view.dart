@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:leox/views/employee/employee_profile_provider.dart';
+import 'package:leox/views/employee/employee_profile_view.dart';
 import 'package:sizer/sizer.dart';
 import '../../models/job_model.dart';
 
@@ -16,7 +16,6 @@ class EmployeeApplyJobView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Apply Job")),
