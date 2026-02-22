@@ -3,7 +3,7 @@ import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/providers/employer_jobs_provider.dart';
 import 'package:leox/views/employer/create_job_view.dart';
 import 'package:leox/widgets/employer_drawer.dart';
-import 'package:leox/widgets/job_card.dart';
+import 'package:leox/widgets/employer_job_card.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -16,6 +16,15 @@ class EmployerJobsListView extends StatefulWidget {
 
 class _EmployerJobsListViewState extends State<EmployerJobsListView> {
   String query = "";
+
+  @override
+  void initState() {
+    super.initState();
+    // Load jobs when the view initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployerJobsProvider>().loadJobs();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +49,7 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
             MaterialPageRoute(builder: (_) => const CreateJobView()),
           );
         },
-        icon: const Icon(Icons.add),
+        icon: const Icon(Icons.add_rounded),
         label: const Text("Create Job"),
       ),
 
@@ -50,29 +59,81 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
             padding: EdgeInsets.all(4.w),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Search jobs by title or department",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                hintText: "Search jobs by title or department...",
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: query.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded),
+                        onPressed: () => setState(() => query = ""),
+                      )
+                    : null,
               ),
               onChanged: (v) => setState(() => query = v),
             ),
           ),
 
+          if (provider.isLoading)
+            const LinearProgressIndicator(),
+
+          if (provider.errorMessage != null)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+              child: Container(
+                padding: EdgeInsets.all(2.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    SizedBox(width: 2.w),
+                    Expanded(
+                      child: Text(
+                        provider.errorMessage!,
+                        style: TextStyle(color: Colors.red, fontSize: 11.sp),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           Expanded(
             child:
                 jobs.isEmpty
-                    ? const Center(
-                      child: Text(
-                        "No jobs found",
-                        style: TextStyle(fontSize: 16),
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 40.sp,
+                            color: Colors.grey.shade400,
+                          ),
+                          SizedBox(height: 1.h),
+                          Text(
+                            "No jobs found",
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
                     )
                     : ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 4.w),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 4.w,
+                        vertical: 1.h,
+                      ),
                       itemCount: jobs.length,
-                      itemBuilder: (_, i) => JobCard(job: jobs[i]),
+                      itemBuilder:
+                          (_, i) => Padding(
+                            padding: EdgeInsets.only(bottom: 2.h),
+                            child: JobCard(job: jobs[i]),
+                          ),
                     ),
           ),
         ],

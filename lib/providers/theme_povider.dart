@@ -5,6 +5,17 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeMode get themeMode => _themeMode;
 
+  bool get isDark {
+    switch (_themeMode) {
+      case ThemeMode.dark:
+        return true;
+      case ThemeMode.light:
+        return false;
+      case ThemeMode.system:
+        return WidgetsBinding.instance.window.platformBrightness == Brightness.dark;
+    }
+  }
+
   void setLight() {
     _themeMode = ThemeMode.light;
     notifyListeners();
@@ -17,6 +28,25 @@ class ThemeProvider extends ChangeNotifier {
 
   void setSystem() {
     _themeMode = ThemeMode.system;
+    notifyListeners();
+  }
+
+  void toggleTheme() {
+    switch (_themeMode) {
+      case ThemeMode.system:
+        setDark();
+        break;
+      case ThemeMode.dark:
+        setLight();
+        break;
+      case ThemeMode.light:
+        setSystem();
+        break;
+    }
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
     notifyListeners();
   }
 }

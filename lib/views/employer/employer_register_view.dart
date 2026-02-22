@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:leox/providers/employer_auth_provider.dart';
+import 'package:leox/views/employer/employer_dashboard_view.dart';
+import 'package:leox/views/employer/employer_login_view.dart';
 import 'package:leox/views/role_option_view.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
-import 'employer_login_view.dart';
 
 class EmployerRegisterView extends StatefulWidget {
   const EmployerRegisterView({super.key});
@@ -12,20 +14,84 @@ class EmployerRegisterView extends StatefulWidget {
 }
 
 class _EmployerRegisterViewState extends State<EmployerRegisterView> {
-  bool isEmailSelected = true;
-  bool isOtpSent = false; // 🔹 NEW
+  bool _isLoading = false;
+  final bool _obscurePassword = true;
+  final bool _obscureConfirmPassword = true;
+  
+  final TextEditingController _companyController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
-  String selectedCountryCode = "+91";
+  @override
+  void initState() {
+    super.initState();
+  }
 
-  static const primaryBlue = Color.fromRGBO(66, 133, 244, 1);
-  static const bgColor = Color.fromRGBO(245, 247, 250, 1);
+  @override
+  void dispose() {
+    _companyController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (_companyController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty ||
+        _confirmPasswordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await context.read<EmployerAuthProvider>().registerWithFirebaseEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      
+      // Navigate to dashboard on successful registration
+      if (mounted && context.read<EmployerAuthProvider>().isLoggedIn) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const EmployerDashboardView(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration failed: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-      // 🔹 APP BAR
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -37,263 +103,159 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
               MaterialPageRoute(builder: (_) => const RoleOptionView()),
             );
           },
-          icon: const Icon(Icons.home, color: Colors.black),
-          label: const Text(
-            "Change Role",
-            style: TextStyle(color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+          label: Text(
+            "Back",
+            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
           ),
         ),
       ),
-
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 6.w),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Card(
-              elevation: 4,
-              shadowColor: Colors.black12,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: SizedBox.expand(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 24.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    // 🔹 HEADER
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: primaryBlue.withOpacity(0.12),
-                          child: const Icon(
-                            Icons.business_center_outlined,
-                            color: primaryBlue,
-                          ),
-                        ),
-                        SizedBox(width: 3.w),
-                        Text(
-                          "Employer Registration",
-                          style: TextStyle(
-                            fontSize: 17.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: colorScheme.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                      child: Icon(
+                        Icons.business_center_outlined,
+                        color: colorScheme.primary,
+                      ),
                     ),
-
-                    SizedBox(height: 1.2.h),
-
+                    const SizedBox(width: 12),
                     Text(
-                      "Create an account to post jobs and manage candidates.",
+                      "Employer Registration",
                       style: TextStyle(
-                        fontSize: 12.5.sp,
-                        color: Colors.black54,
-                      ),
-                    ),
-
-                    SizedBox(height: 3.5.h),
-
-                    // 🔹 EMAIL / PHONE TOGGLE
-                    Container(
-                      padding: EdgeInsets.all(0.6.w),
-                      decoration: BoxDecoration(
-                        color: bgColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _tabButton(
-                              "Email",
-                              selected: isEmailSelected,
-                              onTap: () {
-                                setState(() {
-                                  isEmailSelected = true;
-                                  isOtpSent = false;
-                                });
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: _tabButton(
-                              "Phone",
-                              selected: !isEmailSelected,
-                              onTap: () {
-                                setState(() {
-                                  isEmailSelected = false;
-                                  isOtpSent = false;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: 3.h),
-
-                    // 🔹 FORM
-                    if (isEmailSelected) ...[
-                      _label("Email"),
-                      SizedBox(height: 0.8.h),
-                      _inputField(keyboardType: TextInputType.emailAddress),
-
-                      SizedBox(height: 2.5.h),
-
-                      _label("Password"),
-                      SizedBox(height: 0.8.h),
-                      _inputField(isPassword: true),
-                    ] else ...[
-                      if (!isOtpSent) ...[
-                        _label("Phone Number"),
-                        SizedBox(height: 0.8.h),
-
-                        Row(
-                          children: [
-                            // COUNTRY CODE
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 3.w),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: DropdownButton<String>(
-                                value: selectedCountryCode,
-                                underline: const SizedBox(),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: "+91",
-                                    child: Text("+91"),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "+1",
-                                    child: Text("+1"),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "+44",
-                                    child: Text("+44"),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "+61",
-                                    child: Text("+61"),
-                                  ),
-                                ],
-                                onChanged:
-                                    (v) => setState(
-                                      () => selectedCountryCode = v!,
-                                    ),
-                              ),
-                            ),
-
-                            SizedBox(width: 3.w),
-
-                            Expanded(
-                              child: _inputField(
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ] else ...[
-                        _label("Verification Code"),
-                        SizedBox(height: 0.8.h),
-                        _inputField(
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(6),
-                          ],
-                        ),
-
-                        SizedBox(height: 1.5.h),
-
-                        Center(
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() => isOtpSent = false);
-                            },
-                            child: const Text("Back"),
-                          ),
-                        ),
-                      ],
-                    ],
-
-                    SizedBox(height: 3.5.h),
-
-                    // 🔹 PRIMARY BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (!isEmailSelected && !isOtpSent) {
-                            setState(() => isOtpSent = true);
-                            // TODO: Firebase send OTP
-                          } else if (!isEmailSelected && isOtpSent) {
-                            // TODO: Firebase verify OTP & register
-                          } else {
-                            // TODO: Firebase email registration
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryBlue,
-                          padding: EdgeInsets.symmetric(vertical: 1.8.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          isEmailSelected
-                              ? "Sign Up with Email"
-                              : isOtpSent
-                              ? "Verify & Create Account"
-                              : "Send Verification Code",
-                          style: TextStyle(
-                            fontSize: 13.5.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 3.h),
-
-                    // 🔹 FOOTER
-                    Center(
-                      child: Column(
-                        children: [
-                          Text(
-                            "Already have an account?",
-                            style: TextStyle(
-                              fontSize: 11.5.sp,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const EmployerLoginView(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              "Sign in as Employer",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 12),
+                Text(
+                  "Create your employer account to manage jobs and review candidates.",
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: isDark ? Colors.grey[400] : Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildTextField("Company Name", _companyController),
+                      const SizedBox(height: 16),
+                      _buildTextField("Email", _emailController),
+                      const SizedBox(height: 16),
+                      _buildTextField("Password", _passwordController, isPassword: true),
+                      const SizedBox(height: 16),
+                      _buildTextField("Confirm Password", _confirmPasswordController, isPassword: true),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child:
+                              _isLoading
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      "Register",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      await context.read<EmployerAuthProvider>().signInWithGoogle();
+                    },
+                    icon: Image.asset(
+                      'assets/icons/google_logo.png',
+                      height: 24,
+                      errorBuilder:
+                          (context, error, stackTrace) =>
+                              const Icon(Icons.g_mobiledata, size: 24),
+                    ),
+                    label: const Text("Sign Up with Google"),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: theme.dividerColor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Already have an account?",
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: isDark ? Colors.grey[400] : Colors.black54,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EmployerLoginView(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Sign In",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -301,55 +263,42 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
     );
   }
 
-  // ================= HELPERS =================
-
-  Widget _tabButton(
-    String text, {
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 1.2.h),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _label(String text) {
-    return Text(
-      text,
-      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
-    );
-  }
-
-  Widget _inputField({
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
     bool isPassword = false,
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
   }) {
-    return TextField(
-      obscureText: isPassword,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.0,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          obscureText: isPassword,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Theme.of(context).dividerColor),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            filled: true,
+            fillColor:
+                Theme.of(context).inputDecorationTheme.fillColor ??
+                Colors.grey[100],
+          ),
+        ),
+      ],
     );
   }
 }
