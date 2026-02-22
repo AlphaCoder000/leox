@@ -1,414 +1,338 @@
-/// Firebase Service - Firebase Admin SDK Equivalent
-/// Equivalent to web app's src/lib/firebaseAdmin.server.ts
-/// Provides secure Firebase operations for Flutter app
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
+import '../models/job_model.dart';
+import '../models/employee_application_model.dart';
 
+/// Firebase Service - Centralized Database Operations
+/// 
+/// Handles all Firestore operations for jobs, applications, and profiles.
+/// Provides a clean interface between UI and Firebase backend.
 class FirebaseService {
-  static final FirebaseService _instance = FirebaseService._internal();
-  factory FirebaseService() => _instance;
-  FirebaseService._internal();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ======== AUTHENTICATION ========
+  // ======== JOB OPERATIONS ========
 
-  /// Get current authenticated user
-  User? get currentUser => _auth.currentUser;
-
-  /// Get user ID token for API calls
-  Future<String?> getIdToken() async {
+  /// Post a new job to Firestore
+  Future<void> postJob(JobModel job) async {
     try {
       final user = _auth.currentUser;
-      if (user != null) {
-        return await user.getIdToken();
-      }
-      return null;
-    } catch (e) {
-      debugPrint('[FirebaseService] Error getting ID token: $e');
-      return null;
-    }
-  }
-
-  /// Check if user is authenticated
-  bool get isAuthenticated => _auth.currentUser != null;
-
-  /// Get user claims for role-based access
-  Future<Map<String, dynamic>?> getUserClaims() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        final idTokenResult = await user.getIdTokenResult();
-        return idTokenResult.claims;
-      }
-      return null;
-    } catch (e) {
-      debugPrint('[FirebaseService] Error getting user claims: $e');
-      return null;
-    }
-  }
-
-  // ======== FIRESTORE OPERATIONS ========
-
-  /// Create document with server timestamp
-  Future<DocumentReference> createDocument(
-    String collection,
-    Map<String, dynamic> data,
-  ) async {
-    try {
-      final documentData = Map<String, dynamic>.from(data);
-      documentData['createdAt'] = FieldValue.serverTimestamp();
-      documentData['updatedAt'] = FieldValue.serverTimestamp();
-
-      return await _firestore.collection(collection).add(documentData);
-    } catch (e) {
-      debugPrint('[FirebaseService] Error creating document: $e');
-      rethrow;
-    }
-  }
-
-  /// Update document with server timestamp
-  Future<void> updateDocument(
-    String collection,
-    String documentId,
-    Map<String, dynamic> data,
-  ) async {
-    try {
-      final documentData = Map<String, dynamic>.from(data);
-      documentData['updatedAt'] = FieldValue.serverTimestamp();
-
-      await _firestore.collection(collection).doc(documentId).update(documentData);
-    } catch (e) {
-      debugPrint('[FirebaseService] Error updating document: $e');
-      rethrow;
-    }
-  }
-
-  /// Get document with error handling
-  Future<DocumentSnapshot?> getDocument(String collection, String documentId) async {
-    try {
-      return await _firestore.collection(collection).doc(documentId).get();
-    } catch (e) {
-      debugPrint('[FirebaseService] Error getting document: $e');
-      return null;
-    }
-  }
-
-  /// Query documents with error handling
-  Future<QuerySnapshot> queryDocuments(
-    String collection,
-    String field,
-    dynamic value, {
-    String? orderBy,
-    bool descending = false,
-    int? limit,
-  }) async {
-    try {
-      Query query = _firestore.collection(collection).where(field, isEqualTo: value);
-
-      if (orderBy != null) {
-        query = query.orderBy(orderBy, descending: descending);
+      if (user == null) {
+        throw Exception('User not authenticated');
       }
 
-      if (limit != null) {
-        query = query.limit(limit);
-      }
+      // Match the Firebase Jobs collection structure from your image
+      final jobData = {
+        'title': job.title,
+        'department': job.department,
+        'category': job.category,
+        'description': job.description,
+        'requirements': job.requirements,
+        'postedOn': Timestamp.fromDate(job.postedOn),
+        'employerId': user.uid,
+        'companyName': job.companyName,
+        'location': job.location,
+        'jobType': job.jobType,
+        'experienceLevel': job.experienceLevel,
+        'salaryRange': job.salaryRange,
+        'skills': job.skills,
+        'benefits': job.benefits,
+        'status': 'Open',
+        'postedBy': user.uid,
+        'applicationCount': 0,
+        'deadline': job.deadline != null ? Timestamp.fromDate(job.deadline!) : null,
+        'additionalInfo': job.additionalInfo,
+        'createdAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      };
 
-      return await query.get();
+      await _firestore.collection('jobs').add(jobData);
+      debugPrint('[FirebaseService] Job posted successfully: ${job.title}');
     } catch (e) {
-      debugPrint('[FirebaseService] Error querying documents: $e');
+      debugPrint('[FirebaseService] Error posting job: $e');
       rethrow;
     }
   }
 
-  /// Batch operations
-  Future<void> batchWrite(List<BatchOperation> operations) async {
-    try {
-      final batch = _firestore.batch();
-
-      for (final operation in operations) {
-        switch (operation.type) {
-          case BatchOperationType.create:
-            final docRef = _firestore.collection(operation.collection).doc();
-            batch.set(docRef, operation.data);
-            break;
-          case BatchOperationType.set:
-            final docRef = _firestore.collection(operation.collection).doc(operation.documentId);
-            batch.set(docRef, operation.data);
-            break;
-          case BatchOperationType.update:
-            final docRef = _firestore.collection(operation.collection).doc(operation.documentId);
-            batch.update(docRef, operation.data);
-            break;
-          case BatchOperationType.delete:
-            final docRef = _firestore.collection(operation.collection).doc(operation.documentId);
-            batch.delete(docRef);
-            break;
-        }
-      }
-
-      await batch.commit();
-      debugPrint('[FirebaseService] Batch operation completed successfully');
-    } catch (e) {
-      debugPrint('[FirebaseService] Error in batch operation: $e');
-      rethrow;
-    }
-  }
-
-  /// Transaction operation
-  Future<T> runTransaction<T>(
-    TransactionHandler<T> transactionHandler,
-  ) async {
-    try {
-      return await _firestore.runTransaction(transactionHandler);
-    } catch (e) {
-      debugPrint('[FirebaseService] Error in transaction: $e');
-      rethrow;
-    }
-  }
-
-  // ======== STORAGE OPERATIONS ========
-
-  /// Upload file to Firebase Storage
-  Future<String> uploadFile({
-    required String filePath,
-    required File file,
-    Map<String, String>? metadata,
-  }) async {
-    try {
-      final ref = _storage.ref().child(filePath);
-      
-      final uploadTask = ref.putFile(file);
-      
-      // Add metadata if provided
-      if (metadata != null) {
-        final metadataObj = SettableMetadata(
-          customMetadata: metadata,
-        );
-        await ref.putFile(file, metadataObj);
-      }
-
-      final downloadUrl = await ref.getDownloadURL();
-      debugPrint('[FirebaseService] File uploaded successfully: $downloadUrl');
-      return downloadUrl;
-    } catch (e) {
-      debugPrint('[FirebaseService] Error uploading file: $e');
-      rethrow;
-    }
-  }
-
-  /// Delete file from Firebase Storage
-  Future<void> deleteFile(String filePath) async {
-    try {
-      await _storage.ref().child(filePath).delete();
-      debugPrint('[FirebaseService] File deleted successfully: $filePath');
-    } catch (e) {
-      debugPrint('[FirebaseService] Error deleting file: $e');
-      rethrow;
-    }
-  }
-
-  /// Get file download URL
-  Future<String?> getDownloadUrl(String filePath) async {
-    try {
-      return await _storage.ref().child(filePath).getDownloadURL();
-    } catch (e) {
-      debugPrint('[FirebaseService] Error getting download URL: $e');
-      return null;
-    }
-  }
-
-  // ======== SECURITY & VALIDATION ========
-
-  /// Validate user permissions for document access
-  Future<bool> canAccessDocument(
-    String collection,
-    String documentId,
-    String requiredPermission,
-  ) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return false;
-
-      // Get user claims for role-based access
-      final claims = await getUserClaims();
-      if (claims == null) return false;
-
-      // Check document ownership or role-based permissions
-      final doc = await getDocument(collection, documentId);
-      if (doc == null || !doc.exists) return false;
-
-      final data = doc.data() as Map<String, dynamic>?;
-      if (data == null) return false;
-
-      // Owner can always access
-      if (data['ownerId'] == user.uid) return true;
-
-      // Check role-based permissions
-      final userRole = claims['role'] as String?;
-      if (userRole == 'admin') return true;
-
-      // Check specific permissions
-      switch (requiredPermission) {
-        case 'read':
-          return data['isPublic'] == true || 
-                 data['readers']?.contains(user.uid) == true;
-        case 'write':
-          return data['writers']?.contains(user.uid) == true;
-        case 'delete':
-          return data['owners']?.contains(user.uid) == true;
-        default:
-          return false;
-      }
-    } catch (e) {
-      debugPrint('[FirebaseService] Error checking document access: $e');
-      return false;
-    }
-  }
-
-  /// Create user profile with proper permissions
-  Future<void> createUserProfile({
-    required String userId,
-    required String role, // 'employee' or 'employer'
-    required Map<String, dynamic> profileData,
-  }) async {
-    try {
-      final userDoc = _firestore.collection('${role}s').doc(userId);
-      
-      final userData = Map<String, dynamic>.from(profileData);
-      userData.addAll({
-        'userId': userId,
-        'role': role,
-        'isActive': true,
-        'isVerified': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'permissions': _getDefaultPermissions(role),
-      });
-
-      await userDoc.set(userData);
-      debugPrint('[FirebaseService] User profile created for $role: $userId');
-    } catch (e) {
-      debugPrint('[FirebaseService] Error creating user profile: $e');
-      rethrow;
-    }
-  }
-
-  // ======== ANALYTICS & MONITORING ========
-
-  /// Log user activity
-  Future<void> logActivity({
-    required String userId,
-    required String action,
-    Map<String, dynamic>? details,
-  }) async {
-    try {
-      await _firestore.collection('activity_logs').add({
-        'userId': userId,
-        'action': action,
-        'details': details ?? {},
-        'timestamp': FieldValue.serverTimestamp(),
-        'userAgent': 'Flutter App',
-      });
-    } catch (e) {
-      debugPrint('[FirebaseService] Error logging activity: $e');
-    }
-  }
-
-  /// Get user activity logs
-  Future<List<Map<String, dynamic>>> getUserActivityLogs(
-    String userId, {
-    int limit = 50,
-  }) async {
+  /// Get all jobs posted by current employer
+  Future<List<JobModel>> getEmployerJobs() async {
     try {
       final snapshot = await _firestore
-          .collection('activity_logs')
-          .where('userId', isEqualTo: userId)
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
+          .collection('jobs')
+          .where('postedBy', isEqualTo: _auth.currentUser?.uid ?? '')
+          .orderBy('postedOn', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) => {
-        'id': doc.id,
-        ...doc.data(),
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return JobModel(
+          title: data['title'] ?? '',
+          department: data['department'] ?? '',
+          category: data['category'] ?? '',
+          description: data['description'] ?? '',
+          requirements: List<String>.from(data['requirements'] ?? []),
+          postedOn: (data['postedOn'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          employerId: data['employerId'] ?? data['postedBy'] ?? '', // Fallback
+          companyName: data['companyName'] ?? '',
+          location: data['location'] ?? '',
+          jobType: data['jobType'] ?? '',
+          experienceLevel: data['experienceLevel'] ?? '',
+          salaryRange: data['salaryRange'] ?? '',
+          skills: List<String>.from(data['skills'] ?? []),
+          benefits: List<String>.from(data['benefits'] ?? []),
+          status: data['status'] ?? '',
+          postedBy: data['postedBy'] ?? '',
+          applicationCount: data['applicationCount'] ?? 0,
+          deadline: (data['deadline'] as Timestamp?)?.toDate(),
+          additionalInfo: Map<String, dynamic>.from(data['additionalInfo'] ?? {}),
+        );
       }).toList();
     } catch (e) {
-      debugPrint('[FirebaseService] Error getting activity logs: $e');
+      debugPrint('[FirebaseService] Error getting employer jobs: $e');
       return [];
     }
   }
 
-  // ======== HELPER METHODS ========
-
-  Map<String, bool> _getDefaultPermissions(String role) {
-    switch (role) {
-      case 'employee':
-        return {
-          'canApplyJobs': true,
-          'canViewJobs': true,
-          'canUpdateProfile': true,
-          'canUploadResume': true,
-        };
-      case 'employer':
-        return {
-          'canPostJobs': true,
-          'canViewApplications': true,
-          'canUpdateProfile': true,
-          'canScheduleInterviews': true,
-        };
-      default:
-        return {};
+  /// Delete a job from Firebase
+  Future<void> deleteJob(String jobId) async {
+    try {
+      await _firestore.collection('jobs').doc(jobId).delete();
+      debugPrint('[FirebaseService] Job deleted successfully: $jobId');
+    } catch (e) {
+      debugPrint('[FirebaseService] Error deleting job: $e');
+      rethrow;
     }
   }
 
-  /// Check if user has specific permission
-  Future<bool> hasPermission(String permission) async {
+  /// Get all available jobs for employees to browse
+  Future<List<JobModel>> getAllJobs() async {
     try {
-      final claims = await getUserClaims();
-      if (claims == null) return false;
+      final snapshot = await _firestore
+          .collection('jobs')
+          .where('status', isEqualTo: 'Open') // Matches web app "Open" status
+          .orderBy('postedOn', descending: true)
+          .get();
 
-      final permissions = claims['permissions'] as Map<String, bool>?;
-      return permissions?[permission] ?? false;
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return JobModel(
+          title: data['title'] ?? '',
+          department: data['department'] ?? '',
+          category: data['category'] ?? '',
+          description: data['description'] ?? '',
+          requirements: List<String>.from(data['requirements'] ?? []),
+          postedOn: (data['postedOn'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          employerId: data['employerId'] ?? '',
+          companyName: data['companyName'] ?? '',
+          location: data['location'] ?? '',
+          jobType: data['jobType'] ?? '',
+          experienceLevel: data['experienceLevel'] ?? '',
+          salaryRange: data['salaryRange'] ?? '',
+          skills: List<String>.from(data['skills'] ?? []),
+          benefits: List<String>.from(data['benefits'] ?? []),
+          status: data['status'] ?? '',
+          postedBy: data['postedBy'] ?? '',
+          applicationCount: data['applicationCount'] ?? 0,
+          deadline: (data['deadline'] as Timestamp?)?.toDate(),
+          additionalInfo: Map<String, dynamic>.from(data['additionalInfo'] ?? {}),
+        );
+      }).toList();
     } catch (e) {
-      debugPrint('[FirebaseService] Error checking permission: $e');
-      return false;
+      debugPrint('[FirebaseService] Error getting all jobs: $e');
+      return [];
     }
   }
 
-  /// Get user role from claims
-  Future<String?> getUserRole() async {
+  /// Update a job in Firebase
+  Future<void> updateJob(JobModel job) async {
     try {
-      final claims = await getUserClaims();
-      return claims?['role'] as String?;
+      // In a real implementation, you'd need the job ID
+      // For now, this is a placeholder
+      debugPrint('[FirebaseService] Job update not implemented yet: ${job.title}');
     } catch (e) {
-      debugPrint('[FirebaseService] Error getting user role: $e');
+      debugPrint('[FirebaseService] Error updating job: $e');
+      rethrow;
+    }
+  }
+
+  // ======== APPLICATION OPERATIONS ========
+
+  /// Apply for a job
+  Future<void> applyForJob(String jobId, String coverLetter) async {
+    try {
+      final employeeId = _auth.currentUser?.uid ?? '';
+      final employeeEmail = _auth.currentUser?.email ?? '';
+      
+      // Get job details for denormalized data
+      final jobDoc = await _firestore.collection('jobs').doc(jobId).get();
+      final jobData = jobDoc.data() as Map<String, dynamic>;
+      
+      final application = EmployeeApplicationModel(
+        id: 'app_${DateTime.now().millisecondsSinceEpoch}',
+        employeeId: employeeId,
+        jobId: jobId,
+        jobTitle: jobData['title'] ?? '',
+        companyName: jobData['companyName'] ?? '',
+        postedBy: jobData['postedBy'] ?? '',
+        status: ApplicationStatus.applied,
+        appliedAt: DateTime.now(),
+        coverLetter: coverLetter.isNotEmpty ? coverLetter : null,
+      );
+
+      await _firestore.collection('applications').add(application.toJson());
+      
+      // Update job application count
+      await _firestore.collection('jobs').doc(jobId).update({
+        'applicationCount': FieldValue.increment(1),
+      });
+
+      debugPrint('[FirebaseService] Job application submitted: ${jobData['title']}');
+    } catch (e) {
+      debugPrint('[FirebaseService] Error applying for job: $e');
+      rethrow;
+    }
+  }
+
+  /// Get applications for current employee
+  Future<List<EmployeeApplicationModel>> getEmployeeApplications() async {
+    try {
+      final snapshot = await _firestore
+          .collection('applications')
+          .where('employeeId', isEqualTo: _auth.currentUser?.uid ?? '')
+          .orderBy('appliedAt', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return EmployeeApplicationModel.fromJson(data);
+      }).toList();
+    } catch (e) {
+      debugPrint('[FirebaseService] Error getting employee applications: $e');
+      return [];
+    }
+  }
+
+  /// Get applications for employer's jobs
+  Future<List<EmployeeApplicationModel>> getEmployerApplications() async {
+    try {
+      // Get all jobs by this employer
+      final jobsSnapshot = await _firestore
+          .collection('jobs')
+          .where('employerId', isEqualTo: _auth.currentUser?.uid ?? '')
+          .get();
+
+      final jobIds = jobsSnapshot.docs.map((doc) => doc.id).toList();
+
+      if (jobIds.isEmpty) return [];
+
+      // Get all applications for these jobs
+      final applicationsSnapshot = await _firestore
+          .collection('applications')
+          .where('jobId', whereIn: jobIds)
+          .orderBy('appliedAt', descending: true)
+          .get();
+
+      return applicationsSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return EmployeeApplicationModel.fromJson(data);
+      }).toList();
+    } catch (e) {
+      debugPrint('[FirebaseService] Error getting employer applications: $e');
+      return [];
+    }
+  }
+
+  /// Update application status
+  Future<void> updateApplicationStatus(String applicationId, ApplicationStatus status, {
+    String? interviewDate,
+    String? rejectionReason,
+  }) async {
+    try {
+      final updateData = {
+        'status': status.value,
+        'updatedAt': DateTime.now(),
+      };
+
+      if (interviewDate != null) {
+        updateData['interviewDate'] = interviewDate;
+      }
+
+      if (rejectionReason != null) {
+        updateData['rejectionReason'] = rejectionReason;
+      }
+
+      await _firestore.collection('applications').doc(applicationId).update(updateData);
+      debugPrint('[FirebaseService] Application status updated: $status');
+    } catch (e) {
+      debugPrint('[FirebaseService] Error updating application status: $e');
+      rethrow;
+    }
+  }
+
+  // ======== PROFILE OPERATIONS ========
+
+  /// Get employer profile
+  Future<Map<String, dynamic>?> getEmployerProfile() async {
+    try {
+      final doc = await _firestore
+          .collection('employers')
+          .doc(_auth.currentUser?.uid ?? '')
+          .get();
+      
+      return doc.data();
+    } catch (e) {
+      debugPrint('[FirebaseService] Error getting employer profile: $e');
       return null;
     }
   }
+
+  /// Get employee profile
+  Future<Map<String, dynamic>?> getEmployeeProfile() async {
+    try {
+      final doc = await _firestore
+          .collection('employees')
+          .doc(_auth.currentUser?.uid ?? '')
+          .get();
+      
+      return doc.data();
+    } catch (e) {
+      debugPrint('[FirebaseService] Error getting employee profile: $e');
+      return null;
+    }
+  }
+
+  /// Update employer profile
+  Future<void> updateEmployerProfile(Map<String, dynamic> data) async {
+    try {
+      await _firestore
+          .collection('employers')
+          .doc(_auth.currentUser?.uid ?? '')
+          .update({
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('[FirebaseService] Employer profile updated');
+    } catch (e) {
+      debugPrint('[FirebaseService] Error updating employer profile: $e');
+      rethrow;
+    }
+  }
+
+  /// Update employee profile
+  Future<void> updateEmployeeProfile(Map<String, dynamic> data) async {
+    try {
+      await _firestore
+          .collection('employees')
+          .doc(_auth.currentUser?.uid ?? '')
+          .update({
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('[FirebaseService] Employee profile updated');
+    } catch (e) {
+      debugPrint('[FirebaseService] Error updating employee profile: $e');
+      rethrow;
+    }
+  }
 }
-
-// ======== SUPPORTING CLASSES ========
-
-enum BatchOperationType { create, set, update, delete }
-
-class BatchOperation {
-  final BatchOperationType type;
-  final String collection;
-  final String? documentId;
-  final Map<String, dynamic> data;
-
-  BatchOperation({
-    required this.type,
-    required this.collection,
-    this.documentId,
-    required this.data,
-  });
-}
-
-typedef TransactionHandler<T> = Future<T> Function(Transaction transaction);

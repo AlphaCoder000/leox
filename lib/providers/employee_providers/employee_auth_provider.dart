@@ -1,17 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../services/employee_api_service.dart';
-import '../../services/api_service.dart';
-import '../../services/session_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:leox/services/session_service.dart';
 
 class EmployeeAuthProvider extends ChangeNotifier {
-  // ======== FIREBASE AUTH ========
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    // Updated to match google-services.json Web Client ID
+    clientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com', 
+    scopes: ['email', 'profile'],
+  );
+
   User? _firebaseUser;
   User? get firebaseUser => _firebaseUser;
 
-  // ======== STATE ========
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -21,13 +26,16 @@ class EmployeeAuthProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  String? _successMessage;
+  String? get successMessage => _successMessage;
+
   String? _userId;
   String? get userId => _userId;
 
   String? _userEmail;
   String? get userEmail => _userEmail;
 
-  String? _verificationId; // For phone OTP flow
+  String? _verificationId;
   String? get verificationId => _verificationId;
 
   // ======== CONSTRUCTOR ========
@@ -37,20 +45,35 @@ class EmployeeAuthProvider extends ChangeNotifier {
 
   /// Initialize Firebase Auth state listener
   void _initializeAuthState() {
-    // Listen to Firebase Auth state changes
-    _auth.authStateChanges().listen((User? user) {
-      _firebaseUser = user;
+    _auth.authStateChanges().listen((User? user) async {
+      debugPrint('[EmployeeAuthProvider] Auth state changed: ${user?.uid}');
+      
       if (user != null) {
-        _setLoggedIn(true, userId: user.uid, email: user.email);
-        debugPrint('[EmployeeAuthProvider] Firebase Auth state changed: User logged in');
+        // Quick login without Firestore check for better performance
+        _setLoggedIn(true);
+        _firebaseUser = user;
+        _userId = user.uid;
+        _userEmail = user.email;
+        
+        // Background role check (non-blocking)
+        _firestore.collection('users').doc(user.uid).get().then((userDoc) {
+          final role = userDoc.data()?['role'];
+          if (role != 'employee') {
+            _setLoggedIn(false);
+            debugPrint('[EmployeeAuthProvider] User role mismatch: $role, logging out');
+          }
+        });
       } else {
         _setLoggedIn(false);
-        debugPrint('[EmployeeAuthProvider] Firebase Auth state changed: User logged out');
+        _firebaseUser = null;
+        _userId = null;
+        _userEmail = null;
       }
+      notifyListeners();
     });
   }
 
-  // ======== PRIVATE METHODS ========
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
@@ -61,6 +84,11 @@ class EmployeeAuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _setSuccessMessage(String? message) {
+    _successMessage = message;
+    notifyListeners();
+  }
+
   void _setLoggedIn(bool value, {String? userId, String? email}) {
     _isLoggedIn = value;
     _userId = userId;
@@ -68,278 +96,8 @@ class EmployeeAuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ======== REGISTRATION ========
-
-  /// Register with email and password
-  ///
-  /// Calls: POST /auth/employee/register-email
-  /// On success: Saves session and sets logged in state
-  /// On error: Sets error message for UI display
-  Future<void> registerWithEmail({
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-  }) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      // Call API
-      final response = await EmployeeApiService.registerWithEmail(
-        email: email,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-      );
-
-      // LOG: Registration successful
-      debugPrint('[EmployeeAuthProvider] Registration successful for: $email');
-
-      // Get ID and token from response
-      final userId = response['id'] ?? response['userId'] ?? '';
-      final authToken =
-          response['token'] ?? response['authToken'] ?? 'temp_token';
-
-      // Save to session
-      await SessionService.saveSession(
-        role: 'employee',
-        userId: userId,
-        email: email,
-        authToken: authToken,
-        refreshToken: response['refreshToken'],
-      );
-
-      // Update local state
-      _setLoggedIn(true, userId: userId, email: email);
-
-      debugPrint('[EmployeeAuthProvider] Session saved, user logged in');
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeAuthProvider] Registration error: ${e.message}');
-    } catch (e) {
-      _setError('Registration failed: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Register with phone (initiate OTP flow)
-  ///
-  /// Calls: POST /auth/employee/register-phone
-  /// On success: Stores verification ID for next step (confirm OTP)
-  /// On error: Sets error message
-  Future<void> registerWithPhone({
-    required String phone,
-    required String firstName,
-    required String lastName,
-  }) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      final response = await EmployeeApiService.registerWithPhone(
-        phone: phone,
-        firstName: firstName,
-        lastName: lastName,
-      );
-
-      // LOG: OTP sent successfully
-      debugPrint('[EmployeeAuthProvider] OTP sent to phone: $phone');
-
-      // Store verification ID for next step
-      _verificationId = response['phoneVerificationId'];
-
-      notifyListeners();
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeAuthProvider] Phone registration error: ${e.message}');
-    } catch (e) {
-      _setError('Failed to send OTP: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // ======== LOGIN ========
-
-  /// Login with email and password
-  ///
-  /// Calls: POST /auth/employee/login-email
-  /// On success: Saves session and sets logged in state
-  /// On error: Sets error message for UI display
+  // 🔹 EMAIL LOGIN
   Future<void> loginWithEmail(String email, String password) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      // Call API
-      final response = await EmployeeApiService.loginWithEmail(
-        email: email,
-        password: password,
-      );
-
-      // LOG: Login successful
-      debugPrint('[EmployeeAuthProvider] Login successful for: $email');
-
-      // Get ID and token from response
-      final userId = response['id'] ?? response['userId'] ?? '';
-      final authToken =
-          response['token'] ?? response['authToken'] ?? 'temp_token';
-
-      // Save to session
-      await SessionService.saveSession(
-        role: 'employee',
-        userId: userId,
-        email: email,
-        authToken: authToken,
-        refreshToken: response['refreshToken'],
-      );
-
-      // Update local state
-      _setLoggedIn(true, userId: userId, email: email);
-
-      debugPrint('[EmployeeAuthProvider] Session saved, user logged in');
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeAuthProvider] Login error: ${e.message}');
-    } catch (e) {
-      _setError('Login failed: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // ======== OTP FLOW ========
-
-  /// Send OTP to phone for login
-  ///
-  /// Calls: POST /auth/employee/send-otp
-  /// On success: Stores verification ID for verification step
-  /// On error: Sets error message
-  Future<void> sendOtp(String phone) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      final response = await EmployeeApiService.sendLoginOtp(phone: phone);
-
-      // LOG: OTP sent successfully
-      debugPrint('[EmployeeAuthProvider] OTP sent to phone: $phone');
-
-      // Store verification ID for next step (verification)
-      _verificationId = response['phoneVerificationId'];
-
-      notifyListeners();
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeAuthProvider] Send OTP error: ${e.message}');
-    } catch (e) {
-      _setError('Failed to send OTP: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Verify OTP code (for login/registration)
-  ///
-  /// Note: This can be used for both login and registration depending on flow
-  /// For registration: Use with phone and _verificationId from registerWithPhone()
-  /// For login: Will be handled in Task 9
-  Future<void> verifyOtp({required String phone, required String otp}) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      final response = await EmployeeApiService.verifyOtp(
-        phone: phone,
-        otp: otp,
-        phoneVerificationId: _verificationId,
-      );
-
-      // LOG: OTP verification successful
-      debugPrint('[EmployeeAuthProvider] OTP verified for phone: $phone');
-
-      // Get ID and token from response
-      final userId = response['id'] ?? response['userId'] ?? '';
-      final authToken =
-          response['token'] ?? response['authToken'] ?? 'temp_token';
-      final userEmail = response['email'] ?? '';
-
-      // Save to session
-      await SessionService.saveSession(
-        role: 'employee',
-        userId: userId,
-        email: userEmail.isNotEmpty ? userEmail : phone,
-        authToken: authToken,
-        refreshToken: response['refreshToken'],
-      );
-
-      // Update local state
-      _setLoggedIn(true, userId: userId, email: userEmail);
-
-      // Clear verification ID after successful use
-      _verificationId = null;
-
-      debugPrint('[EmployeeAuthProvider] Session saved via OTP, user logged in');
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeAuthProvider] OTP verification error: ${e.message}');
-    } catch (e) {
-      _setError('OTP verification failed: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // ======== LOGOUT ========
-
-  /// Logout the user
-  ///
-  /// Clears Firebase Auth, session and local state
-  Future<void> logout() async {
-    try {
-      // Sign out from Firebase Auth
-      await _auth.signOut();
-      
-      // Clear local state
-      _isLoggedIn = false;
-      _userId = null;
-      _userEmail = null;
-      _verificationId = null;
-      _errorMessage = null;
-      
-      // Clear session from SharedPreferences
-      await SessionService.clearAuth();
-      
-      notifyListeners();
-
-      debugPrint('[EmployeeAuthProvider] User logged out successfully');
-    } catch (e) {
-      debugPrint('[EmployeeAuthProvider] Logout error: $e');
-      // Still clear local state even if Firebase logout fails
-      _isLoggedIn = false;
-      _userId = null;
-      _userEmail = null;
-      _verificationId = null;
-      _errorMessage = null;
-      await SessionService.clearAuth();
-      notifyListeners();
-    }
-  }
-
-  // ======== FIREBASE AUTH METHODS ========
-
-  /// Sign in with Firebase Auth (Email/Password)
-  Future<void> signInWithFirebase({
-    required String email,
-    required String password,
-  }) async {
     _setLoading(true);
     _setError(null);
 
@@ -349,14 +107,44 @@ class EmployeeAuthProvider extends ChangeNotifier {
         password: password,
       );
 
-      debugPrint('[EmployeeAuthProvider] Firebase Auth sign in successful: ${credential.user?.email}');
-      
-      // The auth state listener will automatically update the state
+      debugPrint(
+        '[EmployeeAuthProvider] Email login successful: ${credential.user?.email}',
+      );
+
+      final user = credential.user;
+      if (user != null) {
+        // Verify role or create profile if missing
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        
+        if (userDoc.exists) {
+          final data = userDoc.data();
+          if (data != null && data['role'] != 'employee') {
+             await _auth.signOut();
+             throw FirebaseAuthException(
+               code: 'invalid-role', 
+               message: 'This account is registered as an ${data['role']}, not an employee.'
+             );
+          }
+        } else {
+           // Profile missing - create it (Recovery)
+           await _createEmployeeProfile(user);
+        }
+
+        // Save session with real Firebase user data
+        await SessionService.saveSession(
+          role: "employee",
+          userId: user.uid,
+          email: user.email ?? "",
+          authToken: await user.getIdToken() ?? "",
+        );
+      }
+
+      // Auth state listener will automatically update state
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Authentication failed';
+      String errorMessage = 'Login failed';
       switch (e.code) {
         case 'user-not-found':
-          errorMessage = 'No user found with this email';
+          errorMessage = 'No employee account found with this email';
           break;
         case 'wrong-password':
           errorMessage = 'Incorrect password';
@@ -365,44 +153,258 @@ class EmployeeAuthProvider extends ChangeNotifier {
           errorMessage = 'Invalid email address';
           break;
         case 'user-disabled':
-          errorMessage = 'User account has been disabled';
+          errorMessage = 'Employee account has been disabled';
           break;
         case 'too-many-requests':
           errorMessage = 'Too many failed attempts. Try again later';
           break;
       }
       _setError(errorMessage);
-      debugPrint('[EmployeeAuthProvider] Firebase Auth error: ${e.code} - $errorMessage');
+      debugPrint(
+        '[EmployeeAuthProvider] Email login error: ${e.code} - $errorMessage',
+      );
     } catch (e) {
-      _setError('Authentication failed: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected Firebase Auth error: $e');
+      _setError('Login failed: $e');
+      debugPrint('[EmployeeAuthProvider] Unexpected email login error: $e');
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Register with Firebase Auth (Email/Password)
-  Future<void> registerWithFirebase({
+  // 🔹 SEND OTP
+  Future<void> sendOtp(String phone) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+
+          // Save session with Firebase user data
+          final user = _auth.currentUser;
+          if (user != null) {
+            final idToken = await user.getIdToken();
+            await SessionService.saveSession(
+              role: "employee",
+              userId: user.uid,
+              email: user.email ?? "",
+              authToken: idToken ?? "",
+            );
+          }
+
+          debugPrint(
+            '[EmployeeAuthProvider] Phone OTP verification successful',
+          );
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          String errorMessage = 'Phone verification failed';
+          switch (e.code) {
+            case 'invalid-phone-number':
+              errorMessage = 'Invalid phone number';
+              break;
+            case 'too-many-requests':
+              errorMessage = 'Too many OTP requests. Try again later';
+              break;
+            case 'quota-exceeded':
+              errorMessage = 'SMS quota exceeded';
+              break;
+          }
+          _setError(errorMessage);
+          debugPrint(
+            '[EmployeeAuthProvider] OTP send error: ${e.code} - $errorMessage',
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _setLoading(false);
+          debugPrint('[EmployeeAuthProvider] OTP sent to $phone');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+          debugPrint('[EmployeeAuthProvider] OTP auto-retrieval timeout');
+        },
+      );
+    } catch (e) {
+      _setError('Failed to send OTP: $e');
+      debugPrint('[EmployeeAuthProvider] Unexpected OTP send error: $e');
+      _setLoading(false);
+    }
+  }
+
+  // 🔹 VERIFY OTP
+  Future<void> verifyOtp(String otp) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId!,
+        smsCode: otp,
+      );
+
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
+      // Save session with Firebase user data
+      final user = userCredential.user;
+      if (user != null) {
+        final idToken = await user.getIdToken();
+        await SessionService.saveSession(
+          role: "employee",
+          userId: user.uid,
+          email: user.email ?? "",
+          authToken: idToken ?? "",
+        );
+      }
+
+      debugPrint('[EmployeeAuthProvider] OTP verification successful');
+
+      // Clear verification ID after successful use
+      _verificationId = null;
+
+      // Auth state listener will automatically update state
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'OTP verification failed';
+      switch (e.code) {
+        case 'invalid-verification-code':
+          errorMessage = 'Invalid OTP code';
+          break;
+        case 'session-expired':
+          errorMessage = 'OTP has expired. Please request a new one';
+          break;
+        case 'quota-exceeded':
+          errorMessage = 'Too many failed attempts. Try again later';
+          break;
+      }
+      _setError(errorMessage);
+      debugPrint(
+        '[EmployeeAuthProvider] OTP verification error: ${e.code} - $errorMessage',
+      );
+    } catch (e) {
+      _setError('OTP verification failed: $e');
+      debugPrint(
+        '[EmployeeAuthProvider] Unexpected OTP verification error: $e',
+      );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // ======== GOOGLE SIGN-IN ========
+
+  /// Sign in with Google
+ Future<void> signInWithGoogle() async {
+  _setLoading(true);
+  _setError(null);
+
+  try {
+    // Use class instance
+
+    // Ensure Google Sign In is signed out first to force account picker
+    await _googleSignIn.signOut();
+    
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+    if (googleUser == null) {
+      _setError('Google Sign-In cancelled');
+      return;
+    }
+
+    final googleAuth = await googleUser.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      idToken: googleAuth.idToken,
+    );
+
+    final userCredential =
+        await FirebaseAuth.instance.signInWithCredential(credential);
+
+    final user = userCredential.user;
+
+    if (user != null) {
+      // Check if profile exists, if not create it (this handles first-time Google sign-in)
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      
+      if (userDoc.exists) {
+         final data = userDoc.data();
+         if (data != null && data['role'] != 'employee') {
+            await _auth.signOut();
+            _setError('This account is registered as an ${data['role']}, not an employee.');
+            return;
+         }
+      } else {
+        await _createEmployeeProfile(user);
+        debugPrint('[EmployeeAuthProvider] Created new employee profile for Google user');
+      }
+
+      final idToken = await user.getIdToken();
+      await SessionService.saveSession(
+        role: "employee",
+        userId: user.uid,
+        email: user.email ?? "",
+        authToken: idToken ?? "",
+      );
+    }
+  } catch (e) {
+    _setError("Google Sign-In failed: $e");
+  } finally {
+    _setLoading(false);
+  }
+}
+
+
+  /// Sign up with Google (for registration)
+  Future<void> signUpWithGoogle() async {
+    await signInWithGoogle(); // Same logic for sign up and sign in
+  }
+
+  // ======== FIREBASE EMAIL REGISTRATION ========
+
+  /// Register with Firebase Auth
+  Future<void> registerWithFirebaseEmail({
     required String email,
     required String password,
-    required String firstName,
-    required String lastName,
   }) async {
     _setLoading(true);
     _setError(null);
 
     try {
-      final UserCredential credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      // Create user with Firebase Auth
+      final UserCredential credential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      debugPrint(
+        '[EmployeeAuthProvider] Firebase Auth registration successful: ${credential.user?.email}',
       );
 
-      // Update user profile with name
-      await credential.user?.updateDisplayName('$firstName $lastName');
+      // Save session with Firebase user data
+      final idToken = await credential.user?.getIdToken();
+      await SessionService.saveSession(
+        role: "employee",
+        userId: credential.user?.uid ?? "",
+        email: credential.user?.email ?? "",
+        authToken: idToken ?? "",
+      );
 
-      debugPrint('[EmployeeAuthProvider] Firebase Auth registration successful: ${credential.user?.email}');
+      // Create employee profile in Firestore
+      await _createEmployeeProfile(credential.user!);
+
+      // Set success message for UI feedback
+      _setSuccessMessage('Registration successful! Welcome to LeoRecruit.');
       
-      // The auth state listener will automatically update the state
+      // Manually update auth state to trigger immediate login
+      _firebaseUser = credential.user;
+      _userId = credential.user!.uid;
+      _userEmail = credential.user!.email;
+      _isLoggedIn = true;
+      
+      notifyListeners();
+      debugPrint('[EmployeeAuthProvider] Registration successful - user logged in immediately');
+
+      // Auth state listener will also update state
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'Registration failed';
       switch (e.code) {
@@ -420,20 +422,126 @@ class EmployeeAuthProvider extends ChangeNotifier {
           break;
       }
       _setError(errorMessage);
-      debugPrint('[EmployeeAuthProvider] Firebase Auth registration error: ${e.code} - $errorMessage');
+      debugPrint(
+        '[EmployeeAuthProvider] Firebase Auth registration error: ${e.code} - $errorMessage',
+      );
     } catch (e) {
       _setError('Registration failed: $e');
-      debugPrint('[EmployeeAuthProvider] Unexpected Firebase Auth registration error: $e');
+      debugPrint(
+        '[EmployeeAuthProvider] Unexpected Firebase Auth registration error: $e',
+      );
     } finally {
       _setLoading(false);
     }
   }
+
+  // Create employee profile in Firestore
+  Future<void> _createEmployeeProfile(User user) async {
+    try {
+      final employeeProfile = {
+        'uid': user.uid,
+        'email': user.email,
+        'role': 'employee',
+        'isVerified': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'searchTerms': [user.email?.toLowerCase() ?? ''],
+      };
+
+      // Create employee profile in employees collection
+      await _firestore
+          .collection('employees')
+          .doc(user.uid)
+          .set(employeeProfile);
+
+      // Also create user document for Firebase rules
+      final userDoc = {
+        'id': user.uid,
+        'email': user.email,
+        'role': 'employee',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(userDoc);
+
+      debugPrint(
+        '[EmployeeAuthProvider] Employee profile created in Firestore',
+      );
+
+      // Show success message
+      _showSuccessMessage('Registration successful! Welcome to Leox');
+    } catch (e) {
+      debugPrint('[EmployeeAuthProvider] Error creating employee profile: $e');
+      // Don't fail registration if profile creation fails
+    }
+  }
+
+  // Check if profile exists and repair if missing (for already logged-in users)
+  Future<void> _checkAndRepairProfile(User user) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (!userDoc.exists) {
+        await _createEmployeeProfile(user);
+        debugPrint('[EmployeeAuthProvider] Repaired missing employee profile for ${user.uid}');
+      }
+    } catch (e) {
+      debugPrint('[EmployeeAuthProvider] Profile repair check failed: $e');
+    }
+  }
+
+  /// Show success message
+  void _showSuccessMessage(String message) {
+    _setSuccessMessage(message);
+    debugPrint('[EmployeeAuthProvider] Success: $message');
+  }
+
+  // ======== LOGOUT ========
+
+  /// Logout employee user
+  ///
+  /// Clears Firebase Auth, session and local state
+  Future<void> logout() async {
+    try {
+      // 1️⃣ Clear session first
+      await SessionService.clearAuth();
+
+      // 2️⃣ Sign out from Firebase
+      await _googleSignIn.signOut();
+      await _auth.signOut();
+
+      // 3️⃣ Force reset everything
+      _firebaseUser = null;
+      _isLoggedIn = false;
+      _userId = null;
+      _userEmail = null;
+      _verificationId = null;
+      _errorMessage = null;
+
+      // 4️⃣ Reset profile provider to prevent cross-contamination
+      // Note: This will be called from UI context
+      notifyListeners();
+
+      debugPrint('[EmployeeAuthProvider] Logout completed and state reset');
+    } catch (e) {
+      debugPrint('[EmployeeAuthProvider] Logout error: $e');
+    }
+  }
+
 
   // ======== HELPERS ========
 
   /// Clear error message (call after showing error to UI)
   void clearError() {
     _setError(null);
+  }
+
+  /// Clear success message (call after showing success to UI)
+  void clearSuccessMessage() {
+    _setSuccessMessage(null);
   }
 
   /// Check if user has pending phone OTP (waiting for verification code)

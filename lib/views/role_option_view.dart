@@ -4,6 +4,7 @@ import 'package:leox/views/employee/employee_login_view.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
 import 'package:leox/views/privacy_policy_view.dart';
 import 'package:leox/views/terms_of_service_view.dart';
+import 'package:leox/views/welcome_view.dart';
 import 'package:sizer/sizer.dart';
 
 class RoleOptionView extends StatelessWidget {
@@ -23,7 +24,11 @@ class RoleOptionView extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeView()),
+            (route) => false,
+          ),
         ),
       ),
 
@@ -142,7 +147,7 @@ class RoleOptionView extends StatelessWidget {
               Center(
                 child: CircleAvatar(
                   radius: 30,
-                  backgroundColor: theme.primaryColor.withOpacity(0.15),
+                  backgroundColor: Colors.black.withAlpha(5),
                   child: Icon(icon, size: 30, color: theme.primaryColor),
                 ),
               ),

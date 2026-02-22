@@ -18,9 +18,18 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
   String query = "";
 
   @override
+  void initState() {
+    super.initState();
+    // Load jobs when the view initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployeeJobsProvider>().loadJobs();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<EmployeeJobsProvider>();
-    final jobs = provider.search(query);
+    final jobs = provider.searchJobs(query);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -40,7 +49,7 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
               "Browse and apply for jobs.",
               style: TextStyle(
                 fontSize: 12.5.sp,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
             ),
 

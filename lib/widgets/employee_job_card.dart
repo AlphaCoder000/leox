@@ -35,7 +35,7 @@ class EmployeeJobCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _statusChip(job.status),
+                _statusChip(context, job.status),
               ],
             ),
 
@@ -71,13 +71,13 @@ class EmployeeJobCard extends StatelessWidget {
     );
   }
 
-  Widget _statusChip(String status) {
+  Widget _statusChip(BuildContext context, String status) {
     final isOpen = status.toLowerCase() == "open";
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.4.h),
       decoration: BoxDecoration(
-        color: isOpen ? Colors.blue.withOpacity(0.1) : Colors.grey.shade300,
+        color: isOpen ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

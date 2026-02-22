@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "340682426505",
+    "firebase_url": "https://studio-7488920972-4ef9c-default-rtdb.firebaseio.com",
+    "project_id": "studio-7488920972-4ef9c",
+    "storage_bucket": "studio-7488920972-4ef9c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340682426505:android:922212c20eff9fb0135e58",
+        "android_client_info": {
+          "package_name": "com.example.leox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "340682426505-a78q5kk98ird4kh2emig2327aonakmbl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.leox",
+            "certificate_hash": "0405dab3f60e444c5c0c35313160449495ae97dc"
+          }
+        },
+        {
+          "client_id": "340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNVp_4-eg-QNAlAWY612osmTcOLVrcGXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

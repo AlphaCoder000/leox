@@ -24,7 +24,8 @@ class StatCard extends StatelessWidget {
       builder: (context, constraints) {
         return Card(
           elevation: 3,
-          shadowColor: Colors.black.withOpacity(0.08),
+          shadowColor: Colors.white.withValues(alpha: 0.65),
+
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -73,7 +74,7 @@ class StatCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11.sp,
                     height: 1.2, // 🔑 REDUCED line height
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],

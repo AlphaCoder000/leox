@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/employee/employee_dashboard_view.dart';
+import 'package:leox/views/employer/employer_dashboard_view.dart';
+import 'package:leox/providers/theme_povider.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../providers/welcome_provider.dart';
 import '../models/resource_model.dart';
@@ -13,8 +19,57 @@ class WelcomeView extends StatefulWidget {
 
 class _WelcomeViewState extends State<WelcomeView> {
   @override
-  @override
   Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final user = snapshot.data;
+
+        // If user is logged in, check role and navigate to appropriate dashboard
+        if (user != null) {
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get(),
+            builder: (context, roleSnapshot) {
+              if (!roleSnapshot.hasData) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final data = roleSnapshot.data!.data() as Map<String, dynamic>?;
+              final role = data?['role'];
+
+              if (role == 'employer') {
+                return const EmployerDashboardView();
+              }
+
+              if (role == 'employee') {
+                return const EmployeeDashboardView();
+              }
+
+              // If role is not found, show welcome screen
+              return _buildWelcomeContent(context);
+            },
+          );
+        }
+
+        // If user is not logged in, show welcome screen
+        return _buildWelcomeContent(context);
+      },
+    );
+  }
+
+  Widget _buildWelcomeContent(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -130,11 +185,11 @@ class _WelcomeViewState extends State<WelcomeView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 🔹 SMALL PILL
+          // SMALL PILL
           Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -149,7 +204,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
           SizedBox(height: 2.h),
 
-          // 🔹 MAIN HEADING
+          // MAIN HEADING
           Text(
             "Everything you need to streamline hiring.",
             textAlign: TextAlign.center,
@@ -162,7 +217,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
           SizedBox(height: 1.5.h),
 
-          // 🔹 SUB HEADING
+          // SUB HEADING
           Text(
             "From AI-powered resume screening to a centralized candidate database, "
             "LeoRecruit provides the tools to build your dream team.",
@@ -176,7 +231,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
           SizedBox(height: 4.h),
 
-          // 🔹 FEATURE CARDS
+          // FEATURE CARDS
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -206,7 +261,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                         Container(
                           padding: EdgeInsets.all(2.w),
                           decoration: BoxDecoration(
-                            color: colorScheme.primary.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
@@ -252,7 +307,7 @@ class _WelcomeViewState extends State<WelcomeView> {
     );
   }
 
-  // 🔹 RESOURCES
+  // RESOURCES
   Widget _resourcesSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -263,12 +318,12 @@ class _WelcomeViewState extends State<WelcomeView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔹 TOP LABEL
+          // TOP LABEL
           Center(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -406,12 +461,157 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   // 🔹 FOOTER
   Widget _footer(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Column(
         children: [
           const Divider(),
           SizedBox(height: 1.h),
+          
+          // Theme Mode Selector
+          Container(
+            padding: EdgeInsets.all(3.w),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: theme.dividerColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'App Theme',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: 1.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final themeProvider = context.read<ThemeProvider>();
+                          themeProvider.setLight();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(2.w),
+                          decoration: BoxDecoration(
+                            color: isDark ? theme.cardColor : colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.light_mode,
+                                size: 16.sp,
+                                color: isDark ? colorScheme.primary : Colors.white,
+                              ),
+                              SizedBox(width: 2.w),
+                              Text(
+                                'Light',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? colorScheme.primary : Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 2.w),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final themeProvider = context.read<ThemeProvider>();
+                          themeProvider.setDark();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(2.w),
+                          decoration: BoxDecoration(
+                            color: !isDark ? theme.cardColor : colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.dark_mode,
+                                size: 16.sp,
+                                color: !isDark ? colorScheme.primary : Colors.white,
+                              ),
+                              SizedBox(width: 2.w),
+                              Text(
+                                'Dark',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: !isDark ? colorScheme.primary : Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 2.w),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final themeProvider = context.read<ThemeProvider>();
+                          themeProvider.setSystem();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(2.w),
+                          decoration: BoxDecoration(
+                            color: theme.brightness == ThemeMode.system 
+                                ? theme.cardColor 
+                                : colorScheme.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.settings_system_daydream,
+                                size: 16.sp,
+                                color: theme.brightness == ThemeMode.system 
+                                    ? colorScheme.primary 
+                                    : Colors.white,
+                              ),
+                              SizedBox(width: 2.w),
+                              Text(
+                                'System',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.brightness == ThemeMode.system 
+                                      ? colorScheme.primary 
+                                      : Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 2.h),
+              ],
+            ),
+          ),
+          
+          const Divider(),
+          SizedBox(height: 2.h),
+          
+          // Original Footer
           Text(
             "© 2024 LeoRecruit",
             style: TextStyle(

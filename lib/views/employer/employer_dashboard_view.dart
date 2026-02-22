@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/providers/theme_povider.dart';
+import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +11,22 @@ import '../../providers/employer_dashboard_provider.dart';
 import '../../widgets/employer_drawer.dart';
 import '../../widgets/stat_card.dart';
 
-class EmployerDashboardView extends StatelessWidget {
+class EmployerDashboardView extends StatefulWidget {
   const EmployerDashboardView({super.key});
+
+  @override
+  State<EmployerDashboardView> createState() => _EmployerDashboardViewState();
+}
+
+class _EmployerDashboardViewState extends State<EmployerDashboardView> {
+  @override
+  void initState() {
+    super.initState();
+    // Load dashboard data when view initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployerDashboardProvider>().loadDashboard();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +70,7 @@ class EmployerDashboardView extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              onSelected: (value) {
+              onSelected: (value) async {
                 if (value == 'profile') {
                   Navigator.push(
                     context,
@@ -64,6 +79,7 @@ class EmployerDashboardView extends StatelessWidget {
                     ),
                   );
                 } else if (value == 'logout') {
+                  await context.read<EmployerAuthProvider>().logout();
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const RoleOptionView()),
@@ -130,7 +146,7 @@ class EmployerDashboardView extends StatelessWidget {
               "Here is your recruitment summary.",
               style: TextStyle(
                 fontSize: 12.sp,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
             ),
 
@@ -192,7 +208,7 @@ class EmployerDashboardView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -201,20 +217,20 @@ class EmployerDashboardView extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 4.w),
               child: Column(
                 children: [
-                  _pipelineItem(context, "Applied", 12, Colors.blue),
+                  _pipelineItem(context, "Applied", dashboard.pending, Colors.blue),
+                  _pipelineItem(
+                    context,
+                    "Reviewed",
+                    dashboard.reviewed,
+                    Colors.purple,
+                  ),
                   _pipelineItem(
                     context,
                     "Shortlisted",
                     dashboard.shortlisted,
                     Colors.orange,
                   ),
-                  _pipelineItem(
-                    context,
-                    "Interview Scheduled",
-                    3,
-                    Colors.purple,
-                  ),
-                  _pipelineItem(context, "Interviewed", 2, Colors.teal),
+                  _pipelineItem(context, "Interviewed", 0, Colors.teal), // TODO: Add interviewed count
                   _pipelineItem(
                     context,
                     "Hired",
@@ -224,7 +240,7 @@ class EmployerDashboardView extends StatelessWidget {
                   _pipelineItem(
                     context,
                     "Rejected",
-                    4,
+                    dashboard.rejected,
                     Colors.red,
                     isLast: true,
                   ),
@@ -252,13 +268,13 @@ class EmployerDashboardView extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 1.5.h),
-      decoration:
-          isLast
+      decoration: isLast
               ? null
               : BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: theme.dividerColor.withOpacity(0.5),
+                    color: theme.dividerColor.withValues(alpha: 0.5),
+                    //alpha: 0.5,
                   ),
                 ),
               ),
@@ -286,11 +302,11 @@ class EmployerDashboardView extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 2.5.w, vertical: 0.5.h),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              count.toString(),
+              count.toInt().toString(),
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,

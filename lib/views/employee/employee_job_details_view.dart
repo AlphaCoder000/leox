@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:leox/views/employee/employee_apply_job_view.dart';
+import 'package:leox/views/employee/job_application_view.dart';
 import 'package:sizer/sizer.dart';
 import '../../models/job_model.dart';
+import '../../models/job_posting_model.dart';
 
 class EmployeeJobDetailsView extends StatelessWidget {
   final JobModel job;
@@ -35,7 +36,9 @@ class EmployeeJobDetailsView extends StatelessWidget {
               job.department,
               style: TextStyle(
                 fontSize: 12.5.sp,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
 
@@ -133,10 +136,33 @@ class EmployeeJobDetailsView extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  // Map `JobModel` to `JobPostingModel` for compatibility with JobApplicationView
+                  final posting = JobPostingModel(
+                    id: '',
+                    title: job.title,
+                    department: job.department,
+                    category: job.category,
+                    description: job.description,
+                    employerId: job.employerId,
+                    companyName: job.companyName,
+                    location: job.location,
+                    jobType: job.jobType,
+                    experienceLevel: job.experienceLevel,
+                    salary: job.salaryRange,
+                    requirements: job.requirements,
+                    skills: job.skills,
+                    benefits: job.benefits,
+                    status: job.status,
+                    postedAt: job.postedOn,
+                    deadline: job.deadline,
+                    applicationCount: job.applicationCount,
+                    additionalInfo: job.additionalInfo,
+                  );
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EmployeeApplyJobView(job: job),
+                      builder: (context) => JobApplicationView(job: posting),
                     ),
                   );
                 },

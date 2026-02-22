@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/views/employer/employer_ai_resume_matcher.dart';
-import 'package:leox/views/employer/employer_candidates_view.dart';
+import 'package:leox/views/employer/candidates_view.dart';
 import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/employer/employer_jobs_list_view.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
@@ -37,7 +37,7 @@ class EmployerDrawer extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(2.5.w),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.15),
+                    color: colorScheme.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -92,7 +92,7 @@ class EmployerDrawer extends StatelessWidget {
                   title: "Candidates",
                   isSelected: selectedItem == EmployerDrawerItem.candidates,
                   onTap:
-                      () => _navigate(context, const EmployerCandidatesView()),
+                      () => _navigate(context, const CandidatesView()),
                 ),
 
                 _drawerItem(
@@ -133,7 +133,7 @@ class EmployerDrawer extends StatelessWidget {
               "v1.0.0",
               style: TextStyle(
                 fontSize: 10.sp,
-                color: Colors.white.withOpacity(0.45),
+                color: Colors.white.withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -157,7 +157,7 @@ class EmployerDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 0.6.h),
       child: Material(
         elevation: isSelected ? 8 : 0,
-        shadowColor: colorScheme.primary.withOpacity(0.45),
+        shadowColor: colorScheme.primary.withAlpha(38),
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: InkWell(
@@ -177,7 +177,7 @@ class EmployerDrawer extends StatelessWidget {
                   color:
                       isSelected
                           ? Colors.white
-                          : Colors.white.withOpacity(0.65),
+                          : Colors.white.withValues(alpha: 0.65),
                 ),
                 SizedBox(width: 4.w),
                 Text(
@@ -188,7 +188,7 @@ class EmployerDrawer extends StatelessWidget {
                     color:
                         isSelected
                             ? Colors.white
-                            : Colors.white.withOpacity(0.85),
+                            : Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ],

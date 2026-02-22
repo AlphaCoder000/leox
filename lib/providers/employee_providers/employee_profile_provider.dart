@@ -1,11 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/employee_profile_model.dart';
-import '../../services/employee_profile_api_service.dart';
-import '../../services/api_service.dart';
-import '../../services/session_service.dart';
+import '../../services/profile_service.dart';
+import '../../services/storage_service.dart';
 
 class EmployeeProfileProvider extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ProfileService _profileService = ProfileService();
+  final StorageService _storageService = StorageService();
+  
   // ======== STATE ========
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -22,479 +29,304 @@ class EmployeeProfileProvider extends ChangeNotifier {
   List<String> _completionSuggestions = [];
   List<String> get completionSuggestions => _completionSuggestions;
 
-  final bool _isPublic = true;
-  bool get isPublic => _isPublic;
+  // ======== METHODS ========
+  
+  /// Reset provider state (call on logout)
+  void reset() {
+    _profile = null;
+    _errorMessage = null;
+    _isLoading = false;
+    _profileCompletion = 0;
+    _completionSuggestions = [];
+    debugPrint('[EmployeeProfileProvider] Provider reset');
+  }
 
   // ======== PRIVATE METHODS ========
   void _setLoading(bool value) {
     _isLoading = value;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   void _setError(String? error) {
     _errorMessage = error;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   // ======== PUBLIC METHODS ========
 
-  /// Load profile from API
-  ///
-  /// Fetches complete profile data from backend
-  ///
-  /// Logs: Fetch attempt and success
+  /// Load profile from Firebase
   Future<void> loadProfile() async {
+    // Check if user is authenticated before proceeding
+    final user = _auth.currentUser;
+    if (user == null) {
+      debugPrint('[EmployeeProfileProvider] User not authenticated, skipping profile load');
+      return;
+    }
+
+    debugPrint('[EmployeeProfileProvider] Loading profile for user: ${user.uid}');
     _setLoading(true);
     _setError(null);
 
     try {
-      // Get auth token from session
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated. Please login first.');
+      // Use ProfileService to get profile
+      final profile = await _profileService.getEmployeeProfile();
+      if (profile != null) {
+        _profile = profile;
+        debugPrint('[EmployeeProfileProvider] Profile loaded: ${profile.firstName} ${profile.lastName}');
+      } else {
+        throw Exception('Employee profile not found');
       }
-
-      // LOG: Fetch initiation
-      debugPrint('[EmployeeProfileProvider] Loading profile...');
-
-      // Call API
-      final profile = await EmployeeProfileApiService.getProfile(
-        authToken: authToken,
-      );
-
-      _profile = profile;
-      _profileCompletion = profile.completionPercentage;
-
-      // LOG: Success
-      debugPrint('[EmployeeProfileProvider] Profile loaded:');
-      debugPrint('  - Name: ${profile.fullName}');
-      debugPrint('  - Email: ${profile.email}');
-      debugPrint('  - Completion: ${profile.completionPercentage}%');
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] API Error: ${e.message}');
     } catch (e) {
-      _setError('Failed to load profile: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
+      debugPrint('[EmployeeProfileProvider] Error loading profile: $e');
+      _setError('Failed to load profile: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Update profile with new data
-  ///
-  /// [firstName] - Optional
-  /// [lastName] - Optional
-  /// [phone] - Optional
-  /// [bio] - Optional
-  /// [headline] - Optional job title
-  /// [skills] - Optional list of skills
-  /// [experienceYears] - Optional years of experience
-  ///
-  /// Logs: Update attempt and success
-  Future<bool> updateProfile({
-    String? firstName,
-    String? lastName,
-    String? phone,
-    String? bio,
-    String? headline,
-    List<String>? skills,
-    double? experienceYears,
-  }) async {
+  /// Update profile in Firebase
+  Future<void> updateProfile(EmployeeProfileModel updatedProfile) async {
     _setLoading(true);
     _setError(null);
 
     try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
       }
 
-      // LOG: Update attempt
-      debugPrint('[EmployeeProfileProvider] Updating profile...');
-
-      // Call API
-      final updatedProfile = await EmployeeProfileApiService.updateProfile(
-        authToken: authToken,
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        bio: bio,
-        headline: headline,
-        skills: skills,
-        experienceYears: experienceYears,
-      );
-
-      // Update state
-      _profile = updatedProfile;
-      _profileCompletion = updatedProfile.completionPercentage;
-
-      // LOG: Success
-      debugPrint('[EmployeeProfileProvider] Profile updated successfully');
-
-      return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Update error: ${e.message}');
-      return false;
-    } catch (e) {
-      _setError('Failed to update profile: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Update only bio field
-  ///
-  /// Convenience method for quick bio updates
-  Future<bool> updateBio(String bio) async {
-    return await updateProfile(bio: bio);
-  }
-
-  /// Update only headline (job title)
-  ///
-  /// Convenience method for quick updates
-  Future<bool> updateHeadline(String headline) async {
-    return await updateProfile(headline: headline);
-  }
-
-  /// Add a skill to profile
-  ///
-  /// [skill] - Skill name to add
-  ///
-  /// Logs: Add attempt and success
-  Future<bool> addSkill(String skill) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
-      }
-
-      // LOG: Add attempt
-      debugPrint('[EmployeeProfileProvider] Adding skill: $skill');
-
-      // Call API
-      final updated = await EmployeeProfileApiService.addSkill(
-        authToken: authToken,
-        skill: skill,
-      );
-
-      _profile = updated;
-      _profileCompletion = updated.completionPercentage;
-
-      // LOG: Success
-      debugPrint('[EmployeeProfileProvider] Skill added: $skill');
-
-      return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Add skill error: ${e.message}');
-      return false;
-    } catch (e) {
-      _setError('Failed to add skill: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Remove a skill from profile
-  ///
-  /// [skill] - Skill name to remove
-  ///
-  /// Logs: Remove attempt and success
-  Future<bool> removeSkill(String skill) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
-      }
-
-      // LOG: Remove attempt
-      debugPrint('[EmployeeProfileProvider] Removing skill: $skill');
-
-      // Call API
-      final updated = await EmployeeProfileApiService.removeSkill(
-        authToken: authToken,
-        skill: skill,
-      );
-
-      _profile = updated;
-      _profileCompletion = updated.completionPercentage;
-
-      // LOG: Success
-      debugPrint('[EmployeeProfileProvider] Skill removed: $skill');
-
-      return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Remove skill error: ${e.message}');
-      return false;
-    } catch (e) {
-      _setError('Failed to remove skill: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Load profile completion suggestions
-  ///
-  /// Logs: Fetch attempt and count
-  Future<void> loadCompletionSuggestions() async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) return;
-
-      // LOG: Fetch initiation
-      debugPrint('[EmployeeProfileProvider] Loading completion suggestions...');
-
-      // Call API
-      final response = await EmployeeProfileApiService.getCompletionSuggestions(
-        authToken: authToken,
-      );
-
-      _profileCompletion =
-          _parseInt(response['percentage']) ?? _profileCompletion;
-      _completionSuggestions = _parseStringList(response['suggestions']);
-
-      // LOG: Success
-      debugPrint(
-        '[EmployeeProfileProvider] Loaded ${_completionSuggestions.length} suggestions',
-      );
-
-      notifyListeners();
-    } on ApiException catch (e) {
-      debugPrint('[EmployeeProfileProvider] Suggestions error: ${e.message}');
-    } catch (e) {
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Upload profile picture
-  ///
-  /// NOTE: Currently a placeholder until file upload is implemented
-  Future<bool> uploadProfilePicture(String filePath) async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
-      }
-
-      // LOG: Upload attempt
-      debugPrint('[EmployeeProfileProvider] Uploading profile picture...');
-
-      // Call API (currently throws "not implemented")
-      await EmployeeProfileApiService.uploadProfilePicture(
-        authToken: authToken,
-        fileName: filePath.split('/').last,
-        filePath: filePath,
-      );
-
-      return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Upload error: ${e.message}');
-      return false;
-    } catch (e) {
-      _setError('Failed to upload picture: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Delete profile picture
-  ///
-  /// Logs: Delete attempt and success
-  Future<bool> deleteProfilePicture() async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
-      }
-
-      // LOG: Delete attempt
-      debugPrint('[EmployeeProfileProvider] Deleting profile picture...');
-
-      // Call API
-      await EmployeeProfileApiService.deleteProfilePicture(
-        authToken: authToken,
-      );
+      // Update profile in Firebase
+      await _firestore.collection('employees').doc(user.uid).update({
+        'firstName': updatedProfile.firstName,
+        'lastName': updatedProfile.lastName,
+        'headline': updatedProfile.headline,
+        'bio': updatedProfile.bio,
+        'skills': updatedProfile.skills,
+        'resumeUrl': updatedProfile.resumeUrl,
+        'updatedAt': Timestamp.now(),
+      });
 
       // Update local profile
-      if (_profile != null) {
-        _profile = _profile!.copyWith(profilePicture: null);
-      }
+      _profile = updatedProfile;
+      _profileCompletion = _calculateProfileCompletion(updatedProfile);
+      _generateCompletionSuggestions();
 
-      // LOG: Success
-      debugPrint('[EmployeeProfileProvider] Profile picture deleted');
-
-      return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Delete error: ${e.message}');
-      return false;
+      debugPrint('[EmployeeProfileProvider] Profile updated successfully');
     } catch (e) {
-      _setError('Failed to delete picture: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
-      return false;
+      debugPrint('[EmployeeProfileProvider] Error updating profile: $e');
+      _setError('Failed to update profile: ${e.toString()}');
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Upload resume
-  ///
-  /// NOTE: Currently a placeholder until file upload is implemented
-  Future<bool> uploadResume(String filePath) async {
+  /// Upload profile picture to profile-images folder
+  Future<bool> uploadProfilePicture(dynamic file) async {
     _setLoading(true);
     _setError(null);
 
     try {
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
       }
 
-      // LOG: Upload attempt
-      debugPrint('[EmployeeProfileProvider] Uploading resume...');
+      debugPrint('[EmployeeProfileProvider] Uploading profile picture for user: ${user.uid}');
 
-      // Call API (currently throws "not implemented")
-      await EmployeeProfileApiService.uploadResume(
-        authToken: authToken,
-        fileName: filePath.split('/').last,
-        filePath: filePath,
-      );
+      XFile? imageFile;
+      if (file is XFile) {
+        imageFile = file;
+      } else if (file is PlatformFile && file.path != null) {
+        imageFile = XFile(file.path!);
+      } else {
+        throw Exception('Invalid file type');
+      }
 
-      return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Resume upload error: ${e.message}');
-      return false;
+      // Use ProfileService to upload
+      final downloadUrl = await _profileService.updateEmployeeProfilePicture(imageFile);
+      
+      if (downloadUrl != null) {
+        debugPrint('[EmployeeProfileProvider] Profile picture uploaded successfully');
+        
+        // Update local profile directly to avoid setState during build
+        if (_profile != null) {
+          _profile = _profile!.copyWith(profilePicture: downloadUrl);
+          notifyListeners();
+        }
+        
+        return true;
+      }
+      
+      throw Exception('Failed to upload profile picture');
     } catch (e) {
-      _setError('Failed to upload resume: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
+      debugPrint('[EmployeeProfileProvider] Error uploading profile picture: $e');
+      _setError('Failed to upload profile picture: ${e.toString()}');
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Delete resume
-  ///
-  /// Logs: Delete attempt and success
+  /// Upload resume to resumes folder
+  Future<bool> uploadResume(dynamic file) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      debugPrint('[EmployeeProfileProvider] Uploading resume for user: ${user.uid}');
+
+      XFile? resumeFile;
+      if (file is PlatformFile && file.path != null) {
+        resumeFile = XFile(file.path!);
+      } else if (file is XFile) {
+        resumeFile = file;
+      } else {
+        throw Exception('Invalid file type');
+      }
+
+      // Use ProfileService to upload
+      final downloadUrl = await _profileService.updateEmployeeResume(resumeFile);
+      
+      if (downloadUrl != null) {
+        debugPrint('[EmployeeProfileProvider] Resume uploaded successfully');
+        
+        // Update local profile directly to avoid setState during build
+        if (_profile != null) {
+          _profile = _profile!.copyWith(resumeUrl: downloadUrl);
+          notifyListeners();
+        }
+        
+        return true;
+      }
+      
+      throw Exception('Failed to upload resume');
+    } catch (e) {
+      debugPrint('[EmployeeProfileProvider] Error uploading resume: $e');
+      _setError('Failed to upload resume: ${e.toString()}');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Delete resume from Firebase Storage and Firestore
   Future<bool> deleteResume() async {
     _setLoading(true);
     _setError(null);
 
     try {
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
       }
 
-      // LOG: Delete attempt
-      debugPrint('[EmployeeProfileProvider] Deleting resume...');
+      debugPrint('[EmployeeProfileProvider] Deleting resume for user: ${user.uid}');
 
-      // Call API
-      await EmployeeProfileApiService.deleteResume(authToken: authToken);
+      // Get current profile to get resume URL
+      final currentProfile = await _profileService.getEmployeeProfile();
+      if (currentProfile?.resumeUrl != null && currentProfile!.resumeUrl.isNotEmpty) {
+        // Delete file from Firebase Storage
+        await _storageService.deleteFile(currentProfile.resumeUrl);
+        debugPrint('[EmployeeProfileProvider] Resume file deleted from storage');
+      }
 
-      // Update local profile
+      // Update profile to remove resume URL
+      await _profileService.updateEmployeeProfile({
+        'resumeUrl': null,
+        'resumeName': null,
+      });
+
+      debugPrint('[EmployeeProfileProvider] Resume deleted successfully');
+      
+      // Update local profile directly to avoid setState during build
       if (_profile != null) {
-        _profile = _profile!.copyWith(resumeUrl: null);
+        _profile = _profile!.copyWith(resumeUrl: '');
+        notifyListeners();
       }
-
-      // LOG: Success
-      debugPrint('[EmployeeProfileProvider] Resume deleted');
-
+      
       return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeProfileProvider] Delete error: ${e.message}');
-      return false;
     } catch (e) {
-      _setError('Failed to delete resume: $e');
-      debugPrint('[EmployeeProfileProvider] Unexpected error: $e');
+      debugPrint('[EmployeeProfileProvider] Error deleting resume: $e');
+      _setError('Failed to delete resume: ${e.toString()}');
       return false;
     } finally {
       _setLoading(false);
     }
   }
 
+  /// Calculate profile completion percentage
+  int _calculateProfileCompletion(EmployeeProfileModel profile) {
+    int completedFields = 0;
+    int totalFields = 6; // firstName, lastName, headline, bio, skills, resume
+
+    if (profile.firstName.isNotEmpty) completedFields++;
+    if (profile.lastName.isNotEmpty) completedFields++;
+    if (profile.headline.isNotEmpty) completedFields++;
+    if (profile.bio.isNotEmpty) completedFields++;
+    if (profile.skills.isNotEmpty) completedFields++;
+    if (profile.resumeUrl.isNotEmpty) completedFields++;
+
+    return (completedFields / totalFields * 100).round();
+  }
+
+  /// Generate completion suggestions
+  void _generateCompletionSuggestions() {
+    _completionSuggestions = [];
+    
+    if (_profile != null) {
+      if (_profile!.firstName.isEmpty) {
+        _completionSuggestions.add('Add your first name');
+      }
+      if (_profile!.lastName.isEmpty) {
+        _completionSuggestions.add('Add your last name');
+      }
+      if (_profile!.headline.isEmpty) {
+        _completionSuggestions.add('Add a professional headline');
+      }
+      if (_profile!.bio.isEmpty) {
+        _completionSuggestions.add('Write a compelling bio');
+      }
+      if (_profile!.skills.isEmpty) {
+        _completionSuggestions.add('Add your key skills');
+      }
+      if (_profile!.resumeUrl.isEmpty) {
+        _completionSuggestions.add('Upload your resume');
+      }
+    }
+  }
+
+  void addSkill(String skill) {
+  if (_profile == null) return;
+
+  if (!_profile!.skills.contains(skill)) {
+    _profile!.skills.add(skill);
+    _profileCompletion = _calculateProfileCompletion(_profile!);
+    _generateCompletionSuggestions();
+    notifyListeners();
+  }
+}
+
+void removeSkill(String skill) {
+  if (_profile == null) return;
+
+  _profile!.skills.remove(skill);
+  _profileCompletion = _calculateProfileCompletion(_profile!);
+  _generateCompletionSuggestions();
+  notifyListeners();
+}
+
+
   /// Clear error message
   void clearError() {
     _setError(null);
-  }
-
-  // ======== BACKWARD COMPATIBILITY ========
-
-  /// Get profile name (for backward compatibility)
-  String get name => _profile?.fullName ?? 'User';
-
-  /// Get profile email
-  String get email => _profile?.email ?? '';
-
-  /// Get profile phone
-  String get phone => _profile?.phone ?? '';
-
-  /// Get profile skills
-  List<String> get skills => _profile?.skills ?? [];
-
-  /// Get location (placeholder - can be added to bio)
-  String get location => _profile?.bio ?? '';
-
-  /// Get resume path/URL
-  String get resumePath => _profile?.resumeUrl ?? '';
-
-  /// Check if profile is complete (80%+ filled)
-  bool get isComplete => _profileCompletion >= 80;
-
-  /// Check if profile needs work (< 50%)
-  bool get needsCompletion => _profileCompletion < 50;
-
-  // ======== HELPER FUNCTIONS ========
-
-  /// Parse integer value safely
-  static int? _parseInt(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value);
-    return null;
-  }
-
-  /// Parse list of strings safely
-  static List<String> _parseStringList(dynamic value) {
-    if (value == null) return [];
-    if (value is List) {
-      return value.whereType<String>().toList();
-    }
-    return [];
   }
 }

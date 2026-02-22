@@ -16,14 +16,14 @@ class EmployeeProfileModel {
   final String lastName;
 
   // ======== PROFILE INFO ========
-  final String? bio;
-  final String? profilePicture; // URL or local path
-  final String? headline; // Current job title / role (e.g., "Senior Developer")
+  final String bio;
+  final String profilePicture; // URL or local path
+  final String headline; // Current job title / role (e.g., "Senior Developer")
 
   // ======== PROFESSIONAL INFO ========
   final List<String> skills; // e.g., ["Flutter", "Firebase", "Dart"]
   final double? experienceYears; // Total years of experience
-  final String? resumeUrl; // URL to uploaded resume PDF
+  final String resumeUrl; // URL to uploaded resume PDF
   final String? resumeLocalPath; // Local path during upload
 
   // ======== TIMESTAMPS ========
@@ -37,12 +37,12 @@ class EmployeeProfileModel {
     required this.firstName,
     required this.lastName,
     this.phone,
-    this.bio,
-    this.profilePicture,
-    this.headline,
+    this.bio = '',
+    this.profilePicture = '',
+    this.headline = '',
     this.skills = const [],
     this.experienceYears,
-    this.resumeUrl,
+    this.resumeUrl = '',
     this.resumeLocalPath,
     this.createdAt,
     this.updatedAt,
@@ -75,12 +75,12 @@ class EmployeeProfileModel {
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       phone: json['phone'],
-      bio: json['bio'],
-      profilePicture: json['profilePicture'],
-      headline: json['headline'],
+      bio: json['bio'] ?? '',
+      profilePicture: json['profilePicture'] ?? '',
+      headline: json['headline'] ?? '',
       skills: _parseSkills(json['skills']),
       experienceYears: _parseDouble(json['experienceYears']),
-      resumeUrl: json['resumeUrl'],
+      resumeUrl: json['resumeUrl'] ?? '',
       resumeLocalPath: json['resumeLocalPath'],
       createdAt: _parseDateTime(json['createdAt']),
       updatedAt: _parseDateTime(json['updatedAt']),
@@ -96,12 +96,12 @@ class EmployeeProfileModel {
       'lastName': lastName,
       'email': email,
       if (phone != null) 'phone': phone,
-      if (bio != null) 'bio': bio,
-      if (profilePicture != null) 'profilePicture': profilePicture,
-      if (headline != null) 'headline': headline,
+      if (bio.isNotEmpty) 'bio': bio,
+      if (profilePicture.isNotEmpty) 'profilePicture': profilePicture,
+      if (headline.isNotEmpty) 'headline': headline,
       if (skills.isNotEmpty) 'skills': skills,
       if (experienceYears != null) 'experienceYears': experienceYears,
-      if (resumeUrl != null) 'resumeUrl': resumeUrl,
+      if (resumeUrl.isNotEmpty) 'resumeUrl': resumeUrl,
     };
   }
 
@@ -149,28 +149,29 @@ class EmployeeProfileModel {
   ///
   /// Returns true if profile has at least: bio, headline, skills, resume
   bool get isComplete {
-    return (bio != null && bio!.isNotEmpty) &&
-        (headline != null && headline!.isNotEmpty) &&
-        (skills.isNotEmpty) &&
-        (resumeUrl != null && resumeUrl!.isNotEmpty);
+    return bio.isNotEmpty &&
+    headline.isNotEmpty &&
+    skills.isNotEmpty &&
+    resumeUrl.isNotEmpty;
   }
 
   /// Profile completion percentage (0-100)
   ///
   /// Based on how many optional fields are filled
-  int get completionPercentage {
-    int filled = 0;
-    int total = 6; // bio, headline, skills, experience, resume, profilePicture
+ int get completionPercentage {
+  int filled = 0;
+  int total = 6; // bio, headline, skills, experience, resume, profilePicture
 
-    if (bio != null && bio!.isNotEmpty) filled++;
-    if (headline != null && headline!.isNotEmpty) filled++;
-    if (skills.isNotEmpty) filled++;
-    if (experienceYears != null && experienceYears! > 0) filled++;
-    if (resumeUrl != null && resumeUrl!.isNotEmpty) filled++;
-    if (profilePicture != null && profilePicture!.isNotEmpty) filled++;
+  if (bio.isNotEmpty) filled++;
+  if (headline.isNotEmpty) filled++;
+  if (skills.isNotEmpty) filled++;
+  if (experienceYears != null && experienceYears! > 0) filled++;
+  if (resumeUrl.isNotEmpty) filled++;
+  if (profilePicture.isNotEmpty) filled++;
 
-    return ((filled / total) * 100).toInt();
-  }
+  return ((filled / total) * 100).toInt();
+}
+
 
   /// Create empty profile model
   static EmployeeProfileModel empty() {

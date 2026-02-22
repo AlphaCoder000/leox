@@ -235,8 +235,6 @@ class EmployeeDashboardModel {
       profileCompletionPercentage: 0,
       profileSuggestions: [
         'Complete your profile to attract more opportunities',
-        'Add your skills and experience',
-        'Upload a professional resume',
       ],
     );
   }

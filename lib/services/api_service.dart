@@ -21,7 +21,7 @@ class ApiService {
   static String baseUrl = 'http://localhost:3000/api';
 
   /// Request timeout duration
-  static const Duration timeoutDuration = Duration(seconds: 30);
+  static const Duration timeoutDuration = Duration(minutes: 5);
 
   /// Set the base URL (call this once on app startup)
   static void setBaseUrl(String url) {

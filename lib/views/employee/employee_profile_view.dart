@@ -1,8 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:leox/models/employee_profile_model.dart';
-import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
-import 'package:leox/utils/route_guard.dart';
+import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/utils/error_handler_ui.dart';
 import 'package:leox/widgets/employee_drawer.dart';
 import 'package:provider/provider.dart';
@@ -57,17 +58,14 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
   Future<void> _validateSession() async {
     if (!mounted) return;
 
-    final isValid = await RouteGuard.validateSession(context);
-    if (!isValid && mounted) {
-      debugPrint('[EmployeeProfile] Session validation failed, logging out');
-      final authProvider = context.read<EmployeeAuthProvider>();
+    final authProvider = context.read<EmployeeAuthProvider>();
+
+    if (!authProvider.isLoggedIn) {
+      debugPrint('[EmployeeProfile] Session invalid, logging out');
       await authProvider.logout();
-
       if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/role-option', (route) => false);
-
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/role-option', (route) => false);
         ErrorHandlerUI.showWarningSnackbar(
           context,
           'Session expired, please login again',
@@ -75,6 +73,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
       }
     }
   }
+
 
   @override
   void didChangeDependencies() {
@@ -189,22 +188,26 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                         // Capture context before async operation
                                         final scaffoldContext = context;
                                         
-                                        final success = await provider
-                                            .updateProfile(
-                                              firstName:
-                                                  _firstNameController.text
-                                                      .trim(),
-                                              lastName:
-                                                  _lastNameController.text
-                                                      .trim(),
-                                              headline:
-                                                  _headlineController.text
-                                                      .trim(),
-                                              bio: _bioController.text.trim(),
-                                            );
+                                        final currentProfile = provider.profile;
+                                        if (currentProfile != null) {
+                                          final updatedProfile = EmployeeProfileModel(
+                                            id: currentProfile.id,
+                                            email: currentProfile.email,
+                                            firstName: _firstNameController.text.trim(),
+                                            lastName: _lastNameController.text.trim(),
+                                            headline: _headlineController.text.trim(),
+                                            bio: _bioController.text.trim(),
+                                            skills: currentProfile.skills,
+                                            resumeUrl: currentProfile.resumeUrl,
+                                            createdAt: currentProfile.createdAt,
+                                            updatedAt: DateTime.now(),
+                                          );
+                                          
+                                          await provider.updateProfile(updatedProfile);
+                                        }
 
                                         if (mounted) {
-                                          if (success) {
+                                          if (provider.errorMessage == null) {
                                             Navigator.pop(scaffoldContext);
                                             ErrorHandlerUI.showSuccessSnackbar(
                                               scaffoldContext,
@@ -214,32 +217,37 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                             ErrorHandlerUI.showErrorSnackbar(
                                               scaffoldContext,
                                               provider.errorMessage ??
-                                                  'Unknown error',
+                                                  'Unknown error' ??
+                                                  'Update failed',
                                               onRetry: () async {
-                                                final retrySuccess =
-                                                    await provider.updateProfile(
-                                                      firstName:
-                                                          _firstNameController
-                                                              .text
-                                                              .trim(),
-                                                      lastName:
-                                                          _lastNameController
-                                                              .text
-                                                              .trim(),
-                                                      headline:
-                                                          _headlineController
-                                                              .text
-                                                              .trim(),
-                                                      bio:
-                                                          _bioController.text
-                                                              .trim(),
-                                                    );
-                                                if (!retrySuccess && mounted) {
-                                                  ErrorHandlerUI.showErrorSnackbar(
-                                                    scaffoldContext,
-                                                    provider.errorMessage ??
-                                                        'Unknown error',
+                                                final context = scaffoldContext;
+                                                if (!context.mounted) return;
+                                                
+                                                final currentProfile = provider.profile;
+                                                if (currentProfile != null) {
+                                                  final updatedProfile = EmployeeProfileModel(
+                                                    id: currentProfile.id,
+                                                    email: currentProfile.email,
+                                                    firstName: _firstNameController.text.trim(),
+                                                    lastName: _lastNameController.text.trim(),
+                                                    headline: _headlineController.text.trim(),
+                                                    bio: _bioController.text.trim(),
+                                                    skills: currentProfile.skills,
+                                                    resumeUrl: currentProfile.resumeUrl,
+                                                    createdAt: currentProfile.createdAt,
+                                                    updatedAt: DateTime.now(),
                                                   );
+                                                  
+                                                  await provider.updateProfile(updatedProfile);
+                                                }
+                                                if (provider.errorMessage == null) {
+                                                  if (context.mounted) {
+                                                    Navigator.pop(context);
+                                                    ErrorHandlerUI.showSuccessSnackbar(
+                                                      context,
+                                                      'Profile updated successfully',
+                                                    );
+                                                  }
                                                 }
                                               },
                                             );
@@ -270,6 +278,69 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
         );
       },
     );
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null && mounted) {
+      final success = await context
+          .read<EmployeeProfileProvider>()
+          .uploadProfilePicture(pickedFile);
+
+      if (mounted) {
+        if (success) {
+          ErrorHandlerUI.showSuccessSnackbar(
+            context,
+            'Profile picture updated successfully',
+          );
+        } else {
+          ErrorHandlerUI.showErrorSnackbar(
+            context,
+            'Failed to update profile picture',
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _pickResume() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+    );
+
+    if (result != null && mounted) {
+      final file = result.files.single;
+      debugPrint('[EmployeeProfileView] Selected file: ${file.name}, path: ${file.path}, size: ${file.size}');
+      
+      if (file.path == null) {
+        ErrorHandlerUI.showErrorSnackbar(
+          context,
+          'File path is null. Please try again.',
+        );
+        return;
+      }
+      
+      final success = await context
+          .read<EmployeeProfileProvider>()
+          .uploadResume(file);
+
+      if (mounted) {
+        if (success) {
+          ErrorHandlerUI.showSuccessSnackbar(
+            context,
+            'Resume uploaded successfully',
+          );
+        } else {
+          ErrorHandlerUI.showErrorSnackbar(
+            context,
+            'Failed to upload resume',
+          );
+        }
+      }
+    }
   }
 
   void _showAddSkillDialog(BuildContext context) {
@@ -366,20 +437,50 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                     padding: EdgeInsets.symmetric(vertical: 3.h),
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: colorScheme.primary.withValues(alpha: 0.15),
-                          child: Text(
-                            (profile.firstName).isNotEmpty
-                                ? profile.firstName[0].toUpperCase()
-                                : "?",
-                            style: TextStyle(
-                              fontSize: 22.sp,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 36,
+                                  backgroundColor:
+                                      colorScheme.primary.withValues(alpha: 0.15),
+                                  backgroundImage:
+                                      ((profile.profilePicture ?? '')
+                                              .isNotEmpty)
+                                          ? NetworkImage(profile.profilePicture)
+                                          : null,
+                                  child:
+                                      ((profile.profilePicture ?? '').isEmpty)
+                                          ? Text(
+                                            (profile.firstName).isNotEmpty
+                                                ? profile.firstName[0]
+                                                    .toUpperCase()
+                                                : "?",
+                                            style: TextStyle(
+                                              fontSize: 22.sp,
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                          )
+                                          : null,
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: colorScheme.primary,
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
                         SizedBox(height: 1.5.h),
                         Text(
                           "${profile.firstName} ${profile.lastName}",
@@ -468,31 +569,46 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                 SizedBox(height: 2.5.h),
 
                 // ================= RESUME =================
-                _infoCard(
-                  context,
-                  title: "My Resume",
-                  subtitle:
-                      "Upload a resume to auto-fill your profile information.",
-                  children: [
-                    Text(
-                      (profile.resumeUrl ?? '').isEmpty
-                          ? "You have not uploaded a resume yet."
-                          : "Resume: ${(profile.resumeUrl ?? '').split('/').last}",
-                      style: TextStyle(fontSize: 12.sp),
-                    ),
-                    SizedBox(height: 1.5.h),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        ErrorHandlerUI.showInfoSnackbar(
-                          context,
-                          "Resume upload feature coming soon",
-                        );
-                      },
-                      icon: const Icon(Icons.upload_file_outlined),
-                      label: const Text("Upload & Parse Resume"),
-                    ),
-                  ],
-                ),
+                  _infoCard(
+                    context,
+                    title: "My Resume",
+                    subtitle: "Upload a resume to auto-fill your profile information.",
+                    children: [
+                      if ((profile.resumeUrl ?? '').isNotEmpty) ...[
+                        Row(
+                          children: [
+                            Icon(Icons.description, color: colorScheme.primary),
+                            SizedBox(width: 2.w),
+                            Expanded(
+                              child: Text(
+                                "Resume uploaded",
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              onPressed: () {
+                                context.read<EmployeeProfileProvider>().deleteResume();
+                              },
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 1.5.h),
+                      ],
+                      OutlinedButton.icon(
+                        onPressed: _pickResume,
+                        icon: const Icon(Icons.upload_file_outlined),
+                        label: Text(
+                          (profile.resumeUrl ?? '').isEmpty
+                              ? "Upload Resume"
+                              : "Update Resume",
+                        ),
+                      ),
+                    ],
+                  ),
 
                 SizedBox(height: 3.h),
 
@@ -643,3 +759,4 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
     );
   }
 }
+

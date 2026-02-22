@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/employee_dashboard_model.dart';
-import '../../services/employee_dashboard_api_service.dart';
-import '../../services/api_service.dart';
-import '../../services/session_service.dart';
 
 class EmployeeDashboardProvider extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
   // ======== STATE ========
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -32,254 +34,106 @@ class EmployeeDashboardProvider extends ChangeNotifier {
 
   // ======== PUBLIC METHODS ========
 
-  /// Fetch complete dashboard data from API
-  ///
-  /// Includes:
-  /// - Application statistics
-  /// - Recent applications and rejections
-  /// - Profile completion status
-  ///
-  /// Logs: Fetch attempt, success, and errors
+  /// Load dashboard data from Firebase
   Future<void> loadDashboard() async {
+    // Check if user is authenticated before proceeding
+    final user = _auth.currentUser;
+    if (user == null) {
+      debugPrint('[EmployeeDashboardProvider] User not authenticated, skipping dashboard load');
+      return;
+    }
+
     _setLoading(true);
     _setError(null);
 
     try {
-      // Get auth token from session
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated. Please login first.');
+
+      // Get user profile data from Firebase
+      final userDoc = await _firestore.collection('employees').doc(user.uid).get();
+      
+      if (!userDoc.exists) {
+        throw Exception('Employee profile not found');
       }
 
-      // LOG: Fetch initiation
-      debugPrint('[EmployeeDashboardProvider] Loading dashboard...');
+      final userData = userDoc.data() as Map<String, dynamic>;
+      
+      // Get application statistics
+      final applicationsSnapshot = await _firestore
+          .collection('job_applications')
+          .where('employeeId', isEqualTo: user.uid)
+          .get();
 
-      // Call API
-      final dashboard = await EmployeeDashboardApiService.getDashboard(
-        authToken: authToken,
-      );
-
-      _dashboard = dashboard;
-      _lastUpdated = DateTime.now();
-
-      // LOG: Success
-      debugPrint('[EmployeeDashboardProvider] Dashboard loaded:');
-      debugPrint('  - Total applications: ${dashboard.totalApplications}');
-      debugPrint('  - Under review: ${dashboard.applicationsUnderReview}');
-      debugPrint('  - Accepted: ${dashboard.acceptedOffers}');
-      debugPrint(
-        '  - Profile completion: ${dashboard.profileCompletionPercentage}%',
-      );
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint('[EmployeeDashboardProvider] API Error: ${e.message}');
-    } catch (e) {
-      _setError('Failed to load dashboard: $e');
-      debugPrint('[EmployeeDashboardProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Refresh dashboard data (faster update)
-  ///
-  /// Gets only statistics for quick refresh without full payload
-  Future<void> refreshStats() async {
-    _setError(null);
-
-    try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) return;
-
-      // LOG: Refresh attempt
-      debugPrint('[EmployeeDashboardProvider] Refreshing stats...');
-
-      // Call API
-      final stats = await EmployeeDashboardApiService.getStats(
-        authToken: authToken,
-      );
-
-      // Update dashboard with new stats
-      _dashboard = _dashboard.copyWith(
-        totalApplications:
-            _parseInt(stats['totalApplications']) ??
-            _dashboard.totalApplications,
-        applicationsUnderReview:
-            _parseInt(stats['applicationsUnderReview']) ??
-            _dashboard.applicationsUnderReview,
-        acceptedOffers:
-            _parseInt(stats['acceptedOffers']) ?? _dashboard.acceptedOffers,
-        rejectedApplications:
-            _parseInt(stats['rejectedApplications']) ??
-            _dashboard.rejectedApplications,
+      final applications = applicationsSnapshot.docs;
+      
+      // Calculate real statistics based on application status
+      int totalApplications = applications.length;
+      int applicationsUnderReview = 0;
+      int acceptedOffers = 0;
+      int rejectedApplications = 0;
+      
+      for (var doc in applications) {
+        final data = doc.data();
+        final status = data['status'] as String? ?? 'pending';
+        
+        switch (status) {
+          case 'pending':
+          case 'reviewed':
+            applicationsUnderReview++;
+            break;
+          case 'hired':
+            acceptedOffers++;
+            break;
+          case 'rejected':
+            rejectedApplications++;
+            break;
+        }
+      }
+      
+      // Calculate profile completion from user data
+      final profileCompletion = _calculateProfileCompletionFromUserData(userData);
+      
+      // Update dashboard model
+      _dashboard = EmployeeDashboardModel(
+        totalApplications: totalApplications,
+        applicationsUnderReview: applicationsUnderReview,
+        acceptedOffers: acceptedOffers,
+        rejectedApplications: rejectedApplications,
+        recentApplications: [], // Simplified - in real app, fetch recent applications
+        recentRejections: [], // Simplified - in real app, fetch recent rejections
+        profileCompletionPercentage: (profileCompletion * 100).round(),
+        profileSuggestions: [], // Simplified - in real app, generate suggestions
       );
 
       _lastUpdated = DateTime.now();
-
-      // LOG: Success
-      debugPrint('[EmployeeDashboardProvider] Stats refreshed');
-
-      notifyListeners();
-    } on ApiException catch (e) {
-      debugPrint('[EmployeeDashboardProvider] Refresh error: ${e.message}');
+      debugPrint('[EmployeeDashboardProvider] Dashboard loaded successfully');
     } catch (e) {
-      debugPrint('[EmployeeDashboardProvider] Unexpected error: $e');
-    }
-  }
-
-  /// Load profile completion data with suggestions
-  ///
-  /// Useful for profile-focused views
-  Future<void> loadProfileCompletion() async {
-    _setLoading(true);
-    _setError(null);
-
-    try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
-      }
-
-      // LOG: Fetch initiation
-      debugPrint('[EmployeeDashboardProvider] Loading profile completion...');
-
-      // Call API
-      final completion = await EmployeeDashboardApiService.getProfileCompletion(
-        authToken: authToken,
-      );
-
-      // Update dashboard with new completion data
-      _dashboard = _dashboard.copyWith(
-        profileCompletionPercentage:
-            _parseInt(completion['percentage']) ??
-            _dashboard.profileCompletionPercentage,
-        profileSuggestions: _parseStringList(completion['suggestions']),
-      );
-
-      // LOG: Success
-      debugPrint(
-        '[EmployeeDashboardProvider] Profile completion loaded: ${_dashboard.profileCompletionPercentage}%',
-      );
-
-      notifyListeners();
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint(
-        '[EmployeeDashboardProvider] Profile completion error: ${e.message}',
-      );
-    } catch (e) {
-      _setError('Failed to load profile completion: $e');
-      debugPrint('[EmployeeDashboardProvider] Unexpected error: $e');
+      debugPrint('[EmployeeDashboardProvider] Error loading dashboard: $e');
+      _setError('Failed to load dashboard: ${e.toString()}');
+      
+      // Set empty dashboard on error
+      _dashboard = EmployeeDashboardModel.empty();
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Load recent applications
-  ///
-  /// Useful for dashboard card display
-  Future<void> loadRecentApplications({int limit = 5}) async {
-    _setLoading(true);
-    _setError(null);
+  /// Calculate profile completion percentage from user data
+  double _calculateProfileCompletionFromUserData(Map<String, dynamic> userData) {
+    int completedFields = 0;
+    int totalFields = 6; // firstName, lastName, email, phone, bio, skills, resume
 
-    try {
-      // Get auth token
-      final authToken = await SessionService.getAuthToken();
-      if (authToken == null) {
-        throw ApiException(message: 'Not authenticated.');
-      }
+    if (userData['firstName'] != null && userData['firstName'].toString().isNotEmpty) completedFields++;
+    if (userData['lastName'] != null && userData['lastName'].toString().isNotEmpty) completedFields++;
+    if (userData['email'] != null && userData['email'].toString().isNotEmpty) completedFields++;
+    if (userData['bio'] != null && userData['bio'].toString().isNotEmpty) completedFields++;
+    if (userData['skills'] != null && userData['skills'].toString().isNotEmpty) completedFields++;
+    if (userData['resumeUrl'] != null && userData['resumeUrl'].toString().isNotEmpty) completedFields++;
 
-      // LOG: Fetch initiation
-      debugPrint('[EmployeeDashboardProvider] Loading recent applications...');
-
-      // Call API
-      final response = await EmployeeDashboardApiService.getRecentApplications(
-        limit: limit,
-        authToken: authToken,
-      );
-
-      debugPrint(
-        '[EmployeeDashboardProvider] Loaded ${response['applications']?.length ?? 0} recent applications',
-      );
-
-      notifyListeners();
-    } on ApiException catch (e) {
-      _setError(e.message);
-      debugPrint(
-        '[EmployeeDashboardProvider] Recent applications error: ${e.message}',
-      );
-    } catch (e) {
-      _setError('Failed to load recent applications: $e');
-      debugPrint('[EmployeeDashboardProvider] Unexpected error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Check if dashboard data needs refresh (older than 5 minutes)
-  bool get needsRefresh {
-    if (_lastUpdated == null) return true;
-    return DateTime.now().difference(_lastUpdated!).inMinutes > 5;
-  }
-
-  /// Get time since last update as readable string
-  ///
-  /// Examples: "Just now", "2 minutes ago", "1 hour ago"
-  String getTimeSinceUpdate() {
-    if (_lastUpdated == null) return 'Never';
-
-    final difference = DateTime.now().difference(_lastUpdated!);
-
-    if (difference.inSeconds < 60) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
-    }
+    return completedFields / totalFields;
   }
 
   /// Clear error message
   void clearError() {
     _setError(null);
-  }
-
-  // ======== BACKWARD COMPATIBILITY (from old provider) ========
-
-  /// Get total applications sent (from dashboard)
-  int get applicationsSent => _dashboard.totalApplications;
-
-  /// Get active applications (pending + under review)
-  int get activeApplications => _dashboard.pendingApplications;
-
-  /// Notify when application status changes
-  ///
-  /// (Legacy from old provider, now just updates dashboard)
-  void updateApplicationStatus({required bool isActive}) {
-    // Trigger refresh to get latest stats
-    refreshStats();
-  }
-
-  // ======== HELPER FUNCTIONS ========
-
-  /// Parse integer value safely
-  static int? _parseInt(dynamic value) {
-    if (value == null) return null;
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value);
-    return null;
-  }
-
-  /// Parse list of strings safely
-  static List<String> _parseStringList(dynamic value) {
-    if (value == null) return [];
-    if (value is List) {
-      return value.whereType<String>().toList();
-    }
-    return [];
   }
 }

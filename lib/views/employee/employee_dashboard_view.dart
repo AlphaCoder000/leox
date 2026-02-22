@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:leox/providers/employee_providers/employee_dashboard_provider.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/providers/theme_povider.dart';
-import 'package:leox/utils/route_guard.dart';
 import 'package:leox/utils/error_handler_ui.dart';
 import 'package:leox/views/employee/employee_profile_view.dart';
+import 'package:leox/views/role_option_view.dart';
 import 'package:leox/widgets/employee_drawer.dart';
 import 'package:leox/widgets/stat_card.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +23,11 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Load dashboard data after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployeeDashboardProvider>().loadDashboard();
+    });
   }
 
   @override
@@ -41,42 +45,20 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
     }
   }
 
-  Future<void> _validateSession() async {
-    if (!mounted) return;
+Future<void> _validateSession() async {
+  if (!mounted) return;
 
-    final isValid = await RouteGuard.validateSession(context);
-    if (!isValid && mounted) {
-      debugPrint('[EmployeeDashboard] Session validation failed, logging out');
-      final authProvider = context.read<EmployeeAuthProvider>();
-      await authProvider.logout();
+  final authProvider = context.read<EmployeeAuthProvider>();
 
-      if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/role-option', (route) => false);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Session expired, please login again'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    }
+    if (!authProvider.isLoggedIn) {
+    await authProvider.logout();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Load dashboard data on first build
-    final dashboardProvider = context.read<EmployeeDashboardProvider>();
-    dashboardProvider.loadDashboard();
-  }
+}
+
 
   @override
   Widget build(BuildContext context) {
-    context.watch<EmployeeDashboardProvider>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -116,7 +98,9 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              onSelected: (value) {
+              onSelected: (value) async {
+                final authProvider = context.read<EmployeeAuthProvider>();
+
                 if (value == 'profile') {
                   Navigator.push(
                     context,
@@ -124,11 +108,19 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                       builder: (_) => const EmployeeProfileView(),
                     ),
                   );
-                } else if (value == 'logout') {
-                  // Use RouteGuard to handle logout with proper cleanup
-                  RouteGuard.handleLogout(context);
                 }
+
+                if (value == 'logout') {
+                  await authProvider.logout();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
+                    (route) => false,
+                  );
+                }
+
               },
+
               itemBuilder: (_) {
                 final authProvider = context.read<EmployeeAuthProvider>();
                 final email = authProvider.userEmail ?? 'Employee';
@@ -217,7 +209,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   "Your personal application overview.",
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.15),
                   ),
                 ),
 
@@ -329,7 +321,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: theme.textTheme.bodySmall?.color
-                                ?.withOpacity(0.7),
+                                ?.withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -364,7 +356,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: theme.textTheme.bodySmall?.color
-                                ?.withOpacity(0.7),
+                                ?.withValues(alpha: 0.7),
                           ),
                         ),
 

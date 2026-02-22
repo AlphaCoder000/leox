@@ -1,424 +1,216 @@
-/// Profile Service - Specialized Business Logic
-/// Equivalent to web app's src/lib/services/profileService.ts
-/// Contains specialized business logic for user profiles
-
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:leox/services/storage_service.dart';
 import '../models/employee_profile_model.dart';
 import '../models/employer_profile_model.dart';
-import '../backend/ai_workflows.dart';
 
+/// Profile Service - User Profile Management
+///
+/// Handles profile operations for both employers and employees.
+/// Provides CRUD operations for user profiles.
 class ProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final AIWorkflows _aiWorkflows = AIWorkflows();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final StorageService _storageService = StorageService();
 
-  // ======== EMPLOYEE PROFILE SERVICES ========
+  // ======== EMPLOYEE PROFILE ========
 
-  /// Get complete employee profile with AI insights
-  Future<Map<String, dynamic>> getEmployeeProfile(String employeeId) async {
+  Future<EmployeeProfileModel?> getEmployeeProfile() async {
     try {
-      debugPrint('[ProfileService] Getting employee profile: $employeeId');
-      
-      // Get basic profile data
-      final profileDoc = await _firestore
-          .collection('employees')
-          .doc(employeeId)
-          .get();
+      final user = _auth.currentUser;
+      if (user == null) return null;
 
-      if (!profileDoc.exists) {
-        throw Exception('Employee profile not found');
-      }
+      final doc =
+          await _firestore.collection('employees').doc(user.uid).get();
 
-      final profileData = profileDoc.data()!;
-      
-      // Get AI insights if available
-      Map<String, dynamic> aiInsights = {};
-      if (profileData['resumeText'] != null) {
-        aiInsights = await _getAIInsights(profileData);
-      }
+      if (!doc.exists) return null;
 
-      // Get application statistics
-      final applications = await _firestore
-          .collection('job_applications')
-          .where('employeeId', isEqualTo: employeeId)
-          .get();
-
-      final stats = {
-        'totalApplications': applications.docs.length,
-        'pendingApplications': applications.docs
-            .where((doc) => doc['status'] == 'pending')
-            .length,
-        'interviewScheduled': applications.docs
-            .where((doc) => doc['status'] == 'interview_scheduled')
-            .length,
-        'rejectedApplications': applications.docs
-            .where((doc) => doc['status'] == 'rejected')
-            .length,
-        'acceptedApplications': applications.docs
-            .where((doc) => doc['status'] == 'accepted')
-            .length,
-      };
-
-      return {
-        'profile': profileData,
-        'aiInsights': aiInsights,
-        'statistics': stats,
-        'profileStrength': aiInsights['profileStrength'] ?? 0.0,
-      };
+      final data = doc.data() as Map<String, dynamic>;
+      return EmployeeProfileModel.fromJson(data);
     } catch (e) {
       debugPrint('[ProfileService] Error getting employee profile: $e');
-      throw e;
+      return null;
     }
   }
 
-  /// Update employee profile with AI optimization
-  Future<bool> updateEmployeeProfile({
-    required String employeeId,
-    required Map<String, dynamic> profileData,
-    bool optimizeWithAI = false,
-  }) async {
+  Future<void> saveEmployeeProfile(EmployeeProfileModel profile) async {
     try {
-      debugPrint('[ProfileService] Updating employee profile: $employeeId');
-      
-      Map<String, dynamic> updateData = Map.from(profileData);
-      updateData['updatedAt'] = FieldValue.serverTimestamp();
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
 
-      // AI optimization if requested
-      if (optimizeWithAI && profileData['targetRole'] != null) {
-        final optimization = await _aiWorkflows.optimizeProfile(
-          profileData: profileData,
-          targetRole: profileData['targetRole'],
-        );
+      await _firestore.collection('employees').doc(user.uid).set({
+        ...profile.toJson(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-        if (optimization['success'] == true) {
-          updateData['aiOptimizedProfile'] = optimization['optimizedProfile'];
-          updateData['profileSuggestions'] = optimization['suggestions'];
-          updateData['profileStrength'] = optimization['profileStrength'];
-          updateData['improvementAreas'] = optimization['improvementAreas'];
-        }
-      }
+      debugPrint('[ProfileService] Employee profile saved');
+    } catch (e) {
+      debugPrint('[ProfileService] Error saving employee profile: $e');
+      rethrow;
+    }
+  }
 
-      await _firestore
-          .collection('employees')
-          .doc(employeeId)
-          .update(updateData);
+  Future<void> updateEmployeeProfile(Map<String, dynamic> data) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
 
-      debugPrint('[ProfileService] Employee profile updated successfully');
-      return true;
+      await _firestore.collection('employees').doc(user.uid).update({
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('[ProfileService] Employee profile updated');
     } catch (e) {
       debugPrint('[ProfileService] Error updating employee profile: $e');
-      return false;
+      rethrow;
     }
   }
 
-  /// Parse and update resume
-  Future<Map<String, dynamic>> parseAndUpdateResume({
-    required String employeeId,
-    String? resumeFileUrl,
-    String? resumeText,
-  }) async {
+  Future<String?> updateEmployeeProfilePicture(XFile file) async {
     try {
-      debugPrint('[ProfileService] Parsing and updating resume');
-      
-      // Parse resume using AI
-      final parseResult = await _aiWorkflows.parseResume(
-        resumeFileUrl: resumeFileUrl,
-        resumeText: resumeText,
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      final downloadUrl = await _storageService.uploadFile(
+        file,
+        'profile-images/$userId.jpg',
       );
 
-      if (parseResult['success'] == true) {
-        // Update profile with parsed data
-        await _firestore
-            .collection('employees')
-            .doc(employeeId)
-            .update({
-              'resumeData': parseResult,
-              'resumeFileUrl': resumeFileUrl,
-              'resumeText': resumeText,
-              'lastResumeUpdate': FieldValue.serverTimestamp(),
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-
-        debugPrint('[ProfileService] Resume parsed and updated successfully');
-        return parseResult;
-      } else {
-        throw Exception(parseResult['error'] ?? 'Resume parsing failed');
+      if (downloadUrl != null) {
+        await updateEmployeeProfile({'profilePicture': downloadUrl});
+        return downloadUrl;
       }
+      return null;
     } catch (e) {
-      debugPrint('[ProfileService] Error parsing resume: $e');
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      debugPrint(
+          '[ProfileService] Error updating employee profile picture: $e');
+      rethrow;
     }
   }
 
-  // ======== EMPLOYER PROFILE SERVICES ========
-
-  /// Get complete employer profile
-  Future<Map<String, dynamic>> getEmployerProfile(String employerId) async {
+  Future<String?> updateEmployeeResume(XFile file) async {
     try {
-      debugPrint('[ProfileService] Getting employer profile: $employerId');
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      final fileName = file.name ?? 'resume.pdf';
+      final fileExtension = fileName.split('.').last;
       
-      // Get basic profile data
-      final profileDoc = await _firestore
-          .collection('employers')
-          .doc(employerId)
-          .get();
+      final downloadUrl = await _storageService.uploadFile(
+        file,
+        'resumes/${userId}_resume.$fileExtension',
+      );
 
-      if (!profileDoc.exists) {
-        throw Exception('Employer profile not found');
+      if (downloadUrl != null) {
+        await updateEmployeeProfile({
+          'resumeUrl': downloadUrl,
+          'resumeName': fileName,
+        });
+        return downloadUrl;
       }
+      return null;
+    } catch (e) {
+      debugPrint('[ProfileService] Error updating employee resume: $e');
+      rethrow;
+    }
+  }
 
-      final profileData = profileDoc.data()!;
-      
-      // Get job statistics
-      final jobs = await _firestore
-          .collection('jobs')
-          .where('employerId', isEqualTo: employerId)
-          .get();
+  // ======== EMPLOYER PROFILE ========
 
-      // Get application statistics
-      int totalApplications = 0;
-      for (final job in jobs.docs) {
-        final applications = await _firestore
-            .collection('job_applications')
-            .where('jobId', isEqualTo: job.id)
-            .get();
-        totalApplications += applications.docs.length;
-      }
+  Future<EmployerProfileModel?> getEmployerProfile() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return null;
 
-      final stats = {
-        'totalJobsPosted': jobs.docs.length,
-        'activeJobs': jobs.docs
-            .where((doc) => doc['isActive'] == true)
-            .length,
-        'totalApplications': totalApplications,
-        'hiredCount': profileData['hiredCount'] ?? 0,
-        'companySize': profileData['companySize'] ?? '',
-        'industry': profileData['industry'] ?? '',
-      };
+      final doc =
+          await _firestore.collection('employers').doc(user.uid).get();
 
-      return {
-        'profile': profileData,
-        'statistics': stats,
-      };
+      if (!doc.exists) return null;
+
+      final data = doc.data() as Map<String, dynamic>;
+      return EmployerProfileModel.fromJson(data);
     } catch (e) {
       debugPrint('[ProfileService] Error getting employer profile: $e');
-      throw e;
+      return null;
     }
   }
 
-  /// Update employer profile
-  Future<bool> updateEmployerProfile({
-    required String employerId,
-    required Map<String, dynamic> profileData,
-  }) async {
+  Future<void> saveEmployerProfile(EmployerProfileModel profile) async {
     try {
-      debugPrint('[ProfileService] Updating employer profile: $employerId');
-      
-      final updateData = Map.from(profileData);
-      updateData['updatedAt'] = FieldValue.serverTimestamp();
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
 
-      await _firestore
-          .collection('employers')
-          .doc(employerId)
-          .update(updateData);
+      await _firestore.collection('employers').doc(user.uid).set({
+        'name': profile.name,
+        'email': profile.email,
+        'phone': profile.phone,
+        'companyName': profile.companyName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-      debugPrint('[ProfileService] Employer profile updated successfully');
-      return true;
+      debugPrint('[ProfileService] Employer profile saved');
+    } catch (e) {
+      debugPrint('[ProfileService] Error saving employer profile: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateEmployerProfile(Map<String, dynamic> data) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
+
+      await _firestore.collection('employers').doc(user.uid).update({
+        ...data,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('[ProfileService] Employer profile updated');
     } catch (e) {
       debugPrint('[ProfileService] Error updating employer profile: $e');
-      return false;
+      rethrow;
+    }
+  }
+
+  Future<String?> updateEmployerProfilePicture(XFile file) async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('User not authenticated');
+
+      final downloadUrl = await _storageService.uploadFile(
+        file,
+        'profile-images/$userId.jpg',
+      );
+
+      if (downloadUrl != null) {
+        await updateEmployerProfile({'profilePicture': downloadUrl});
+        return downloadUrl;
+      }
+      return null;
+    } catch (e) {
+      debugPrint(
+          '[ProfileService] Error updating employer profile picture: $e');
+      rethrow;
     }
   }
 
   // ======== PROFILE COMPLETENESS ========
 
-  /// Calculate profile completeness score
-  Future<Map<String, dynamic>> calculateProfileCompleteness({
-    required String userId,
-    required String role, // 'employee' or 'employer'
-  }) async {
-    try {
-      debugPrint('[ProfileService] Calculating profile completeness for $role');
-      
-      final profileDoc = await _firestore
-          .collection('${role}s')
-          .doc(userId)
-          .get();
-
-      if (!profileDoc.exists) {
-        return {'completeness': 0.0, 'missingFields': []};
-      }
-
-      final profileData = profileDoc.data()!;
-      final List<String> missingFields = [];
-      double completeness = 0.0;
-      int totalFields = 0;
-      int completedFields = 0;
-
-      if (role == 'employee') {
-        // Employee required fields
-        final requiredFields = [
-          'firstName', 'lastName', 'email', 'phone',
-          'location', 'bio', 'experience', 'education',
-          'skills', 'resumeFileUrl'
-        ];
-
-        for (final field in requiredFields) {
-          totalFields++;
-          if (profileData[field] != null && 
-              profileData[field].toString().isNotEmpty) {
-            completedFields++;
-          } else {
-            missingFields.add(field);
-          }
-        }
-      } else if (role == 'employer') {
-        // Employer required fields
-        final requiredFields = [
-          'companyName', 'companyEmail', 'companyPhone',
-          'companyDescription', 'industry', 'companySize',
-          'location', 'website', 'logoUrl'
-        ];
-
-        for (final field in requiredFields) {
-          totalFields++;
-          if (profileData[field] != null && 
-              profileData[field].toString().isNotEmpty) {
-            completedFields++;
-          } else {
-            missingFields.add(field);
-          }
-        }
-      }
-
-      completeness = totalFields > 0 ? (completedFields / totalFields) * 100 : 0.0;
-
-      return {
-        'completeness': completeness,
-        'completedFields': completedFields,
-        'totalFields': totalFields,
-        'missingFields': missingFields,
-        'isComplete': completeness >= 90.0,
-      };
-    } catch (e) {
-      debugPrint('[ProfileService] Error calculating profile completeness: $e');
-      return {
-        'completeness': 0.0,
-        'missingFields': [],
-      };
-    }
+  Future<bool> isEmployeeProfileComplete() async {
+    final profile = await getEmployeeProfile();
+    if (profile == null) return false;
+    return profile.isComplete;
   }
 
-  // ======== PROFILE VERIFICATION ========
+  Future<bool> isEmployerProfileComplete() async {
+    final profile = await getEmployerProfile();
+    if (profile == null) return false;
 
-  /// Verify profile information
-  Future<bool> verifyProfile({
-    required String userId,
-    required String role,
-    required Map<String, dynamic> verificationData,
-  }) async {
-    try {
-      debugPrint('[ProfileService] Verifying $role profile');
-      
-      await _firestore
-          .collection('${role}s')
-          .doc(userId)
-          .update({
-            'verification': {
-              'isVerified': true,
-              'verifiedAt': FieldValue.serverTimestamp(),
-              'verificationData': verificationData,
-              'status': 'verified',
-            },
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-
-      debugPrint('[ProfileService] Profile verified successfully');
-      return true;
-    } catch (e) {
-      debugPrint('[ProfileService] Error verifying profile: $e');
-      return false;
-    }
-  }
-
-  // ======== HELPER METHODS ========
-
-  Future<Map<String, dynamic>> _getAIInsights(Map<String, dynamic> profileData) async {
-    try {
-      // Get AI insights for the profile
-      final insights = {
-        'profileStrength': 0.0,
-        'suggestions': <String>[],
-        'improvementAreas': <String>[],
-      };
-
-      // Add AI-based insights here when available
-      if (profileData['resumeData'] != null) {
-        insights['profileStrength'] = profileData['resumeData']['confidence'] ?? 0.0;
-      }
-
-      return insights;
-    } catch (e) {
-      debugPrint('[ProfileService] Error getting AI insights: $e');
-      return {};
-    }
-  }
-
-  /// Get profile recommendations
-  Future<Map<String, dynamic>> getProfileRecommendations({
-    required String userId,
-    required String role,
-  }) async {
-    try {
-      debugPrint('[ProfileService] Getting profile recommendations');
-      
-      final profileDoc = await _firestore
-          .collection('${role}s')
-          .doc(userId)
-          .get();
-
-      if (!profileDoc.exists) {
-        return {'recommendations': <String>[]};
-      }
-
-      final profileData = profileDoc.data()!;
-      final List<String> recommendations = [];
-
-      if (role == 'employee') {
-        // Employee-specific recommendations
-        if (profileData['resumeFileUrl'] == null) {
-          recommendations.add('Upload your resume to increase profile visibility');
-        }
-        if (profileData['skills'] == null || (profileData['skills'] as List).isEmpty) {
-          recommendations.add('Add your skills to attract employers');
-        }
-        if (profileData['experience'] == null || (profileData['experience'] as List).isEmpty) {
-          recommendations.add('Add your work experience to complete your profile');
-        }
-      } else if (role == 'employer') {
-        // Employer-specific recommendations
-        if (profileData['companyDescription'] == null || 
-            profileData['companyDescription'].toString().isEmpty) {
-          recommendations.add('Add company description to attract candidates');
-        }
-        if (profileData['logoUrl'] == null) {
-          recommendations.add('Add company logo to build brand recognition');
-        }
-        if (profileData['website'] == null) {
-          recommendations.add('Add company website for more information');
-        }
-      }
-
-      return {
-        'recommendations': recommendations,
-        'hasRecommendations': recommendations.isNotEmpty,
-      };
-    } catch (e) {
-      debugPrint('[ProfileService] Error getting profile recommendations: $e');
-      return {'recommendations': <String>[]};
-    }
+    return profile.name.isNotEmpty &&
+        profile.companyName.isNotEmpty &&
+        profile.email.isNotEmpty;
   }
 }

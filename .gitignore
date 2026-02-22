@@ -44,14 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Firebase / secrets
-android/app/google-services.json
-firebase.json
-lib/firebase_options.dart
 
-# VS Code
-.vscode/
 
-# Environment / backend
-lib/backend/
+
 

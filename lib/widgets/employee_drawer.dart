@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:leox/utils/route_guard.dart';
+import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
+import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
 import 'package:leox/views/employee/employee_ai_resume_matcher.dart';
 import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/employee/employee_jobs_list_view.dart';
 import 'package:leox/views/employee/employee_profile_view.dart';
+import 'package:leox/views/role_option_view.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 enum EmployeeDrawerItem { dashboard, jobs, aiMatcher, profile }
@@ -36,7 +39,7 @@ class EmployeeDrawer extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(2.5.w),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.15),
+                    color: colorScheme.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -123,7 +126,7 @@ class EmployeeDrawer extends StatelessWidget {
               "v1.0.0",
               style: TextStyle(
                 fontSize: 10.sp,
-                color: Colors.white.withOpacity(0.45),
+                color: Colors.black.withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -147,14 +150,14 @@ class EmployeeDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 0.6.h),
       child: Material(
         elevation: isSelected ? 6 : 0,
-        shadowColor: colorScheme.primary.withOpacity(0.4),
+        shadowColor: colorScheme.primary.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: colorScheme.primary.withOpacity(0.15),
-          highlightColor: colorScheme.primary.withOpacity(0.08),
+          splashColor: colorScheme.primary.withValues(alpha: 0.15),
+          highlightColor: colorScheme.primary.withValues(alpha: 0.08),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
             decoration: BoxDecoration(
@@ -166,10 +169,7 @@ class EmployeeDrawer extends StatelessWidget {
                 Icon(
                   isSelected ? activeIcon : icon,
                   size: 18.sp,
-                  color:
-                      isSelected
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.65),
+                  color: Colors.white.withValues(alpha: 0.65),
                 ),
                 SizedBox(width: 4.w),
                 Text(
@@ -180,7 +180,7 @@ class EmployeeDrawer extends StatelessWidget {
                     color:
                         isSelected
                             ? Colors.white
-                            : Colors.white.withOpacity(0.85),
+                            : Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -220,35 +220,55 @@ class EmployeeDrawer extends StatelessWidget {
   }
 
   // ================= LOGOUT DIALOG =================
-  void _confirmLogout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text("Logout"),
-            content: const Text("Are you sure you want to logout?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancel"),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Use RouteGuard to handle logout with proper cleanup
-                  RouteGuard.handleLogout(context);
-                },
-                child: const Text("Logout"),
-              ),
-            ],
+void _confirmLogout(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Logout"),
+      content: const Text("Are you sure you want to logout?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
           ),
-    );
-  }
+          onPressed: () async {
+            // 1️⃣ Close dialog
+            Navigator.pop(context);
 
-  void _navigate(BuildContext context, Widget page) {
+            // 2️⃣ Close drawer
+            Navigator.of(context).pop();
+
+            // 3️⃣ Small delay
+            await Future.delayed(const Duration(milliseconds: 200));
+
+            // 4️⃣ Perform logout directly (no double confirmation)
+            if (!context.mounted) return;
+            await context.read<EmployeeAuthProvider>().logout();
+            
+            // 5️⃣ Reset profile provider
+            if (!context.mounted) return;
+            context.read<EmployeeProfileProvider>().reset();
+            
+            // 6️⃣ Navigate to role selection
+            if (!context.mounted) return;
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const RoleOptionView()),
+              (route) => false,
+            );
+          },
+          child: const Text("Logout"),
+        ),
+      ],
+    ),
+  );
+}
+
+void _navigate(BuildContext context, Widget page) {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
   }
 }
