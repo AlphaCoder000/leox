@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
+import 'package:leox/views/common/notifications_view.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/views/employer/employer_ai_resume_matcher.dart';
-import 'package:leox/views/employer/employer_candidates_view.dart';
+import 'package:leox/views/employer/candidates_view.dart';
 import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/employer/employer_jobs_list_view.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
-import 'package:leox/views/role_option_view.dart';
-import 'package:sizer/sizer.dart';
+import 'package:leox/providers/employer_auth_provider.dart';
 
 class EmployerDrawer extends StatelessWidget {
   final EmployerDrawerItem selectedItem;
@@ -21,6 +23,7 @@ class EmployerDrawer extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
+      width: 70.w,
       backgroundColor: _drawerBg,
       surfaceTintColor: Colors.transparent,
       child: Column(
@@ -37,7 +40,7 @@ class EmployerDrawer extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(2.5.w),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.15),
+                    color: colorScheme.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -92,7 +95,7 @@ class EmployerDrawer extends StatelessWidget {
                   title: "Candidates",
                   isSelected: selectedItem == EmployerDrawerItem.candidates,
                   onTap:
-                      () => _navigate(context, const EmployerCandidatesView()),
+                      () => _navigate(context, const CandidatesView()),
                 ),
 
                 _drawerItem(
@@ -106,6 +109,15 @@ class EmployerDrawer extends StatelessWidget {
                         context,
                         const EmployerAiResumeMatcherView(),
                       ),
+                ),
+
+                _drawerItem(
+                  context,
+                  icon: Icons.notifications_none_outlined,
+                  activeIcon: Icons.notifications_rounded,
+                  title: "Notifications",
+                  isSelected: selectedItem == EmployerDrawerItem.notifications,
+                  onTap: () => _navigate(context, const NotificationsView()),
                 ),
 
                 Divider(height: 4.h, color: _drawerDivider),
@@ -157,7 +169,7 @@ class EmployerDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 0.6.h),
       child: Material(
         elevation: isSelected ? 8 : 0,
-        shadowColor: colorScheme.primary.withOpacity(0.45),
+        shadowColor: colorScheme.primary.withAlpha(38),
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: InkWell(
@@ -229,37 +241,87 @@ class EmployerDrawer extends StatelessWidget {
 
   // ================= LOGOUT DIALOG =================
   void _confirmLogout(BuildContext context) {
+    final theme = Theme.of(context);
+    
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text("Logout"),
-            content: const Text("Are you sure you want to logout?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancel"),
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: _drawerBg,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: _drawerDivider),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            SizedBox(width: 3.w),
+            Text(
+              "Logout",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                    (route) => false,
-                  );
-                },
-                child: const Text("Logout"),
-              ),
-            ],
+            ),
+          ],
+        ),
+        content: Text(
+          "Are you sure you want to sign out of your employer account? You'll need to login again to manage your job listings.",
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12.sp,
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 11.sp,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 2.w),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ),
+              onPressed: () async {
+                // 1. Close the dialog safely using its own context
+                Navigator.of(dialogContext).pop();
+                
+                // 2. Perform background logout
+                // Note: main.dart listener will detect authStateChanges and handle navigation
+                final auth = context.read<EmployerAuthProvider>();
+                await auth.logout();
+              },
+              child: Text(
+                "Yes, Logout",
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   void _navigate(BuildContext context, Widget page) {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+    Navigator.of(context).pop(); // Close drawer first
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 }

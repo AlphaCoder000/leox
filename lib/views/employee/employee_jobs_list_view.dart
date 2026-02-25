@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../providers/employee/employee_jobs_provider.dart';
+import '../../providers/employee_providers/employee_jobs_provider.dart';
 import '../../widgets/employee_drawer.dart';
 import '../../widgets/employee_job_card.dart';
 import 'employee_job_details_view.dart';
@@ -18,9 +18,18 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
   String query = "";
 
   @override
+  void initState() {
+    super.initState();
+    // Load jobs when the view initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployeeJobsProvider>().loadJobs();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<EmployeeJobsProvider>();
-    final jobs = provider.search(query);
+    final jobs = provider.searchJobs(query);
     final theme = Theme.of(context);
 
     return Scaffold(

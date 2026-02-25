@@ -4,6 +4,7 @@ import 'package:leox/views/employee/employee_login_view.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
 import 'package:leox/views/privacy_policy_view.dart';
 import 'package:leox/views/terms_of_service_view.dart';
+import 'package:leox/views/welcome_view.dart';
 import 'package:sizer/sizer.dart';
 
 class RoleOptionView extends StatelessWidget {
@@ -23,7 +24,11 @@ class RoleOptionView extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeView()),
+            (route) => false,
+          ),
         ),
       ),
 
@@ -34,7 +39,8 @@ class RoleOptionView extends StatelessWidget {
             SizedBox(height: 2.h),
 
             Text(
-              "Welcome to Leox",
+              "Welcome to LeoRecruit",
+              textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -46,6 +52,7 @@ class RoleOptionView extends StatelessWidget {
 
             Text(
               "Choose how you'd like to continue",
+              textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: 14.sp,
                 color:
@@ -137,12 +144,12 @@ class RoleOptionView extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(5.w),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Center(
                 child: CircleAvatar(
                   radius: 30,
-                  backgroundColor: theme.primaryColor.withOpacity(0.15),
+                  backgroundColor: Colors.black.withAlpha(5),
                   child: Icon(icon, size: 30, color: theme.primaryColor),
                 ),
               ),
@@ -182,6 +189,7 @@ class RoleOptionView extends StatelessWidget {
                 (p) => Padding(
                   padding: EdgeInsets.only(bottom: 1.h),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.check_circle,
@@ -189,7 +197,7 @@ class RoleOptionView extends StatelessWidget {
                         color: theme.primaryColor,
                       ),
                       SizedBox(width: 3.w),
-                      Expanded(
+                      Flexible(
                         child: Text(
                           p,
                           style: TextStyle(

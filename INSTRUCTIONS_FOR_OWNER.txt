@@ -1,0 +1,20 @@
+Hi Anand,
+
+I successfully deployed the database rules! However, I am now blocked from setting up Google Login because I don't have permission to create "OAuth Credentials".
+
+Could you please upgrade my role to **"Editor"**?
+
+1.  Go to IAM Admin: [https://console.cloud.google.com/iam-admin/iam?project=studio-7488920972-4ef9c](https://console.cloud.google.com/iam-admin/iam?project=studio-7488920972-4ef9c)
+2.  Find my email: `akashmoreasm6000@gmail.com`
+3.  Click the **Pencil Icon** (Edit).
+4.  Change my current role (or add a new one) to **"Editor"** (Basic > Editor).
+5.  Save.
+
+This will unblock me from all future permission issues.
+
+Alternatively, if you prefer not to grant Editor access, **please create the OAuth Client ID yourself**:
+1.  Go to **APIs & Services > Credentials**.
+2.  Create an **OAuth Client ID** -> **Web application**.
+3.  Send me the **Client ID**.
+
+Thanks!

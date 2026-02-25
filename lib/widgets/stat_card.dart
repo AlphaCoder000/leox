@@ -24,7 +24,8 @@ class StatCard extends StatelessWidget {
       builder: (context, constraints) {
         return Card(
           elevation: 3,
-          shadowColor: Colors.black.withOpacity(0.08),
+          shadowColor: Colors.white.withOpacity(0.65),
+
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

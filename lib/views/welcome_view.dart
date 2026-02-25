@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:leox/views/role_option_view.dart';
+import 'package:leox/providers/theme_povider.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../providers/welcome_provider.dart';
 import '../models/resource_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({super.key});
@@ -13,8 +16,13 @@ class WelcomeView extends StatefulWidget {
 
 class _WelcomeViewState extends State<WelcomeView> {
   @override
-  @override
   Widget build(BuildContext context) {
+    // Note: Auth state and role-based redirection are now handled centrally in main.dart
+    // This view only focuses on displaying the welcome content.
+    return _buildWelcomeContent(context);
+  }
+
+  Widget _buildWelcomeContent(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -36,24 +44,44 @@ class _WelcomeViewState extends State<WelcomeView> {
   // 🔹 HEADER
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        6.w, // left
-        5.h, // Top
-        6.w, // right
-        2.5.h, // bottom
-      ),
+      padding: EdgeInsets.fromLTRB(6.w, 4.h, 6.w, 0.h),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            "LeoRecruit",
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
+          const SizedBox(width: 48), // Spacer to help center the text
+          Expanded(
+            child: ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  const Color(0xFF8B5CF6), // Purple pop
+                ],
+              ).createShader(bounds),
+              child: Text(
+                "LeoRecruit",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -1.0,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              themeProvider.themeMode == ThemeMode.dark
+                  ? Icons.light_mode
+                  : themeProvider.themeMode == ThemeMode.light
+                      ? Icons.dark_mode
+                      : Icons.settings_brightness,
               color: theme.colorScheme.onSurface,
             ),
+            onPressed: () => themeProvider.toggleTheme(),
           ),
         ],
       ),
@@ -68,10 +96,11 @@ class _WelcomeViewState extends State<WelcomeView> {
     return Padding(
       padding: EdgeInsets.all(6.w),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             "Find Your Next Opportunity",
+            textAlign: TextAlign.center,
             style: theme.textTheme.displaySmall?.copyWith(
               fontSize: 26.sp,
               fontWeight: FontWeight.bold,
@@ -82,6 +111,7 @@ class _WelcomeViewState extends State<WelcomeView> {
           SizedBox(height: 2.5.h),
           Text(
             "Browse jobs and discover roles that match your skills and ambitions.",
+            textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontSize: 13.sp,
               color:
@@ -92,27 +122,30 @@ class _WelcomeViewState extends State<WelcomeView> {
             ),
           ),
           SizedBox(height: 4.h),
-          Row(
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                  );
-                },
-
-                child: Text(
-                  "Get Started Free",
-                  style: TextStyle(fontSize: 13.sp, color: Colors.white),
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              SizedBox(width: 4.w),
-            ],
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RoleOptionView()),
+                );
+              },
+              child: Text(
+                "Get Started Free",
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -130,18 +163,18 @@ class _WelcomeViewState extends State<WelcomeView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 🔹 SMALL PILL
+          // SMALL PILL
           Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               "Key Features",
               style: TextStyle(
                 color: colorScheme.primary,
-                fontSize: 10.sp,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -149,7 +182,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
           SizedBox(height: 2.h),
 
-          // 🔹 MAIN HEADING
+          // MAIN HEADING
           Text(
             "Everything you need to streamline hiring.",
             textAlign: TextAlign.center,
@@ -162,7 +195,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
           SizedBox(height: 1.5.h),
 
-          // 🔹 SUB HEADING
+          // SUB HEADING
           Text(
             "From AI-powered resume screening to a centralized candidate database, "
             "LeoRecruit provides the tools to build your dream team.",
@@ -176,7 +209,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
           SizedBox(height: 4.h),
 
-          // 🔹 FEATURE CARDS
+          // FEATURE CARDS
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -206,7 +239,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                         Container(
                           padding: EdgeInsets.all(2.w),
                           decoration: BoxDecoration(
-                            color: colorScheme.primary.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
@@ -252,7 +285,7 @@ class _WelcomeViewState extends State<WelcomeView> {
     );
   }
 
-  // 🔹 RESOURCES
+  // RESOURCES
   Widget _resourcesSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -261,21 +294,21 @@ class _WelcomeViewState extends State<WelcomeView> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 4.h),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 🔹 TOP LABEL
+          // TOP LABEL
           Center(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
+                color: Colors.black.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 "Resources",
                 style: TextStyle(
                   color: colorScheme.primary,
-                  fontSize: 10.sp,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -334,7 +367,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                       vertical: 3.h,
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           res.category,
@@ -373,6 +406,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                         SizedBox(height: 2.5.h),
 
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               "Read More",
@@ -406,18 +440,43 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   // 🔹 FOOTER
   Widget _footer(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Column(
         children: [
           const Divider(),
-          SizedBox(height: 1.h),
-          Text(
-            "© 2024 LeoRecruit",
-            style: TextStyle(
-              fontSize: 9.sp,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
+          SizedBox(height: 2.h),
+          
+          // Original Footer
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "© 2026 ",
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [
+                    theme.colorScheme.primary,
+                    const Color(0xFF8B5CF6),
+                  ],
+                ).createShader(bounds),
+                child: Text(
+                  "LeoRecruit",
+                  style: GoogleFonts.outfit(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

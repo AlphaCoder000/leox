@@ -18,6 +18,15 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
   String query = "";
 
   @override
+  void initState() {
+    super.initState();
+    // Load jobs when the view initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmployerJobsProvider>().loadJobs();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<EmployerJobsProvider>();
     final jobs =
@@ -46,24 +55,50 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
 
       body: Column(
         children: [
-          // 🔹 PREMIUM SEARCH BAR
           Padding(
             padding: EdgeInsets.all(4.w),
             child: TextField(
               decoration: InputDecoration(
                 hintText: "Search jobs by title or department...",
                 prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon:
-                    query.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear_rounded),
-                          onPressed: () => setState(() => query = ""),
-                        )
-                        : null,
+                suffixIcon: query.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded),
+                        onPressed: () => setState(() => query = ""),
+                      )
+                    : null,
               ),
               onChanged: (v) => setState(() => query = v),
             ),
           ),
+
+          if (provider.isLoading)
+            const LinearProgressIndicator(),
+
+          if (provider.errorMessage != null)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+              child: Container(
+                padding: EdgeInsets.all(2.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    SizedBox(width: 2.w),
+                    Expanded(
+                      child: Text(
+                        provider.errorMessage!,
+                        style: TextStyle(color: Colors.red, fontSize: 11.sp),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           Expanded(
             child:

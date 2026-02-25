@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leox/models/job_model.dart';
 import 'package:leox/providers/employer_jobs_provider.dart';
+import 'package:leox/views/employer/employer_jobs_list_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -15,11 +16,16 @@ class _CreateJobViewState extends State<CreateJobView> {
   final _formKey = GlobalKey<FormState>();
 
   final titleCtrl = TextEditingController();
+  final companyCtrl = TextEditingController();
+  final locationCtrl = TextEditingController();
   final deptCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final reqCtrl = TextEditingController();
+  final salaryCtrl = TextEditingController();
 
   String category = "Mechanical Engineering";
+  String jobType = "Full-time";
+  String experience = "Mid-Level";
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +49,18 @@ class _CreateJobViewState extends State<CreateJobView> {
               ),
 
               _field(
+                label: "Company Name",
+                controller: companyCtrl,
+                validator: "Company name is required",
+              ),
+
+              _field(
+                label: "Location",
+                controller: locationCtrl,
+                validator: "Location is required",
+              ),
+
+              _field(
                 label: "Department",
                 controller: deptCtrl,
                 validator: "Department is required",
@@ -50,22 +68,76 @@ class _CreateJobViewState extends State<CreateJobView> {
 
               DropdownButtonFormField<String>(
                 value: category,
-                decoration: _inputDecoration("Job Category *"),
-                items: const [
-                  DropdownMenuItem(
-                    value: "Mechanical Engineering",
-                    child: Text("Mechanical Engineering"),
+                decoration: InputDecoration(
+                  labelText: "Job Category *",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  DropdownMenuItem(value: "Software", child: Text("Software")),
-                  DropdownMenuItem(value: "Civil", child: Text("Civil")),
+                ),
+                items: const [
+                  DropdownMenuItem(value: "Data Science", child: Text("Data Science")),
+                  DropdownMenuItem(value: "Machine Learning", child: Text("Machine Learning")),
+                  DropdownMenuItem(value: "Software Development", child: Text("Software Development")),
+                  DropdownMenuItem(value: "Mobile App Development", child: Text("Mobile App Development")),
+                  DropdownMenuItem(value: "UI/UX Design", child: Text("UI/UX Design")),
+                  DropdownMenuItem(value: "Cybersecurity", child: Text("Cybersecurity")),
+                  DropdownMenuItem(value: "Product Management", child: Text("Product Management")),
+                  DropdownMenuItem(value: "Marketing", child: Text("Marketing")),
+                  DropdownMenuItem(value: "Finance", child: Text("Finance")),
+                  DropdownMenuItem(value: "Human Resources", child: Text("Human Resources")),
+                  DropdownMenuItem(value: "Business Analysis", child: Text("Business Analysis")),
+                  DropdownMenuItem(value: "Content Writing", child: Text("Content Writing")),
+                  DropdownMenuItem(value: "Architecture", child: Text("Architecture")),
+                  DropdownMenuItem(value: "Civil Engineering", child: Text("Civil Engineering")),
+                  DropdownMenuItem(value: "Mechanical Engineering", child: Text("Mechanical Engineering")),
                 ],
                 onChanged: (v) => setState(() => category = v!),
-                validator:
-                    (v) =>
-                        v == null || v.isEmpty ? "Select a job category" : null,
+                validator: (v) => v == null || v.isEmpty ? "Select a category" : null,
               ),
 
-              SizedBox(height: 2.h),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: jobType,
+                      decoration: InputDecoration(labelText: "Job Type"),
+                      items: const [
+                        DropdownMenuItem(value: "Full-time", child: Text("Full-time")),
+                        DropdownMenuItem(value: "Part-time", child: Text("Part-time")),
+                        DropdownMenuItem(value: "Contract", child: Text("Contract")),
+                        DropdownMenuItem(value: "Internship", child: Text("Internship")),
+                      ],
+                      onChanged: (v) => setState(() => jobType = v!),
+                    ),
+                  ),
+                  SizedBox(width: 4.w),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: experience,
+                      decoration: InputDecoration(labelText: "Experience"),
+                      items: const [
+                        DropdownMenuItem(value: "Entry", child: Text("Entry")),
+                        DropdownMenuItem(value: "Mid-Level", child: Text("Mid-Level")),
+                        DropdownMenuItem(value: "Senior", child: Text("Senior")),
+                        DropdownMenuItem(value: "Executive", child: Text("Executive")),
+                      ],
+                      onChanged: (v) => setState(() => experience = v!),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              _field(
+                label: "Salary Range (e.g. 50k-80k)",
+                controller: salaryCtrl,
+                validator: "Salary range is required",
+              ),
+
+              const SizedBox(height: 16),
 
               _field(
                 label: "Job Description",
@@ -82,7 +154,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                 helperText: "Enter each requirement on a new line",
               ),
 
-              SizedBox(height: 4.h),
+              const SizedBox(height: 32),
 
               Center(
                 child: ElevatedButton.icon(
@@ -90,44 +162,79 @@ class _CreateJobViewState extends State<CreateJobView> {
                   label: const Text("Post Job"),
                   style: ElevatedButton.styleFrom(
                     elevation: 4,
-                    shadowColor: Theme.of(
-                      context,
-                    ).primaryColor.withOpacity(0.4),
+                    shadowColor: Theme.of(context).primaryColor.withOpacity(0.4),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      jobsProvider.addJob(
-                        JobModel(
-                          title: titleCtrl.text.trim(),
-                          department: deptCtrl.text.trim(),
-                          category: category,
-                          description: descCtrl.text.trim(),
-                          requirements: reqCtrl.text.trim().split('\n'),
-                          postedOn: DateTime.now(),
-                        ),
-                      );
+                      try {
+                        await jobsProvider.addJob(
+                          JobModel(
+                            title: titleCtrl.text.trim(),
+                            companyName: companyCtrl.text.trim(),
+                            location: locationCtrl.text.trim(),
+                            department: deptCtrl.text.trim(),
+                            category: category,
+                            jobType: jobType,
+                            experienceLevel: experience,
+                            salaryRange: salaryCtrl.text.trim(),
+                            description: descCtrl.text.trim(),
+                            requirements: reqCtrl.text.trim().split('\n'),
+                            postedOn: DateTime.now(),
+                          ),
+                        );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.white,
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  const Text("Job posted successfully!"),
+                                ],
                               ),
-                              SizedBox(width: 3.w),
-                              const Text("Job posted successfully!"),
-                            ],
-                          ),
-                          backgroundColor: Colors.green,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      );
+                              backgroundColor: Colors.green,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
 
-                      Navigator.pop(context);
+                          // Navigate to job list page instead of just popping
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const EmployerJobsListView(),
+                            ),
+                            (route) => false,
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  Text("Failed to post job: ${e.toString()}"),
+                                ],
+                              ),
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        }
+                      }
                     }
                   },
                 ),
@@ -163,7 +270,7 @@ class _CreateJobViewState extends State<CreateJobView> {
     String? helperText,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 2.5.h),
+      padding: const EdgeInsets.only(bottom: 20.0),
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
@@ -172,14 +279,32 @@ class _CreateJobViewState extends State<CreateJobView> {
           hintText: "Enter ${label.toLowerCase()}",
           helperText: helperText,
           alignLabelWithHint: maxLines > 1,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Theme.of(context).primaryColor),
+          ),
         ),
         validator: (v) => v == null || v.trim().isEmpty ? validator : null,
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label, {String? helperText}) {
-    // Rely on global theme, just adding label
-    return InputDecoration(labelText: label, helperText: helperText);
+  @override
+  void dispose() {
+    titleCtrl.dispose();
+    companyCtrl.dispose();
+    locationCtrl.dispose();
+    deptCtrl.dispose();
+    descCtrl.dispose();
+    reqCtrl.dispose();
+    salaryCtrl.dispose();
+    super.dispose();
   }
 }

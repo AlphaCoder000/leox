@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
+import 'package:leox/views/employee/employee_login_view.dart';
 import 'package:leox/views/role_option_view.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
-import 'employee_login_view.dart';
 
 class EmployeeRegisterView extends StatefulWidget {
   const EmployeeRegisterView({super.key});
@@ -13,9 +15,48 @@ class EmployeeRegisterView extends StatefulWidget {
 
 class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
   bool isEmailSelected = true;
-  bool isOtpSent = false;
+  bool isOtpSent = false; // 🔹 NEW
 
   String selectedCountryCode = "+91";
+
+  // Text controllers for email registration
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  final phoneController = TextEditingController();
+  final otpController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Listen to success messages
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _listenToSuccessMessages();
+    });
+  }
+
+  void _listenToSuccessMessages() {
+    context.read<EmployeeAuthProvider>().addListener(_onSuccessMessage);
+  }
+
+  void _onSuccessMessage() {
+    final auth = context.read<EmployeeAuthProvider>();
+    if (auth.successMessage != null && auth.successMessage!.isNotEmpty && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(auth.successMessage!),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      auth.clearSuccessMessage();
+    }
+  }
+
+  void _clearError() {
+    context.read<EmployeeAuthProvider>().clearError();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,264 +87,323 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
         ),
       ),
 
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 6.w),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Card(
-              color: theme.cardTheme.color,
-              elevation: 4,
-              shadowColor: Colors.black12,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-                side: BorderSide(color: theme.dividerColor),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: SizedBox.expand(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🔹 HEADER
+                Row(
                   children: [
-                    // 🔹 HEADER
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: colorScheme.primary.withOpacity(
-                            0.12,
-                          ),
-                          child: Icon(
-                            Icons.person_outline,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        SizedBox(width: 3.w),
-                        Text(
-                          "Employee Registration",
-                          style: TextStyle(
-                            fontSize: 17.sp,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: colorScheme.primary.withOpacity(0.12),
+                      child: Icon(
+                        Icons.business_center_outlined,
+                        color: colorScheme.primary,
+                      ),
                     ),
-
-                    SizedBox(height: 1.2.h),
-
+                    const SizedBox(width: 12),
                     Text(
-                      "Create an account to apply for jobs and track applications.",
+                      "Employee Registration",
                       style: TextStyle(
-                        fontSize: 12.5.sp,
-                        color: isDark ? Colors.grey[400] : Colors.black54,
-                      ),
-                    ),
-
-                    SizedBox(height: 3.5.h),
-
-                    // 🔹 EMAIL / PHONE TOGGLE
-                    Container(
-                      padding: EdgeInsets.all(0.6.w),
-                      decoration: BoxDecoration(
-                        color: theme.scaffoldBackgroundColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _tabButton(
-                              context,
-                              "Email",
-                              selected: isEmailSelected,
-                              onTap: () {
-                                setState(() {
-                                  isEmailSelected = true;
-                                  isOtpSent = false;
-                                });
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: _tabButton(
-                              context,
-                              "Phone",
-                              selected: !isEmailSelected,
-                              onTap: () {
-                                setState(() {
-                                  isEmailSelected = false;
-                                  isOtpSent = false;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: 3.h),
-
-                    // 🔹 FORM
-                    if (isEmailSelected) ...[
-                      _label(context, "Email"),
-                      SizedBox(height: 0.8.h),
-                      _inputField(keyboardType: TextInputType.emailAddress),
-
-                      SizedBox(height: 2.5.h),
-
-                      _label(context, "Password"),
-                      SizedBox(height: 0.8.h),
-                      _inputField(isPassword: true),
-                    ] else ...[
-                      if (!isOtpSent) ...[
-                        _label(context, "Phone Number"),
-                        SizedBox(height: 0.8.h),
-
-                        Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 3.w),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: theme.dividerColor),
-                                borderRadius: BorderRadius.circular(12),
-                                color: theme.inputDecorationTheme.fillColor,
-                              ),
-                              child: DropdownButton<String>(
-                                value: selectedCountryCode,
-                                dropdownColor: theme.cardTheme.color,
-                                style: TextStyle(color: colorScheme.onSurface),
-                                underline: const SizedBox(),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: "+91",
-                                    child: Text("+91"),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "+1",
-                                    child: Text("+1"),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "+44",
-                                    child: Text("+44"),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: "+61",
-                                    child: Text("+61"),
-                                  ),
-                                ],
-                                onChanged:
-                                    (v) => setState(
-                                      () => selectedCountryCode = v!,
-                                    ),
-                              ),
-                            ),
-
-                            SizedBox(width: 3.w),
-
-                            Expanded(
-                              child: _inputField(
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ] else ...[
-                        _label(context, "Verification Code"),
-                        SizedBox(height: 0.8.h),
-                        _inputField(
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(6),
-                          ],
-                        ),
-
-                        SizedBox(height: 1.5.h),
-
-                        Center(
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() => isOtpSent = false);
-                            },
-                            child: const Text("Back"),
-                          ),
-                        ),
-                      ],
-                    ],
-
-                    SizedBox(height: 3.5.h),
-
-                    // 🔹 PRIMARY BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (!isEmailSelected && !isOtpSent) {
-                            setState(() => isOtpSent = true);
-                          } else if (!isEmailSelected && isOtpSent) {
-                            // TODO: Verify OTP & register employee
-                          } else {
-                            // TODO: Email registration
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          padding: EdgeInsets.symmetric(vertical: 1.8.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          isEmailSelected
-                              ? "Sign Up with Email"
-                              : isOtpSent
-                              ? "Verify & Create Account"
-                              : "Send Verification Code",
-                          style: TextStyle(
-                            fontSize: 13.5.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 3.h),
-
-                    // 🔹 FOOTER
-                    Center(
-                      child: Column(
-                        children: [
-                          Text(
-                            "Already have an account?",
-                            style: TextStyle(
-                              fontSize: 11.5.sp,
-                              color: isDark ? Colors.grey[400] : Colors.black54,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const EmployeeLoginView(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              "Sign in as Employee",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],
                 ),
-              ),
+
+                const SizedBox(height: 12),
+
+                Text(
+                  "Create an account to search for job opportunities.",
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: isDark ? Colors.grey[400] : Colors.black54,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // 🔹 EMAIL / PHONE TOGGLE
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: theme.dividerColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _tabButton(
+                          context,
+                          "Email",
+                          selected: isEmailSelected,
+                          onTap: () {
+                            setState(() {
+                              isEmailSelected = true;
+                              isOtpSent = false;
+                            });
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: _tabButton(
+                          context,
+                          "Phone",
+                          selected: !isEmailSelected,
+                          onTap: () {
+                            setState(() {
+                              isEmailSelected = false;
+                              isOtpSent = false;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 🔹 FORM
+                if (isEmailSelected) ...[
+                  _label(context, "Email"),
+                  const SizedBox(height: 8),
+                  _inputField(keyboardType: TextInputType.emailAddress, controller: emailController),
+
+                  const SizedBox(height: 20),
+
+                  _label(context, "Password"),
+                  const SizedBox(height: 8),
+                  _inputField(isPassword: true, controller: passwordController),
+
+                  const SizedBox(height: 20),
+
+                  _label(context, "Confirm Password"),
+                  const SizedBox(height: 8),
+                  _inputField(isPassword: true, controller: confirmPasswordController),
+                ] else ...[
+                  if (!isOtpSent) ...[
+                    _label(context, "Phone Number"),
+                    const SizedBox(height: 8),
+
+                    Row(
+                      children: [
+                        // COUNTRY CODE
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: theme.dividerColor),
+                            borderRadius: BorderRadius.circular(12),
+                            color: theme.inputDecorationTheme.fillColor,
+                          ),
+                          child: DropdownButton<String>(
+                            value: selectedCountryCode,
+                            dropdownColor: theme.cardTheme.color,
+                            style: TextStyle(color: colorScheme.onSurface),
+                            underline: const SizedBox(),
+                            items: const [
+                              DropdownMenuItem(value: "+91", child: Text("+91")),
+                              DropdownMenuItem(value: "+1", child: Text("+1")),
+                              DropdownMenuItem(value: "+44", child: Text("+44")),
+                              DropdownMenuItem(value: "+61", child: Text("+61")),
+                            ],
+                            onChanged:
+                                (v) => setState(
+                                  () => selectedCountryCode = v!,
+                                ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Expanded(
+                          child: _inputField(
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    _label(context, "Verification Code"),
+                    const SizedBox(height: 8),
+                    _inputField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(6),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() => isOtpSent = false);
+                        },
+                        child: const Text("Back"),
+                      ),
+                    ),
+                  ],
+                ],
+
+                const SizedBox(height: 32),
+
+                // 🔹 PRIMARY BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  child: Consumer<EmployeeAuthProvider>(
+                    builder: (context, auth, child) {
+                      return ElevatedButton(
+                        onPressed: auth.isLoading ? null : () async {
+                          if (!isEmailSelected && !isOtpSent) {
+                            setState(() => isOtpSent = true);
+                            // TODO: Firebase send OTP
+                          } else if (!isEmailSelected && isOtpSent) {
+                            // TODO: Firebase verify OTP & register
+                          } else {
+                            // Firebase email registration
+                            await _registerWithEmail();
+                            
+                            // Success? main.dart will handle navigation.
+                            // We just need to clear the stack if we are on top.
+                            if (auth.isLoggedIn && mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(
+                              isEmailSelected
+                                  ? "Sign Up with Email"
+                                  : isOtpSent
+                                  ? "Verify & Create Account"
+                                  : "Send Verification Code",
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                      );
+                    }
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 🔹 DIVIDER
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        "OR CONTINUE WITH",
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          color: isDark ? Colors.grey[500] : Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // 🔹 GOOGLE
+                Consumer<EmployeeAuthProvider>(
+                  builder: (context, auth, _) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : () async {
+                          final provider = context.read<EmployeeAuthProvider>();
+                          await provider.signUpWithGoogle();
+                          
+                          if (provider.isLoggedIn && mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
+                        },
+                        icon: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Image.asset(
+                              'assets/icons/google_logo.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 24),
+                            ),
+                        label: Text(auth.isLoading ? "Signing up..." : "Sign Up with Google"),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                ),
+
+                const SizedBox(height: 24),
+
+                // 🔹 FOOTER
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Already have an account?",
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: isDark ? Colors.grey[400] : Colors.black54,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EmployeeLoginView(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Sign in as Employee",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -320,30 +420,27 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 1.2.h),
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
         decoration: BoxDecoration(
           color: selected ? theme.cardTheme.color : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow:
-              selected
-                  ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                    ),
-                  ]
-                  : null,
+          boxShadow: selected ? [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+            ),
+          ] : null,
         ),
         child: Center(
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 14.0,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: theme.colorScheme.onSurface,
             ),
@@ -353,11 +450,44 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     );
   }
 
+  // ======== EMAIL REGISTRATION ========
+
+  Future<void> _registerWithEmail() async {
+    // Validate form
+    if (emailController.text.trim().isEmpty) {
+      _showError('Please enter your email');
+      return;
+    }
+    if (passwordController.text.length < 6) {
+      _showError('Password must be at least 6 characters');
+      return;
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      _showError('Passwords do not match');
+      return;
+    }
+
+    // Call registration method
+    await context.read<EmployeeAuthProvider>().registerWithFirebaseEmail(
+      email: emailController.text.trim(),
+      password: passwordController.text,
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   Widget _label(BuildContext context, String text) {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 12.sp,
+        fontSize: 14.0, 
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),
@@ -368,11 +498,27 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
+    TextEditingController? controller,
   }) {
     return TextField(
+      controller: controller,
       obscureText: isPassword,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        filled: true,
+        fillColor: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.grey[100], // context not available here directly unless passed or accessed via widget/context
+        // Helper isn't inside State? Yes it is _EmployeeRegisterViewState.
+        // So context property is available.
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    context.read<EmployeeAuthProvider>().removeListener(_onSuccessMessage);
+    super.dispose();
   }
 }

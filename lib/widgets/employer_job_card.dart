@@ -20,7 +20,7 @@ class JobCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: Card(
         elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.08),
+        shadowColor: Colors.white.withOpacity(0.65),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: Padding(
           padding: EdgeInsets.all(4.w),
@@ -47,7 +47,7 @@ class JobCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert_rounded,
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.primary.withAlpha(38),
                     ),
                     onSelected: (value) {
                       if (value == 'delete') {
@@ -100,14 +100,14 @@ class JobCard extends StatelessWidget {
                     "Posted on ${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
                     style: TextStyle(
                       fontSize: 11.5.sp,
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                      color: theme.textTheme.bodySmall?.color?.withAlpha(153),
                     ),
                   ),
 
                   Container(
                     padding: EdgeInsets.all(1.2.w),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
+                      color: colorScheme.primary.withAlpha(26),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -133,7 +133,7 @@ class JobCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.6.h),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.12),
+        color: colorScheme.primary.withAlpha(30),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

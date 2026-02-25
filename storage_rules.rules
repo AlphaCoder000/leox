@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // --- PROFILE-IMAGES FOLDER ---
+    // All users (employee/employer) store profile pictures here
+    // Format: profile-images/{userId}.jpg or profile-images/{userId}.png, etc.
+    match /profile-images/{fileName} {
+      // Users can ONLY read/write their own profile images
+      // File name must start with their UID
+      allow read, write: if isAuthenticated() && fileName.matches(request.auth.uid + '.*');
+    }
+    
+    // --- RESUMES FOLDER ---
+    // Only employees store resumes here
+    // Format: resumes/{userId}_resume.extension
+    match /resumes/{fileName} {
+      // Only authenticated users can access resumes
+      // File name must start with their UID + _resume.
+      allow read, write: if isAuthenticated() && fileName.matches(request.auth.uid + '_resume\\..*');
+    }
+    
+    // --- LEGACY FOLDERS (for backward compatibility) ---
+    match /employees/{userId}/{allPaths=**} {
+      // Users can read/write their own files only
+      allow read, write: if isAuthenticated() && userId == request.auth.uid;
+    }
+    
+    match /employers/{userId}/{allPaths=**} {
+      // Users can read/write their own files only
+      allow read, write: if isAuthenticated() && userId == request.auth.uid;
+    }
+    
+    // --- AI RESUME ANALYSIS FOLDER ---
+    match /ai-resume-analysis/{fileName} {
+      // Only authenticated users can access AI analysis files
+      allow read, write: if isAuthenticated();
+    }
+    
+    // --- APPLICATIONS FOLDER (Resumes uploaded with applications) ---
+    match /applications/{fileName} {
+      // Allow authenticated users to upload their own resumes
+      // File name starts with UID as per JobApplicationService
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && fileName.matches(request.auth.uid + '.*');
+    }
+    
+    // --- PUBLIC FILES ---
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if false; // No public writes
+    }
+  }
+}
