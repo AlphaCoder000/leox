@@ -24,6 +24,7 @@ class EmployeeProfileModel {
   final List<String> skills; // e.g., ["Flutter", "Firebase", "Dart"]
   final double? experienceYears; // Total years of experience
   final String resumeUrl; // URL to uploaded resume PDF
+  final String resumeName; // Original file name of the resume
   final String? resumeLocalPath; // Local path during upload
 
   // ======== TIMESTAMPS ========
@@ -43,31 +44,13 @@ class EmployeeProfileModel {
     this.skills = const [],
     this.experienceYears,
     this.resumeUrl = '',
+    this.resumeName = '',
     this.resumeLocalPath,
     this.createdAt,
     this.updatedAt,
   });
 
   /// Create from JSON (API response)
-  ///
-  /// Expected JSON format:
-  /// ```json
-  /// {
-  ///   "id": "emp_123",
-  ///   "email": "user@example.com",
-  ///   "phone": "+919876543210",
-  ///   "firstName": "John",
-  ///   "lastName": "Doe",
-  ///   "bio": "Passionate developer...",
-  ///   "profilePicture": "https://...",
-  ///   "headline": "Senior Flutter Developer",
-  ///   "skills": ["Flutter", "Firebase"],
-  ///   "experienceYears": 5,
-  ///   "resumeUrl": "https://...pdf",
-  ///   "createdAt": "2025-01-15T10:30:00Z",
-  ///   "updatedAt": "2025-01-20T14:45:00Z"
-  /// }
-  /// ```
   factory EmployeeProfileModel.fromJson(Map<String, dynamic> json) {
     return EmployeeProfileModel(
       id: json['id'] ?? '',
@@ -81,6 +64,7 @@ class EmployeeProfileModel {
       skills: _parseSkills(json['skills']),
       experienceYears: _parseDouble(json['experienceYears']),
       resumeUrl: json['resumeUrl'] ?? '',
+      resumeName: json['resumeName'] ?? '',
       resumeLocalPath: json['resumeLocalPath'],
       createdAt: _parseDateTime(json['createdAt']),
       updatedAt: _parseDateTime(json['updatedAt']),
@@ -88,8 +72,6 @@ class EmployeeProfileModel {
   }
 
   /// Convert to JSON (for API requests)
-  ///
-  /// NOTE: Does not include read-only fields (id, createdAt, updatedAt)
   Map<String, dynamic> toJson() {
     return {
       'firstName': firstName,
@@ -102,12 +84,11 @@ class EmployeeProfileModel {
       if (skills.isNotEmpty) 'skills': skills,
       if (experienceYears != null) 'experienceYears': experienceYears,
       if (resumeUrl.isNotEmpty) 'resumeUrl': resumeUrl,
+      if (resumeName.isNotEmpty) 'resumeName': resumeName,
     };
   }
 
   /// Create a copy with modified fields
-  ///
-  /// Useful for local state updates before API calls
   EmployeeProfileModel copyWith({
     String? id,
     String? email,
@@ -120,6 +101,7 @@ class EmployeeProfileModel {
     List<String>? skills,
     double? experienceYears,
     String? resumeUrl,
+    String? resumeName,
     String? resumeLocalPath,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -136,6 +118,7 @@ class EmployeeProfileModel {
       skills: skills ?? this.skills,
       experienceYears: experienceYears ?? this.experienceYears,
       resumeUrl: resumeUrl ?? this.resumeUrl,
+      resumeName: resumeName ?? this.resumeName,
       resumeLocalPath: resumeLocalPath ?? this.resumeLocalPath,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

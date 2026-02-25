@@ -421,7 +421,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   "View and manage your personal information.",
                   style: TextStyle(
                     fontSize: 12.5.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                 ),
 
@@ -444,7 +444,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               CircleAvatar(
                                 radius: 36,
                                   backgroundColor:
-                                      colorScheme.primary.withValues(alpha: 0.15),
+                                      colorScheme.primary.withOpacity(0.15),
                                   backgroundImage:
                                       ((profile.profilePicture ?? '')
                                               .isNotEmpty)
@@ -556,7 +556,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               return Chip(
                                 label: Text(skill),
                                 backgroundColor: colorScheme.primary
-                                    .withValues(alpha: 0.1),
+                                    .withOpacity(0.1),
                                 onDeleted: () {
                                   profileProvider.removeSkill(skill);
                                 },
@@ -708,7 +708,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
               subtitle,
               style: TextStyle(
                 fontSize: 11.5.sp,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
               ),
             ),
             SizedBox(height: 2.h),

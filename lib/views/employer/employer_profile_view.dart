@@ -173,7 +173,7 @@ class EmployerProfileView extends StatelessWidget {
 
           fontSize: 12.5.sp,
 
-          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
 
         ),
 
@@ -197,7 +197,7 @@ class EmployerProfileView extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 36,
-                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
                   backgroundImage: (profile.profilePicture ?? '').isNotEmpty
                       ? NetworkImage(profile.profilePicture!)
                       : null,
@@ -316,7 +316,7 @@ class EmployerProfileView extends StatelessWidget {
 
                 fontSize: 11.5.sp,
 
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
 
               ),
 

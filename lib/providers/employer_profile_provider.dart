@@ -9,6 +9,7 @@ import '../services/profile_service.dart';
 
 class EmployerProfileProvider extends ChangeNotifier {
   final ProfileService _profileService = ProfileService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -95,7 +96,7 @@ class EmployerProfileProvider extends ChangeNotifier {
     _setError(null);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = _auth.currentUser;
       if (user == null) {
         throw Exception('User not authenticated');
       }
@@ -120,10 +121,8 @@ class EmployerProfileProvider extends ChangeNotifier {
       // Reload profile to get updated data
       await loadProfile();
       
-      debugPrint('[EmployerProfileProvider] Profile picture uploaded to profile-images folder');
+      debugPrint('[EmployerProfileProvider] Profile picture uploaded and state updated');
       return true;
-          
-      throw Exception('Failed to upload profile picture');
     } catch (e) {
       _setError('Failed to upload picture: $e');
       return false;

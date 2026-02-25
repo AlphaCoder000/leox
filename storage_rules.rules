@@ -42,6 +42,14 @@ service firebase.storage {
       allow read, write: if isAuthenticated();
     }
     
+    // --- APPLICATIONS FOLDER (Resumes uploaded with applications) ---
+    match /applications/{fileName} {
+      // Allow authenticated users to upload their own resumes
+      // File name starts with UID as per JobApplicationService
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && fileName.matches(request.auth.uid + '.*');
+    }
+    
     // --- PUBLIC FILES ---
     match /public/{allPaths=**} {
       allow read: if true;

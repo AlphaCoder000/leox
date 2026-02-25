@@ -69,7 +69,7 @@ class EmployeeJobsProvider extends ChangeNotifier {
   /// Get job by ID
   JobModel? getJobById(String jobId) {
     try {
-      return _jobs.firstWhere((job) => job.postedOn.toString() == jobId);
+      return _jobs.firstWhere((job) => job.id == jobId);
     } catch (e) {
       return null;
     }

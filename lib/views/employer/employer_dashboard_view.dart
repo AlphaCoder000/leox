@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
-import 'package:leox/providers/theme_povider.dart';
+import 'package:leox/providers/employer_profile_provider.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
-import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../providers/employer_dashboard_provider.dart';
 import '../../widgets/employer_drawer.dart';
 import '../../widgets/stat_card.dart';
+import '../../providers/notification_provider.dart';
+import '../common/notifications_view.dart'; // Reusing the same view for notifications
 
 class EmployerDashboardView extends StatefulWidget {
   const EmployerDashboardView({super.key});
@@ -22,9 +23,12 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
   @override
   void initState() {
     super.initState();
-    // Load dashboard data when view initializes
+    // Load dashboard data and profile when view initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<EmployerDashboardProvider>().loadDashboard();
+      if (mounted) {
+        context.read<EmployerDashboardProvider>().loadDashboard();
+        context.read<EmployerProfileProvider>().loadProfile();
+      }
     });
   }
 
@@ -41,27 +45,24 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
       appBar: AppBar(
         title: const Text("Dashboard"),
         actions: [
-          // 🌗 THEME MENU
-          PopupMenuButton<String>(
-            icon: Icon(
-              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-              color: colorScheme.onSurface,
+          // 🔔 NOTIFICATIONS
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, _) => IconButton(
+              icon: Badge(
+                label: Text(notificationProvider.unreadCount.toString()),
+                isLabelVisible: notificationProvider.unreadCount > 0,
+                child: const Icon(Icons.notifications_none_outlined),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationsView()),
+                );
+              },
             ),
-            onSelected: (value) {
-              final themeProvider = context.read<ThemeProvider>();
-              if (value == 'light') themeProvider.setLight();
-              if (value == 'dark') themeProvider.setDark();
-              if (value == 'system') themeProvider.setSystem();
-            },
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(value: 'light', child: Text("Light")),
-                  const PopupMenuItem(value: 'dark', child: Text("Dark")),
-                  const PopupMenuItem(value: 'system', child: Text("System")),
-                ],
           ),
-
-          SizedBox(width: 2.w),
+          
+          SizedBox(width: 1.w),
 
           Padding(
             padding: EdgeInsets.only(right: 4.w),
@@ -79,40 +80,36 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                     ),
                   );
                 } else if (value == 'logout') {
-                  await context.read<EmployerAuthProvider>().logout();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                    (route) => false,
-                  );
+                  _showLogoutDialog(context);
                 }
               },
-              itemBuilder:
-                  (_) => [
-                    PopupMenuItem(
-                      enabled: false,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "Akash More",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            "akashmoreasm6000@gmail.com",
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
-                      ),
+              itemBuilder: (_) {
+                final profile = context.read<EmployerProfileProvider>().profile;
+                return [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile.name.isNotEmpty ? profile.name : "Employer",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          profile.email,
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
                     ),
+                  ),
                     const PopupMenuDivider(),
                     const PopupMenuItem(
                       value: 'profile',
                       child: Text("My Profile"),
                     ),
                     const PopupMenuItem(value: 'logout', child: Text("Logout")),
-                  ],
+                  ];
+              },
               child: CircleAvatar(
                 backgroundColor: colorScheme.primary,
                 child: const Text(
@@ -146,7 +143,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               "Here is your recruitment summary.",
               style: TextStyle(
                 fontSize: 12.sp,
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),
 
@@ -208,7 +205,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: Colors.black.withOpacity(0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -273,7 +270,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               : BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: theme.dividerColor.withValues(alpha: 0.5),
+                    color: theme.dividerColor.withOpacity(0.5),
                     //alpha: 0.5,
                   ),
                 ),
@@ -302,7 +299,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 2.5.w, vertical: 0.5.h),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -311,6 +308,81 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
                 color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF0B1220),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1C2536)),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            SizedBox(width: 3.w),
+            Text(
+              "Logout",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          "Are you sure you want to sign out of your employer account?",
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12.sp,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 11.sp,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 2.w),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                
+                // Clear any sub-pages and return to root before logout
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                await context.read<EmployerAuthProvider>().logout();
+              },
+              child: Text(
+                "Yes, Logout",
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

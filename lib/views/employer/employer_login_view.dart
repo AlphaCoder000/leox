@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
-import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/employer/employer_register_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:leox/utils/error_handler_ui.dart';
@@ -270,40 +269,18 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                       emailController.text.trim(),
                                       passwordController.text,
                                     );
-                                    
-                                    // Navigate to dashboard on successful login
-                                    if (provider.isLoggedIn && mounted) {
-                                      Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const EmployerDashboardView(),
-                                        ),
-                                        (route) => false,
-                                      );
-                                    }
                                   } else {
                                     // Phone Login Logic
-                                    if (!isOtpSent) {
-                                      if (phoneController.text.trim().isEmpty) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Please enter phone number',
-                                            ),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      final phone =
-                                          "$selectedCountryCode${phoneController.text.trim()}";
-                                      // TODO: Implement OTP for employer
-                                      ErrorHandlerUI.showErrorSnackbar(
-                                        context,
-                                        'OTP login not implemented for employers',
-                                      );
-                                    }
+                                    ErrorHandlerUI.showErrorSnackbar(
+                                      context,
+                                      'OTP login not implemented for employers',
+                                    );
+                                  }
+
+                                  // No manual navigation needed. main.dart reacts to login.
+                                  // Just clear any pushed login/register screens to return to root.
+                                  if (provider.isLoggedIn && mounted) {
+                                    Navigator.of(context).popUntil((route) => route.isFirst);
                                   }
                                 },
                         style: ElevatedButton.styleFrom(
@@ -340,36 +317,48 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                   },
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await context
-                          .read<EmployerAuthProvider>()
-                          .signInWithGoogle();
-                    },
-                    icon: Image.asset(
-                      'assets/icons/google_logo.png',
-                      height: 24,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                              const Icon(Icons.g_mobiledata, size: 24),
-                    ),
-                    label: Text(
-                      "Sign In with Google",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
+                Consumer<EmployerAuthProvider>(
+                  builder: (context, auth, _) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : () async {
+                          final provider = context.read<EmployerAuthProvider>();
+                          await provider.signInWithGoogle();
+                          
+                          if (provider.isLoggedIn && mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
+                        },
+                        icon: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Image.asset(
+                              'assets/icons/google_logo.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 24),
+                            ),
+                        label: Text(
+                          auth.isLoading ? "Signing in..." : "Sign In with Google",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: theme.dividerColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: theme.dividerColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
+                    );
+                  }
                 ),
                 const SizedBox(height: 24),
                 Center(
@@ -427,7 +416,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
               selected
                   ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withOpacity(0.05),
                       blurRadius: 4,
                     ),
                   ]

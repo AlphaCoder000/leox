@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/views/employee/employee_register_view.dart';
-import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -32,28 +31,9 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
     super.initState();
     // Initialize provider access safely
     _authProvider = context.read<EmployeeAuthProvider>();
-    
-    // Ensure clean state on login screen entry
-    if (_authProvider.isLoggedIn) {
-       _authProvider.logout().then((_) {
-         if (mounted) {
-           _authProvider.addListener(_onAuthStateChanged);
-         }
-       });
-    } else {
-       // Listen to authentication state changes immediately if clean
-       _authProvider.addListener(_onAuthStateChanged);
-    }
   }
 
-  void _onAuthStateChanged() {
-    if (_authProvider.isLoggedIn && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const EmployeeDashboardView()),
-      );
-    }
-  }
+
 
   void _clearError() {
     _authProvider.clearError();
@@ -61,7 +41,6 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
 
   @override
   void dispose() {
-    _authProvider.removeListener(_onAuthStateChanged);
     emailController.dispose();
     passwordController.dispose();
     phoneController.dispose();
@@ -107,7 +86,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                     CircleAvatar(
                       radius: 22,
                       backgroundColor:
-                          colorScheme.primary.withValues(alpha: 0.12),
+                          colorScheme.primary.withOpacity(0.12),
                       child: Icon(
                         Icons.business_center_outlined,
                         color: colorScheme.primary,
@@ -277,6 +256,12 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                     await provider.verifyOtp(otpController.text);
                                   }
                                 }
+
+                                // No manual navigation needed. main.dart reacts to login.
+                                // Just clear any pushed login/register screens to return to root.
+                                if (provider.isLoggedIn && mounted) {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                }
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.colorScheme.primary,
@@ -313,33 +298,48 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
 
                 const SizedBox(height: 24),
 
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await context.read<EmployeeAuthProvider>().signInWithGoogle();
-                    },
-                    icon: Image.asset(
-                      'assets/icons/google_logo.png',
-                      height: 24,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.g_mobiledata, size: 24),
-                    ),
-                    label: Text(
-                      "Sign In with Google",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
+                Consumer<EmployeeAuthProvider>(
+                  builder: (context, auth, _) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : () async {
+                          final provider = context.read<EmployeeAuthProvider>();
+                          await provider.signInWithGoogle();
+                          
+                          if (provider.isLoggedIn && mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
+                        },
+                        icon: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Image.asset(
+                              'assets/icons/google_logo.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 24),
+                            ),
+                        label: Text(
+                          auth.isLoading ? "Signing in..." : "Sign In with Google",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: theme.dividerColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: theme.dividerColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
+                    );
+                  }
                 ),
 
                 const SizedBox(height: 24),

@@ -144,14 +144,11 @@ class ProfileService {
       if (user == null) throw Exception('User not authenticated');
 
       await _firestore.collection('employers').doc(user.uid).set({
-        'name': profile.name,
-        'email': profile.email,
-        'phone': profile.phone,
-        'companyName': profile.companyName,
+        ...profile.toJson(),
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
 
-      debugPrint('[ProfileService] Employer profile saved');
+      debugPrint('[ProfileService] Employer profile saved with merge');
     } catch (e) {
       debugPrint('[ProfileService] Error saving employer profile: $e');
       rethrow;

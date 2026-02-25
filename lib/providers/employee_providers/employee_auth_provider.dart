@@ -9,8 +9,8 @@ class EmployeeAuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // Updated to match google-services.json Web Client ID
-    clientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com', 
+    serverClientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com',
+    clientId: '340682426505-a78q5kk98ird4kh2emig2327aonakmbl.apps.googleusercontent.com', // Added Android-specific client ID
     scopes: ['email', 'profile'],
   );
 
@@ -44,34 +44,56 @@ class EmployeeAuthProvider extends ChangeNotifier {
   }
 
   /// Initialize Firebase Auth state listener
-  void _initializeAuthState() {
-    _auth.authStateChanges().listen((User? user) async {
-      debugPrint('[EmployeeAuthProvider] Auth state changed: ${user?.uid}');
+void _initializeAuthState() {
+  _auth.authStateChanges().listen((User? user) async {
+    debugPrint('[EmployeeAuthProvider] Auth state changed: ${user?.uid}');
+    
+    if (user != null) {
+      // Quick login without Firestore check for better performance
+      _setLoggedIn(true);
+      _firebaseUser = user;
+      _userId = user.uid;
+      _userEmail = user.email;
       
-      if (user != null) {
-        // Quick login without Firestore check for better performance
-        _setLoggedIn(true);
-        _firebaseUser = user;
-        _userId = user.uid;
-        _userEmail = user.email;
-        
-        // Background role check (non-blocking)
-        _firestore.collection('users').doc(user.uid).get().then((userDoc) {
-          final role = userDoc.data()?['role'];
-          if (role != 'employee') {
-            _setLoggedIn(false);
-            debugPrint('[EmployeeAuthProvider] User role mismatch: $role, logging out');
-          }
-        });
-      } else {
-        _setLoggedIn(false);
-        _firebaseUser = null;
-        _userId = null;
-        _userEmail = null;
+      // Background role check (non-blocking) - verifies if user is an employee
+      _checkRoleWithRetry(user.uid);
+    } else {
+      _setLoggedIn(false);
+      _firebaseUser = null;
+      _userId = null;
+      _userEmail = null;
+    }
+    notifyListeners();
+  });
+}
+
+Future<void> _checkRoleWithRetry(String uid) async {
+  for (int i = 0; i < 3; i++) {
+    try {
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        final role = userDoc.data()?['role'];
+        if (role != 'employee') {
+          _setLoggedIn(false);
+          debugPrint('[EmployeeAuthProvider] User role is $role (not employee). Internal state updated.');
+        } else {
+          _setLoggedIn(true); // Re-confirm
+          debugPrint('[EmployeeAuthProvider] User role confirmed: employee.');
+        }
+        return; // Success
       }
-      notifyListeners();
-    });
+      
+      debugPrint('[EmployeeAuthProvider] User document not found, retry ${i + 1}/3...');
+      await Future.delayed(const Duration(seconds: 1));
+    } catch (e) {
+      debugPrint('[EmployeeAuthProvider] Error checking role: $e');
+    }
   }
+  
+  // After all retries
+  _setLoggedIn(false);
+  debugPrint('[EmployeeAuthProvider] User document not found after retries. Internal state updated.');
+}
 
 
   void _setLoading(bool value) {
@@ -137,6 +159,13 @@ class EmployeeAuthProvider extends ChangeNotifier {
           email: user.email ?? "",
           authToken: await user.getIdToken() ?? "",
         );
+
+        // Manually update internal state for immediate navigation
+        _firebaseUser = user;
+        _userId = user.uid;
+        _userEmail = user.email;
+        _isLoggedIn = true;
+        notifyListeners();
       }
 
       // Auth state listener will automatically update state
@@ -320,7 +349,7 @@ class EmployeeAuthProvider extends ChangeNotifier {
     );
 
     final userCredential =
-        await FirebaseAuth.instance.signInWithCredential(credential);
+        await _auth.signInWithCredential(credential);
 
     final user = userCredential.user;
 
@@ -347,6 +376,13 @@ class EmployeeAuthProvider extends ChangeNotifier {
         email: user.email ?? "",
         authToken: idToken ?? "",
       );
+
+      // Manually update state for immediate UI reaction
+      _firebaseUser = user;
+      _userId = user.uid;
+      _userEmail = user.email;
+      _isLoggedIn = true;
+      notifyListeners();
     }
   } catch (e) {
     _setError("Google Sign-In failed: $e");
@@ -438,23 +474,7 @@ class EmployeeAuthProvider extends ChangeNotifier {
   // Create employee profile in Firestore
   Future<void> _createEmployeeProfile(User user) async {
     try {
-      final employeeProfile = {
-        'uid': user.uid,
-        'email': user.email,
-        'role': 'employee',
-        'isVerified': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'searchTerms': [user.email?.toLowerCase() ?? ''],
-      };
-
-      // Create employee profile in employees collection
-      await _firestore
-          .collection('employees')
-          .doc(user.uid)
-          .set(employeeProfile);
-
-      // Also create user document for Firebase rules
+      // 1. Create user document for role check (First! to avoid race condition)
       final userDoc = {
         'id': user.uid,
         'email': user.email,
@@ -467,6 +487,22 @@ class EmployeeAuthProvider extends ChangeNotifier {
           .collection('users')
           .doc(user.uid)
           .set(userDoc);
+
+      // 2. Create detailed employee profile
+      final employeeProfile = {
+        'uid': user.uid,
+        'email': user.email,
+        'role': 'employee',
+        'isVerified': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'searchTerms': [user.email?.toLowerCase() ?? ''],
+      };
+
+      await _firestore
+          .collection('employees')
+          .doc(user.uid)
+          .set(employeeProfile);
 
       debugPrint(
         '[EmployeeAuthProvider] Employee profile created in Firestore',
@@ -501,33 +537,29 @@ class EmployeeAuthProvider extends ChangeNotifier {
 
   // ======== LOGOUT ========
 
-  /// Logout employee user
-  ///
-  /// Clears Firebase Auth, session and local state
   Future<void> logout() async {
     try {
-      // 1️⃣ Clear session first
+      _setLoading(true);
+      
+      // 1. Clear session and sign out from Google/Firebase
       await SessionService.clearAuth();
+      
+      try {
+        if (await _googleSignIn.isSignedIn()) {
+          await _googleSignIn.signOut();
+        }
+      } catch (e) {
+        debugPrint('[EmployeeAuthProvider] Google Sign-Out error: $e');
+      }
 
-      // 2️⃣ Sign out from Firebase
-      await _googleSignIn.signOut();
       await _auth.signOut();
+      debugPrint('[EmployeeAuthProvider] Logout initiated via FirebaseAuth.signOut()');
 
-      // 3️⃣ Force reset everything
-      _firebaseUser = null;
-      _isLoggedIn = false;
-      _userId = null;
-      _userEmail = null;
-      _verificationId = null;
-      _errorMessage = null;
-
-      // 4️⃣ Reset profile provider to prevent cross-contamination
-      // Note: This will be called from UI context
-      notifyListeners();
-
-      debugPrint('[EmployeeAuthProvider] Logout completed and state reset');
+      // Note: State reset and notifyListeners() are handled by the authStateChanges() listener
     } catch (e) {
       debugPrint('[EmployeeAuthProvider] Logout error: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 

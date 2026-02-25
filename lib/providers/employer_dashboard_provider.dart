@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class EmployerDashboardProvider extends ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
   int totalJobs = 0;
   int totalCandidates = 0;
   int shortlisted = 0;
@@ -37,7 +39,7 @@ class EmployerDashboardProvider extends ChangeNotifier {
     _setError(null);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = _auth.currentUser;
       if (user == null) {
         _setError('User not authenticated');
         return;
@@ -49,17 +51,18 @@ class EmployerDashboardProvider extends ChangeNotifier {
           .where('employerId', isEqualTo: user.uid)
           .get();
       
-      // Load applications count
+      // Load applications count from employer's subcollection (Web App style)
       final applicationsSnapshot = await FirebaseFirestore.instance
-          .collection('job_applications')
-          .where('employerId', isEqualTo: user.uid)
+          .collection('employers')
+          .doc(user.uid)
+          .collection('applications')
           .get();
 
       // Calculate statistics
       totalJobs = jobsSnapshot.docs.length;
       totalCandidates = applicationsSnapshot.docs.length;
       
-      // Count by status
+      // Count by status from the subcollection
       shortlisted = applicationsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'shortlisted')
           .length;
@@ -68,7 +71,6 @@ class EmployerDashboardProvider extends ChangeNotifier {
           .where((doc) => doc.data()['status'] == 'hired')
           .length;
       
-      // Calculate additional pipeline statistics
       reviewed = applicationsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'reviewed')
           .length;
@@ -81,8 +83,8 @@ class EmployerDashboardProvider extends ChangeNotifier {
           .where((doc) => doc.data()['status'] == 'pending')
           .length;
 
-      debugPrint('[EmployerDashboardProvider] Dashboard loaded: '
-            'jobs=$totalJobs, candidates=$totalCandidates, shortlisted=$shortlisted, hired=$hired, reviewed=$reviewed, rejected=$rejected, pending=$pending');
+      debugPrint('[EmployerDashboardProvider] Dashboard loaded from subcollections: '
+            'jobs=$totalJobs, candidates=$totalCandidates');
 
     } catch (e) {
       debugPrint('[EmployerDashboardProvider] Error loading dashboard: $e');

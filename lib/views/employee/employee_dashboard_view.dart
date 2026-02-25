@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:leox/providers/employee_providers/employee_dashboard_provider.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
-import 'package:leox/providers/theme_povider.dart';
+import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
 import 'package:leox/utils/error_handler_ui.dart';
 import 'package:leox/views/employee/employee_profile_view.dart';
-import 'package:leox/views/role_option_view.dart';
 import 'package:leox/widgets/employee_drawer.dart';
+import '../../models/candidate_model.dart';
+import '../common/application_details_view.dart';
 import 'package:leox/widgets/stat_card.dart';
+import '../../providers/notification_provider.dart';
+import '../common/notifications_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -38,23 +41,8 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Validate session when app resumes from background
-    if (state == AppLifecycleState.resumed) {
-      debugPrint('[EmployeeDashboard] App resumed, validating session...');
-      _validateSession();
-    }
+    // Auth state is now managed reactively by main.dart
   }
-
-Future<void> _validateSession() async {
-  if (!mounted) return;
-
-  final authProvider = context.read<EmployeeAuthProvider>();
-
-    if (!authProvider.isLoggedIn) {
-    await authProvider.logout();
-  }
-
-}
 
 
   @override
@@ -69,27 +57,25 @@ Future<void> _validateSession() async {
       appBar: AppBar(
         title: const Text("Dashboard"),
         actions: [
-          // 🌗 THEME MENU (Light / Dark / System)
-          PopupMenuButton<String>(
-            icon: Icon(
-              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-              color: colorScheme.onSurface,
-            ),
-            onSelected: (value) {
-              final themeProvider = context.read<ThemeProvider>();
-              if (value == 'light') themeProvider.setLight();
-              if (value == 'dark') themeProvider.setDark();
-              if (value == 'system') themeProvider.setSystem();
-            },
-            itemBuilder:
-                (context) => const [
-                  PopupMenuItem(value: 'light', child: Text("Light")),
-                  PopupMenuItem(value: 'dark', child: Text("Dark")),
-                  PopupMenuItem(value: 'system', child: Text("System")),
-                ],
-          ),
 
-          SizedBox(width: 2.w),
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, _) => Padding(
+              padding: EdgeInsets.only(right: 2.w),
+              child: IconButton(
+                icon: Badge(
+                  label: Text(notificationProvider.unreadCount.toString()),
+                  isLabelVisible: notificationProvider.unreadCount > 0,
+                  child: const Icon(Icons.notifications_none_outlined),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationsView()),
+                  );
+                },
+              ),
+            ),
+          ),
 
           Padding(
             padding: EdgeInsets.only(right: 4.w),
@@ -111,12 +97,7 @@ Future<void> _validateSession() async {
                 }
 
                 if (value == 'logout') {
-                  await authProvider.logout();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                    (route) => false,
-                  );
+                  _showLogoutDialog(context);
                 }
 
               },
@@ -209,7 +190,7 @@ Future<void> _validateSession() async {
                   "Your personal application overview.",
                   style: TextStyle(
                     fontSize: 13.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.15),
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.15),
                   ),
                 ),
 
@@ -321,7 +302,7 @@ Future<void> _validateSession() async {
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.7),
+                                ?.withOpacity(0.7),
                           ),
                         ),
                       ],
@@ -356,7 +337,7 @@ Future<void> _validateSession() async {
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.7),
+                                ?.withOpacity(0.7),
                           ),
                         ),
 
@@ -396,81 +377,93 @@ Future<void> _validateSession() async {
                                 (_, __) => SizedBox(height: 1.5.h),
                             itemBuilder: (_, index) {
                               final app = dashboard.recentApplications[index];
-                              return Container(
-                                padding: EdgeInsets.all(3.w),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: theme.dividerColor),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                app.jobTitle,
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: 13.sp,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              SizedBox(height: 0.5.h),
-                                              Text(
-                                                app.companyName,
-                                                style: TextStyle(
-                                                  fontSize: 11.sp,
-                                                  color: colorScheme.primary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                              return Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => JobApplicationDetailsView(
+                                          application: CandidateModel.fromEmployeeApplication(app),
+                                          isEmployer: false,
                                         ),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 2.w,
-                                            vertical: 1.h,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: app
-                                                .statusColor()
-                                                .withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: EdgeInsets.all(3.w),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.surface,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: theme.dividerColor),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    app.jobTitle,
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: 13.sp,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 0.5.h),
+                                                  Text(
+                                                    app.companyName,
+                                                    style: TextStyle(
+                                                      fontSize: 11.sp,
+                                                      color: colorScheme.primary,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                          child: Text(
-                                            app.statusLabel(),
-                                            style: TextStyle(
-                                              fontSize: 10.sp,
-                                              fontWeight: FontWeight.w600,
-                                              color: app.statusColor(),
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 2.w,
+                                                vertical: 0.5.h,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: app
+                                                    .statusColor()
+                                                    .withOpacity(0.2),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                app.statusLabel(),
+                                                style: TextStyle(
+                                                  fontSize: 10.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: app.statusColor(),
+                                                ),
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 1.5.h),
+                                        Text(
+                                          app.statusWithDays(),
+                                          style: TextStyle(
+                                            fontSize: 11.sp,
+                                            color: theme.textTheme.bodySmall?.color
+                                                ?.withOpacity(0.6),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: 1.5.h),
-                                    Text(
-                                      app.statusWithDays(),
-                                      style: TextStyle(
-                                        fontSize: 11.sp,
-                                        color: theme.textTheme.bodySmall?.color
-                                            ?.withOpacity(0.6),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               );
                             },
@@ -485,6 +478,87 @@ Future<void> _validateSession() async {
             ),
           );
         },
+      ),
+    );
+  }
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF0B1220),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1C2536)),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            SizedBox(width: 3.w),
+            Text(
+              "Logout",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          "Are you sure you want to sign out of your employee account?",
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12.sp,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 11.sp,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 2.w),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ),
+              onPressed: () async {
+                // Close dialog
+                Navigator.of(dialogContext).pop();
+                
+                // Clear any sub-pages and return to root before logout
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                
+                final auth = context.read<EmployeeAuthProvider>();
+                final profile = context.read<EmployeeProfileProvider>();
+                
+                await auth.logout();
+                profile.reset();
+              },
+              child: Text(
+                "Yes, Logout",
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

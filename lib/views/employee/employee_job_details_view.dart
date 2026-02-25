@@ -138,7 +138,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
                 onPressed: () {
                   // Map `JobModel` to `JobPostingModel` for compatibility with JobApplicationView
                   final posting = JobPostingModel(
-                    id: '',
+                    id: job.id,
                     title: job.title,
                     department: job.department,
                     category: job.category,

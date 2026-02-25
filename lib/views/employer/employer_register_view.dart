@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
-import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +13,6 @@ class EmployerRegisterView extends StatefulWidget {
 }
 
 class _EmployerRegisterViewState extends State<EmployerRegisterView> {
-  bool _isLoading = false;
   final bool _obscurePassword = true;
   final bool _obscureConfirmPassword = true;
   
@@ -38,6 +36,8 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
   }
 
   Future<void> _register() async {
+    final auth = context.read<EmployerAuthProvider>();
+    
     if (_companyController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty ||
@@ -55,32 +55,22 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
       return;
     }
 
-    setState(() => _isLoading = true);
-
     try {
-      await context.read<EmployerAuthProvider>().registerWithFirebaseEmail(
+      await auth.registerWithFirebaseEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
       
-      // Navigate to dashboard on successful registration
-      if (mounted && context.read<EmployerAuthProvider>().isLoggedIn) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const EmployerDashboardView(),
-          ),
-          (route) => false,
-        );
+      // Success? main.dart handles navigation.
+      // We just need to clear the stack if we are on top.
+      if (auth.isLoggedIn && mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
+      // Error is already handled/set in the provider, but we can show a snackbar too
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Registration failed: $e')),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
@@ -169,19 +159,20 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                       const SizedBox(height: 16),
                       _buildTextField("Confirm Password", _confirmPasswordController, isPassword: true),
                       const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _register,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child:
-                              _isLoading
+                      Consumer<EmployerAuthProvider>(
+                        builder: (context, auth, child) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: auth.isLoading ? null : _register,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: auth.isLoading
                                   ? const SizedBox(
                                       height: 20,
                                       width: 20,
@@ -198,34 +189,50 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                                         color: Colors.white,
                                       ),
                                     ),
-                        ),
+                            ),
+                          );
+                        }
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await context.read<EmployerAuthProvider>().signInWithGoogle();
-                    },
-                    icon: Image.asset(
-                      'assets/icons/google_logo.png',
-                      height: 24,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                              const Icon(Icons.g_mobiledata, size: 24),
-                    ),
-                    label: const Text("Sign Up with Google"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: theme.dividerColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                Consumer<EmployerAuthProvider>(
+                  builder: (context, auth, _) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : () async {
+                          final provider = context.read<EmployerAuthProvider>();
+                          await provider.signUpWithGoogle();
+                          
+                          if (provider.isLoggedIn && mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
+                        },
+                        icon: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Image.asset(
+                              'assets/icons/google_logo.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 24),
+                            ),
+                        label: Text(auth.isLoading ? "Signing up..." : "Sign Up with Google"),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: theme.dividerColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }
                 ),
                 const SizedBox(height: 24),
                 Center(

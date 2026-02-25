@@ -3,6 +3,7 @@
 /// Represents a job application submitted by an employee to a job posting
 library;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class JobApplicationModel {
   // ======== APPLICATION INFO ========
@@ -36,6 +37,17 @@ class JobApplicationModel {
   final String jobLocation;
   final String salary;
 
+  // ======== NEW FIELDS FOR MATCHING SCORING ========
+  final double matchScore;
+  final String matchReasoning;
+
+  // ======== ADDITIONAL CANDIDATE DETAILS ========
+  final String experience;
+  final String expectedSalary;
+  final String availability;
+  final String linkedIn;
+  final String portfolio;
+
   JobApplicationModel({
     required this.id,
     required this.jobId,
@@ -60,6 +72,13 @@ class JobApplicationModel {
     this.jobType = '',
     this.jobLocation = '',
     this.salary = '',
+    this.matchScore = 0.0,
+    this.matchReasoning = 'AI analysis not performed.',
+    this.experience = '',
+    this.expectedSalary = '',
+    this.availability = '',
+    this.linkedIn = '',
+    this.portfolio = '',
   });
 
   /// Create from Firestore document
@@ -92,6 +111,13 @@ class JobApplicationModel {
       jobType: data['jobType'] ?? '',
       jobLocation: data['jobLocation'] ?? '',
       salary: data['salary'] ?? '',
+      matchScore: (data['matchScore'] ?? 0.0).toDouble(),
+      matchReasoning: data['matchReasoning'] ?? 'AI analysis not performed.',
+      experience: data['experience'] ?? '',
+      expectedSalary: data['expectedSalary'] ?? '',
+      availability: data['availability'] ?? '',
+      linkedIn: data['linkedIn'] ?? '',
+      portfolio: data['portfolio'] ?? '',
     );
   }
 
@@ -122,6 +148,13 @@ class JobApplicationModel {
       'jobType': jobType,
       'jobLocation': jobLocation,
       'salary': salary,
+      'matchScore': matchScore,
+      'matchReasoning': matchReasoning,
+      'experience': experience,
+      'expectedSalary': expectedSalary,
+      'availability': availability,
+      'linkedIn': linkedIn,
+      'portfolio': portfolio,
     };
   }
 
@@ -150,6 +183,13 @@ class JobApplicationModel {
     String? jobType,
     String? jobLocation,
     String? salary,
+    double? matchScore,
+    String? matchReasoning,
+    String? experience,
+    String? expectedSalary,
+    String? availability,
+    String? linkedIn,
+    String? portfolio,
   }) {
     return JobApplicationModel(
       id: id ?? this.id,
@@ -175,6 +215,13 @@ class JobApplicationModel {
       jobType: jobType ?? this.jobType,
       jobLocation: jobLocation ?? this.jobLocation,
       salary: salary ?? this.salary,
+      matchScore: matchScore ?? this.matchScore,
+      matchReasoning: matchReasoning ?? this.matchReasoning,
+      experience: experience ?? this.experience,
+      expectedSalary: expectedSalary ?? this.expectedSalary,
+      availability: availability ?? this.availability,
+      linkedIn: linkedIn ?? this.linkedIn,
+      portfolio: portfolio ?? this.portfolio,
     );
   }
 
@@ -196,21 +243,33 @@ class JobApplicationModel {
     }
   }
 
-  /// Get status color
-  String get statusColor {
+  /// Get status color as a Flutter Color object
+  Color statusColor() {
     switch (status) {
       case 'pending':
-        return '#FFA500'; // Orange
+        return Colors.orange;
       case 'reviewed':
-        return '#2196F3'; // Blue
+        return Colors.blue;
       case 'shortlisted':
-        return '#4CAF50'; // Green
+        return Colors.teal;
       case 'rejected':
-        return '#F44336'; // Red
+        return Colors.red;
       case 'hired':
-        return '#9C27B0'; // Purple
+        return Colors.purple;
       default:
-        return '#757575'; // Grey
+        return Colors.grey;
     }
+  }
+
+  /// Get status display text (Method version)
+  String statusLabel() => statusDisplay;
+
+  /// Get relative time description
+  String statusWithDays() {
+    final diff = DateTime.now().difference(appliedAt);
+    if (diff.inDays == 0) return 'Applied Today';
+    if (diff.inDays == 1) return 'Applied Yesterday';
+    if (diff.inDays < 30) return 'Applied ${diff.inDays} days ago';
+    return 'Applied on ${appliedAt.day}/${appliedAt.month}/${appliedAt.year}';
   }
 }
