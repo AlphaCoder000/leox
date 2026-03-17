@@ -733,29 +733,79 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
   }
 
   static void _confirmDelete(BuildContext context) {
+    String confirmationText = '';
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
+      builder: (_) => StatefulBuilder(
+        builder: (dialogContext, setState) {
+          return AlertDialog(
             title: const Text("Delete Account"),
-            content: const Text(
-              "This action is irreversible. Are you sure you want to delete your account?",
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("This action cannot be undone. All your applications and data will be permanently deleted."),
+                SizedBox(height: 1.5.h),
+                const Text('Please type "delete" to confirm:'),
+                SizedBox(height: 1.h),
+                TextField(
+                  onChanged: (val) {
+                    setState(() {
+                      confirmationText = val;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    hintText: "delete",
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  ),
+                ),
+              ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text("Cancel"),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                onPressed: () {
-                  Navigator.pop(context);
-                  // TODO: call provider.deleteAccount()
-                },
+                onPressed: confirmationText.trim().toLowerCase() == 'delete'
+                    ? () async {
+                        Navigator.pop(dialogContext);
+                        
+                        // Show a loading dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+                        
+                        final provider = context.read<EmployeeProfileProvider>();
+                        bool success = await provider.deleteAccount();
+                        
+                        // Using a new context if needed or mounted check
+                        if (context.mounted) {
+                          Navigator.pop(context); // close loading
+                          if (success) {
+                            Navigator.of(context).pushNamedAndRemoveUntil('/role-option', (route) => false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Account deleted successfully')),
+                            );
+                          } else {
+                            ErrorHandlerUI.showErrorSnackbar(
+                              context,
+                              provider.errorMessage ?? 'Failed to delete account',
+                            );
+                          }
+                        }
+                      }
+                    : null,
                 child: const Text("Delete"),
               ),
             ],
-          ),
+          );
+        },
+      ),
     );
   }
 }

@@ -270,7 +270,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                               child: Column(
                                 children: [
                                   Text(
-                                    'LeoRecruit',
+                                    'LeoOpus',
                                     style: TextStyle(
                                       fontSize: 28.sp,
                                       fontWeight: FontWeight.bold,

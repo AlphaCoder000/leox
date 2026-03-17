@@ -39,7 +39,7 @@ class RoleOptionView extends StatelessWidget {
             SizedBox(height: 2.h),
 
             Text(
-              "Welcome to LeoRecruit",
+              "Welcome to LeoOpus",
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontSize: 20.sp,
