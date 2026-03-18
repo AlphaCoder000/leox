@@ -131,14 +131,63 @@ class EmployerProfileProvider extends ChangeNotifier {
     }
   }
 
-  void deleteAccount() {
-    // 🔴 Later: Firebase delete user + Firestore cleanup
-    _profile = EmployerProfileModel(
-      name: "",
-      email: "",
-      phone: "",
-      companyName: "",
-    );
-    notifyListeners();
+  Future<bool> deleteAccount() async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      String uid = user.uid;
+
+      // Delete profile picture
+      if ((_profile.profilePicture ?? "").isNotEmpty) {
+        try {
+          await FirebaseStorage.instance
+              .ref()
+              .child('profile-images/$uid.jpg')
+              .delete();
+        } catch (_) {}
+      }
+
+      // Delete jobs posted by employer
+      final firestore = FirebaseFirestore.instance;
+      final jobsQuery = await firestore.collection('jobs').where('employerId', isEqualTo: uid).get();
+      for (var doc in jobsQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete employer document
+      await firestore.collection('employers').doc(uid).delete();
+      await firestore.collection('users').doc(uid).delete();
+
+      // Finally delete user from Firebase Auth
+      await user.delete();
+
+      _profile = EmployerProfileModel(
+        name: "",
+        email: "",
+        phone: "",
+        companyName: "",
+      );
+      
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        _setError('Please log out and log back in to permanently delete your account.');
+      } else {
+        _setError(e.message ?? 'Authentication failed');
+      }
+      return false;
+    } catch (e) {
+      _setError('Failed to delete account. $e');
+      return false;
+    } finally {
+      _setLoading(false);
+      notifyListeners();
+    }
   }
 }

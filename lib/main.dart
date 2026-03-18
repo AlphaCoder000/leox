@@ -25,7 +25,7 @@ import 'providers/employee_providers/employee_dashboard_provider.dart';
 import 'providers/job_application_provider.dart';
 import 'providers/notification_provider.dart';
 
-// Backend Services
+// Backend Services imports
 import 'services/firebase_service.dart';
 import 'services/profile_service.dart';
 import 'services/api_service.dart';

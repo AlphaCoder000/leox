@@ -443,51 +443,78 @@ class EmployerProfileView extends StatelessWidget {
 
 
   void _confirmDelete(BuildContext context) {
-
+    String confirmationText = '';
     showDialog(
-
       context: context,
-
-      builder:
-
-          (_) => AlertDialog(
-
+      builder: (_) => StatefulBuilder(
+        builder: (dialogContext, setState) {
+          return AlertDialog(
             title: const Text("Delete Account"),
-
-            content: const Text("This action cannot be undone."),
-
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("This action cannot be undone. All your jobs and data will be permanently deleted."),
+                SizedBox(height: 1.5.h),
+                const Text('Please type "delete" to confirm:'),
+                SizedBox(height: 1.h),
+                TextField(
+                  onChanged: (val) {
+                    setState(() {
+                      confirmationText = val;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    hintText: "delete",
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  ),
+                ),
+              ],
+            ),
             actions: [
-
               TextButton(
-
-                onPressed: () => Navigator.pop(context),
-
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text("Cancel"),
-
               ),
-
               ElevatedButton(
-
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-
-                onPressed: () {
-
-                  context.read<EmployerProfileProvider>().deleteAccount();
-
-                  Navigator.pop(context);
-
-                },
-
+                onPressed: confirmationText.trim().toLowerCase() == 'delete'
+                    ? () async {
+                        Navigator.pop(dialogContext);
+                        
+                        // Show a loading dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+                        
+                        final provider = context.read<EmployerProfileProvider>();
+                        bool success = await provider.deleteAccount();
+                        
+                        if (context.mounted) {
+                          Navigator.pop(context); // close loading
+                          if (success) {
+                            Navigator.of(context).pushNamedAndRemoveUntil('/role-option', (route) => false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Account deleted successfully')),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(provider.errorMessage ?? 'Failed to delete account')),
+                            );
+                          }
+                        }
+                      }
+                    : null,
                 child: const Text("Delete"),
-
               ),
-
             ],
-
-          ),
-
+          );
+        },
+      ),
     );
-
   }
 
 }

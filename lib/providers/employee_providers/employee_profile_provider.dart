@@ -315,15 +315,72 @@ class EmployeeProfileProvider extends ChangeNotifier {
   }
 }
 
-void removeSkill(String skill) {
-  if (_profile == null) return;
+  void removeSkill(String skill) {
+    if (_profile == null) return;
 
-  _profile!.skills.remove(skill);
-  _profileCompletion = _calculateProfileCompletion(_profile!);
-  _generateCompletionSuggestions();
-  notifyListeners();
-}
+    _profile!.skills.remove(skill);
+    _profileCompletion = _calculateProfileCompletion(_profile!);
+    _generateCompletionSuggestions();
+    notifyListeners();
+  }
 
+  /// Delete Employee Account entirely
+  Future<bool> deleteAccount() async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      String uid = user.uid;
+
+      // Delete Profile picture
+      if (_profile?.profilePicture != null && _profile!.profilePicture!.isNotEmpty) {
+        try {
+          await _storageService.deleteFile(_profile!.profilePicture!);
+        } catch (_) {}
+      }
+      
+      // Delete Resume
+      if (_profile?.resumeUrl != null && _profile!.resumeUrl.isNotEmpty) {
+        try {
+          await _storageService.deleteFile(_profile!.resumeUrl);
+        } catch (_) {}
+      }
+
+      // Delete applications applied by employee
+      final applicationsQuery = await _firestore.collection('applications').where('employeeId', isEqualTo: uid).get();
+      for (var doc in applicationsQuery.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete employee document
+      await _firestore.collection('employees').doc(uid).delete();
+      await _firestore.collection('users').doc(uid).delete();
+
+      // Finally delete user
+      await user.delete();
+
+      reset();
+      
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        _setError('Please log out and log back in to permanently delete your account.');
+      } else {
+        _setError(e.message ?? 'Authentication failed');
+      }
+      return false;
+    } catch (e) {
+      _setError('Failed to delete account. $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
 
   /// Clear error message
   void clearError() {

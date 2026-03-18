@@ -61,7 +61,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                 ],
               ).createShader(bounds),
               child: Text(
-                "LeoRecruit",
+                "LeoOpus",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
                   fontSize: 22.sp,
@@ -468,7 +468,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                   ],
                 ).createShader(bounds),
                 child: Text(
-                  "LeoRecruit",
+                  "LeoOpus",
                   style: GoogleFonts.outfit(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
