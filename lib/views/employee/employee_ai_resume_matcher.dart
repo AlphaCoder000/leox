@@ -1,20 +1,20 @@
-/// Employee AI Resume Matcher View
-///
-/// Allows employees to analyze their resume against job descriptions
-library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../providers/ai_resume_matcher_provider.dart';
+import '../../providers/job_application_provider.dart';
 import '../../widgets/employee_drawer.dart';
+import '../../models/job_application_model.dart';
 
 class EmployeeAiResumeMatcherView extends StatelessWidget {
   const EmployeeAiResumeMatcherView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AIResumeMatcherProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AIResumeMatcherProvider()),
+      ],
       child: const _EmployeeAiResumeMatcherViewBody(),
     );
   }
@@ -30,6 +30,15 @@ class _EmployeeAiResumeMatcherViewBody extends StatefulWidget {
 class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatcherViewBody> {
   final TextEditingController _jobDescController = TextEditingController();
   final TextEditingController _resumeTextController = TextEditingController();
+  JobApplicationModel? _selectedApplication;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<JobApplicationProvider>().loadEmployeeApplications();
+    });
+  }
 
   @override
   void dispose() {
@@ -38,697 +47,450 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     super.dispose();
   }
 
+  void _onApplicationSelected(JobApplicationModel? app, AIResumeMatcherProvider provider) {
+    setState(() {
+      _selectedApplication = app;
+      if (app != null) {
+        final jobText = "Title: ${app.jobTitle}\nCompany: ${app.companyName}\nDescription: ${app.jobDepartment} Role";
+        _jobDescController.text = jobText;
+        provider.updateJobDescription(jobText);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final provider = context.watch<AIResumeMatcherProvider>();
+    final appsProvider = context.watch<JobApplicationProvider>();
 
     return Scaffold(
+      backgroundColor: const Color(0xFF030712),
       drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.aiMatcher),
       appBar: AppBar(
-        title: const Text("AI Resume Matcher"),
+        title: const Text("Career Intelligence"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
-            onPressed: provider.clearAll,
+            onPressed: () {
+              provider.clearAll();
+              _jobDescController.clear();
+              _resumeTextController.clear();
+              setState(() => _selectedApplication = null);
+            },
             icon: const Icon(Icons.refresh),
-            tooltip: 'Clear All',
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ================= PAGE HEADER =================
-            Text(
-              "AI Resume Matcher",
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 0.8.h),
-            Text(
-              "Analyze your resume against job descriptions to improve your chances.",
-              style: TextStyle(
-                fontSize: 12.5.sp,
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              ),
-            ),
-
-            SizedBox(height: 3.h),
-
-            // ================= INPUT OPTIONS CARD =================
-            _buildInputOptionsCard(context, provider),
-
-            SizedBox(height: 3.h),
-
-            // ================= AI MATCH ANALYSIS CARD =================
-            _buildAnalysisCard(context, provider),
-
-            SizedBox(height: 4.h),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF030712), Color(0xFF0F172A)],
+          ),
         ),
-      ),
-    );
-  }
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.all(5.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ================= PAGE HEADER =================
+              _buildHeader(colorScheme),
 
-  Widget _buildInputOptionsCard(BuildContext context, AIResumeMatcherProvider provider) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+              SizedBox(height: 4.h),
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.dividerColor),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(4.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Input Options",
-              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 0.6.h),
-            Text(
-              "Choose how to provide your resume and job description.",
-              style: TextStyle(
-                fontSize: 11.5.sp,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-              ),
-            ),
-            SizedBox(height: 2.h),
-
-            // Input Method Tabs
-            Container(
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: theme.dividerColor),
-              ),
-              child: Column(
-                children: [
-                  // Upload Resume Tab
-                  ListTile(
-                    leading: const Icon(Icons.upload_file_rounded),
-                    title: Text(
-                      "Upload Resume File",
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
-                    ),
-                    subtitle: Text(
-                      provider.selectedResumeFileName ?? "No file selected",
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: provider.selectedResumeFileName != null 
-                            ? colorScheme.primary 
-                            : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    trailing: provider.selectedResumeFileName != null
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () => provider.clearAll(),
-                            tooltip: 'Clear Resume',
-                          )
-                        : null,
-                    onTap: () => provider.pickResumeFile(),
+              // ================= SELECT APPLICATION =================
+              if (appsProvider.applications.isNotEmpty) ...[
+                _buildLabel(context, "Analyze an Existing Application"),
+                SizedBox(height: 1.5.h),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
                   ),
-
-                  const Divider(height: 1),
-
-                  // Paste Resume Text Tab
-                  ListTile(
-                    leading: const Icon(Icons.text_fields_rounded),
-                    title: Text(
-                      "Paste Resume Text",
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
-                    ),
-                    subtitle: Text(
-                      "Copy and paste your resume text directly",
-                      style: TextStyle(
-                        fontSize: 10.sp,
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    trailing: provider.selectedResumeText != null && provider.selectedResumeText!.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () => provider.clearAll(),
-                            tooltip: 'Clear Resume',
-                          )
-                        : null,
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 2.h),
-
-            // Job Description
-            _buildLabel(context, "Job Description"),
-            SizedBox(height: 0.8.h),
-            TextField(
-              controller: _jobDescController,
-              maxLines: 6,
-              onChanged: provider.updateJobDescription,
-              decoration: InputDecoration(
-                hintText: "Paste full job description here...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding: EdgeInsets.all(3.w),
-              ),
-            ),
-
-            SizedBox(height: 2.h),
-
-            // Resume Text Input (if paste option selected)
-            if (provider.selectedResumeText != null) ...[
-              _buildLabel(context, "Resume Text"),
-              SizedBox(height: 0.8.h),
-              TextField(
-                controller: _resumeTextController,
-                maxLines: 8,
-                onChanged: provider.updateResumeText,
-                decoration: InputDecoration(
-                  hintText: "Paste your resume text here...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  contentPadding: EdgeInsets.all(3.w),
-                ),
-              ),
-              SizedBox(height: 2.h),
-            ],
-
-            // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: provider.isAnalyzing ? null : () => provider.parseResume(),
-                    icon: const Icon(Icons.analytics),
-                    label: Text(
-                      provider.isAnalyzing ? "Parsing..." : "Parse Resume",
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 1.6.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<JobApplicationModel>(
+                      value: _selectedApplication,
+                      hint: const Text("Choose an application", style: TextStyle(color: Colors.grey)),
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF1E293B),
+                      items: appsProvider.applications.map((app) {
+                        return DropdownMenuItem(
+                          value: app,
+                          child: Text(app.jobTitle, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                        );
+                      }).toList(),
+                      onChanged: (app) => _onApplicationSelected(app, provider),
                     ),
                   ),
                 ),
-                SizedBox(width: 2.w),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: provider.isAnalyzing ? null : () => provider.matchResumeToJob(),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: Text(
-                      provider.isAnalyzing ? "Analyzing..." : "Get Match Score",
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 1.6.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
+                SizedBox(height: 3.h),
               ],
-            ),
 
-            // Error Message
-            if (provider.errorMessage.isNotEmpty) ...[
-              SizedBox(height: 1.h),
-              Container(
-                padding: EdgeInsets.all(2.w),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 20),
-                    SizedBox(width: 2.w),
-                    Expanded(
-                      child: Text(
-                        provider.errorMessage,
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // ================= QUICK TARGET ROLES =================
+              _buildPopularTargetRoles(provider),
+
+              SizedBox(height: 3.h),
+
+              // ================= INPUT OPTIONS CARD =================
+              _buildInputCard(context, provider),
+
+              SizedBox(height: 3.h),
+
+              // ================= AI MATCH ANALYSIS CARD =================
+              _buildAnalysisResult(context, provider),
+
+              SizedBox(height: 4.h),
             ],
-            SizedBox(height: 2.h),
-            InkWell(
-              onTap: provider.isUploading ? null : () => provider.pickResumeFile(),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 4.w,
-                  vertical: 1.6.h,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: theme.dividerColor),
-                  borderRadius: BorderRadius.circular(10),
-                  color: provider.isUploading ? theme.disabledColor.withValues(alpha: 0.1) : null,
-                ),
-                child: provider.isUploading
-                    ? Column(
-                        children: [
-                          LinearProgressIndicator(value: provider.uploadProgress),
-                          SizedBox(height: 1.h),
-                          Text(
-                            "Uploading... ${(provider.uploadProgress * 100).toInt()}%",
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: theme.textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        children: [
-                          const Icon(Icons.upload_file_rounded),
-                          SizedBox(width: 3.w),
-                          Expanded(
-                            child: Text(
-                              provider.selectedResumeFileName ?? "Choose File  •  No file chosen",
-                              style: TextStyle(fontSize: 12.sp),
-                            ),
-                          ),
-                          if (provider.selectedResumeUrl != null) ...[
-                            SizedBox(width: 2.w),
-                            IconButton(
-                              onPressed: () {
-                                // View resume in browser
-                                // TODO: Implement resume viewer
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Resume viewer coming soon!')),
-                                );
-                              },
-                              icon: const Icon(Icons.visibility),
-                              tooltip: 'View Resume',
-                            ),
-                          ],
-                        ],
-                      ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildAnalysisCard(BuildContext context, AIResumeMatcherProvider provider) {
-    final theme = Theme.of(context);
-    final results = provider.matchResults;
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: theme.dividerColor),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(4.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "AI Match Analysis",
-              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 0.6.h),
-            Text(
-              "The AI-powered analysis will appear here.",
-              style: TextStyle(
-                fontSize: 11.5.sp,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-              ),
-            ),
-            SizedBox(height: 2.h),
-
-            if (results.isEmpty) ...[
-              Container(
-                height: 25.h,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: theme.dividerColor,
-                    style: BorderStyle.solid,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.analytics_outlined,
-                        size: 42.sp,
-                        color: theme.disabledColor,
-                      ),
-                      SizedBox(height: 1.5.h),
-                      Text(
-                        "Results will be displayed here after analysis.",
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-            
-            // Parsed Resume Results
-            if (results['parsed'] == true) _buildParsedResults(context, results),
-            
-            // Match Results
-            if (results['matched'] == true) _buildMatchResults(context, results),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildParsedResults(BuildContext context, Map<String, dynamic> results) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeader(ColorScheme colorScheme) {
+    return Row(
       children: [
-        // Confidence Score
         Container(
           padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
-            color: colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: Colors.indigo.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.indigo.withOpacity(0.3)),
           ),
-          child: Row(
+          child: const Icon(Icons.bolt_rounded, color: Colors.indigoAccent),
+        ),
+        SizedBox(width: 4.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.verified, color: colorScheme.primary),
-              SizedBox(width: 2.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Resume Parsed Successfully",
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    Text(
-                      "Confidence: ${(results['confidence'] * 100).toStringAsFixed(1)}%",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: theme.textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                  ],
-                ),
+              Text(
+                "Optimize Your Fit",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              Text(
+                "Let AI review your resume against any role",
+                style: TextStyle(fontSize: 11.sp, color: Colors.white54),
               ),
             ],
           ),
         ),
-
-        SizedBox(height: 2.h),
-
-        // Skills
-        if (results['skills'].isNotEmpty) ...[
-          _buildLabel(context, "Skills Found"),
-          SizedBox(height: 0.5.h),
-          Wrap(
-            spacing: 1.w,
-            runSpacing: 0.5.h,
-            children: (results['skills'] as List<String>)
-                .take(10)
-                .map((skill) => Chip(
-                      label: Text(
-                        skill,
-                        style: TextStyle(fontSize: 9.sp),
-                      ),
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-                      labelStyle: TextStyle(
-                        color: colorScheme.primary,
-                        fontSize: 9.sp,
-                      ),
-                    ))
-                .toList(),
-          ),
-        ],
-
-        SizedBox(height: 2.h),
-
-        // Experience
-        if (results['experience'].isNotEmpty) ...[
-          _buildLabel(context, "Experience Found"),
-          SizedBox(height: 0.5.h),
-          Text(
-            "${results['experience'].length} positions detected",
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: theme.textTheme.bodyMedium?.color,
-            ),
-          ),
-        ],
       ],
     );
   }
 
-  Widget _buildMatchResults(BuildContext context, Map<String, dynamic> results) {
-    final theme = Theme.of(context);
-    final provider = context.watch<AIResumeMatcherProvider>();
-    final overallScore = (results['overallScore'] as double?) ?? 0.0;
-    final scoreColor = provider.getScoreColor(overallScore);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Overall Score
-        Container(
-          padding: EdgeInsets.all(3.w),
-          decoration: BoxDecoration(
-            color: Color(int.parse(scoreColor.replaceAll('#', '0xFF'))).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(2.w),
-                decoration: BoxDecoration(
-                  color: Color(int.parse(scoreColor.replaceAll('#', '0xFF'))),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  provider.getScoreGrade(overallScore),
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              SizedBox(width: 2.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Match Score",
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: theme.textTheme.bodyMedium?.color,
-                      ),
-                    ),
-                    Text(
-                      "${overallScore.toStringAsFixed(1)}%",
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Color(int.parse(scoreColor.replaceAll('#', '0xFF'))),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        SizedBox(height: 2.h),
-
-        // Score Breakdown
-        _buildScoreBreakdown(context, results),
-
-        SizedBox(height: 2.h),
-
-        // Matched Skills
-        if (results['matchedSkills'].isNotEmpty) ...[
-          _buildLabel(context, "Matched Skills"),
-          SizedBox(height: 0.5.h),
-          Wrap(
-            spacing: 1.w,
-            runSpacing: 0.5.h,
-            children: (results['matchedSkills'] as List<String>)
-                .map((skill) => Chip(
-                      label: Text(
-                        skill,
-                        style: TextStyle(fontSize: 9.sp),
-                      ),
-                      backgroundColor: Colors.green.withValues(alpha: 0.1),
-                      labelStyle: TextStyle(
-                        color: Colors.green,
-                        fontSize: 9.sp,
-                      ),
-                    ))
-                .toList(),
-          ),
-        ],
-
-        SizedBox(height: 2.h),
-
-        // Missing Skills
-        if (results['missingSkills'].isNotEmpty) ...[
-          _buildLabel(context, "Skills to Improve"),
-          SizedBox(height: 0.5.h),
-          Wrap(
-            spacing: 1.w,
-            runSpacing: 0.5.h,
-            children: (results['missingSkills'] as List<String>)
-                .map((skill) => Chip(
-                      label: Text(
-                        skill,
-                        style: TextStyle(fontSize: 9.sp),
-                      ),
-                      backgroundColor: Colors.orange.withValues(alpha: 0.1),
-                      labelStyle: TextStyle(
-                        color: Colors.orange,
-                        fontSize: 9.sp,
-                      ),
-                    ))
-                .toList(),
-          ),
-        ],
-
-        SizedBox(height: 2.h),
-
-        // Recommendations
-        if (results['recommendations'].isNotEmpty) ...[
-          _buildLabel(context, "Recommendations"),
-          SizedBox(height: 0.5.h),
-          ...results['recommendations'].map<Widget>((rec) => Padding(
-                padding: EdgeInsets.only(bottom: 0.5.h),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.lightbulb_outline, size: 16, color: Colors.amber),
-                    SizedBox(width: 2.w),
-                    Expanded(
-                      child: Text(
-                        rec,
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildScoreBreakdown(BuildContext context, Map<String, dynamic> results) {
-    final theme = Theme.of(context);
+  Widget _buildInputCard(BuildContext context, AIResumeMatcherProvider provider) {
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      padding: EdgeInsets.all(3.w),
+      padding: EdgeInsets.all(5.w),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.dividerColor),
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Score Breakdown",
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              color: theme.textTheme.bodyMedium?.color,
+          Row(
+            children: [
+              const Icon(Icons.edit_note_rounded, color: Colors.indigoAccent),
+              SizedBox(width: 2.w),
+              Text("Analysis Scope", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+            ],
+          ),
+          SizedBox(height: 3.h),
+
+          _buildLabel(context, "Target Job Description"),
+          SizedBox(height: 1.2.h),
+          TextField(
+            controller: _jobDescController,
+            maxLines: 4,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            onChanged: provider.updateJobDescription,
+            decoration: _inputDecoration("Paste the requirements of the job you want..."),
+          ),
+
+          SizedBox(height: 3.h),
+
+          _buildLabel(context, "Your Resume"),
+          SizedBox(height: 1.2.h),
+          
+          InkWell(
+            onTap: provider.isUploading ? null : () => provider.pickResumeFile(),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: provider.selectedResumeFileName != null ? Colors.indigoAccent : Colors.transparent,
+                ),
+              ),
+              child: provider.isUploading
+                ? LinearProgressIndicator(value: provider.uploadProgress, backgroundColor: Colors.white10)
+                : Row(
+                    children: [
+                      Icon(
+                        provider.selectedResumeFileName != null ? Icons.file_present_rounded : Icons.upload_rounded,
+                        color: provider.selectedResumeFileName != null ? Colors.indigoAccent : Colors.white24,
+                      ),
+                      SizedBox(width: 4.w),
+                      Expanded(
+                        child: Text(
+                          provider.selectedResumeFileName ?? "Upload PDF or Text Resume",
+                          style: TextStyle(color: provider.selectedResumeFileName != null ? Colors.white : Colors.white38),
+                        ),
+                      ),
+                    ],
+                  ),
             ),
           ),
-          SizedBox(height: 1.h),
-          _buildScoreItem("Skills Match", "${(results['skillsMatch'] as double?)?.toStringAsFixed(1) ?? '0.0'}%"),
-          _buildScoreItem("Experience Match", "${(results['experienceMatch'] as double?)?.toStringAsFixed(1) ?? '0.0'}%"),
-          _buildScoreItem("Education Match", "${(results['educationMatch'] as double?)?.toStringAsFixed(1) ?? '0.0'}%"),
+
+          SizedBox(height: 4.h),
+
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: provider.isAnalyzing ? null : () => provider.matchResumeToJob(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigoAccent,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 2.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                elevation: 0,
+              ),
+              child: provider.isAnalyzing
+                ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                      SizedBox(width: 15),
+                      Text("Processing Analysis..."),
+                    ],
+                  )
+                : const Text("Generate Match Score", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+
+          if (provider.errorMessage.isNotEmpty) ...[
+            SizedBox(height: 2.h),
+            Text(provider.errorMessage, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildScoreItem(String label, String value) {
-    final theme = Theme.of(context);
-    
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 0.3.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildAnalysisResult(BuildContext context, AIResumeMatcherProvider provider) {
+    if (provider.matchResults.isEmpty) {
+      return Container(
+        height: 20.h,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.02),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Center(
+          child: Text("AI results will appear here", style: TextStyle(color: Colors.white24, fontSize: 11.sp)),
+        ),
+      );
+    }
+
+    final results = provider.matchResults;
+    final overallScore = (results['overallScore'] as num?)?.toDouble() ?? 0.0;
+    final scoreColor = Color(int.parse(provider.getScoreColor(overallScore).replaceAll('#', '0xFF')));
+
+    return Container(
+      padding: EdgeInsets.all(6.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: theme.textTheme.bodyMedium?.color,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Match report", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+              _buildGradeBadge(provider.getScoreGrade(overallScore), scoreColor),
+            ],
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w600,
-              color: theme.textTheme.bodyMedium?.color,
-            ),
-          ),
+          SizedBox(height: 4.h),
+
+          _buildMatchCircle(overallScore, scoreColor),
+
+          SizedBox(height: 4.h),
+
+          if (results['analysis'] != null) ...[
+            Text("SUMMARY", style: _sectionTitleStyle),
+            SizedBox(height: 1.h),
+            Text(results['analysis'], style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5)),
+            SizedBox(height: 3.h),
+          ],
+
+          _buildBreakdown(results),
+
+          SizedBox(height: 4.h),
+
+          if (results['strengths'] != null) _buildPointList("STRENGTHS", results['strengths'], Colors.greenAccent),
+          if (results['gaps'] != null) _buildPointList("GAPS", results['gaps'], Colors.orangeAccent),
+          if (results['recommendations'] != null) _buildPointList("RECOMMENDATIONS", results['recommendations'], Colors.indigoAccent),
         ],
       ),
+    );
+  }
+
+  Widget _buildMatchCircle(double score, Color color) {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 100,
+            height: 100,
+            child: CircularProgressIndicator(
+              value: score / 100,
+              strokeWidth: 8,
+              backgroundColor: Colors.white10,
+              color: color,
+            ),
+          ),
+          Text("${score.toInt()}%", style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBreakdown(Map<String, dynamic> results) {
+    return Row(
+      children: [
+        Expanded(child: _miniStep("Skills", results['skillsMatch'])),
+        Expanded(child: _miniStep("Exp", results['experienceMatch'])),
+        Expanded(child: _miniStep("Edu", results['educationMatch'])),
+      ],
+    );
+  }
+
+  Widget _miniStep(String label, dynamic score) {
+    final s = (score as num?)?.toDouble() ?? 0.0;
+    return Column(
+      children: [
+        Text("${s.toInt()}%", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+      ],
+    );
+  }
+
+  Widget _buildPointList(String title, dynamic items, Color color) {
+    final list = items as List;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(color: color, fontSize: 10.sp, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        SizedBox(height: 1.5.h),
+        ...list.map((item) => Padding(
+          padding: EdgeInsets.only(bottom: 0.8.h),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.circle, size: 4, color: color.withOpacity(0.5)),
+              SizedBox(width: 3.w),
+              Expanded(child: Text(item, style: const TextStyle(color: Colors.white60, fontSize: 12))),
+            ],
+          ),
+        )),
+        SizedBox(height: 3.h),
+      ],
+    );
+  }
+
+  Widget _buildGradeBadge(String grade, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.5.h),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(grade, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildPopularTargetRoles(AIResumeMatcherProvider provider) {
+    final roles = [
+      {'title': 'Data Science', 'desc': 'Focus on data analysis, machine learning models, and statistical insights using Python, R, and SQL.'},
+      {'title': 'Full Stack', 'desc': 'Develop both front-end and back-end web solutions using modern frameworks like React and Node.js.'},
+      {'title': 'Mobile Dev', 'desc': 'Build cross-platform mobile applications using Flutter or React Native with focus on performance and UX.'},
+      {'title': 'Product Mgmt', 'desc': 'Lead product development lifecycles, from strategy and roadmapping to user research and execution.'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context, "Benchmark Popular Roles"),
+        SizedBox(height: 1.5.h),
+        SizedBox(
+          height: 5.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: roles.length,
+            itemBuilder: (context, index) {
+              final role = roles[index];
+              final isSelected = _jobDescController.text.contains(role['title']!);
+              return Padding(
+                padding: EdgeInsets.only(right: 3.w),
+                child: ChoiceChip(
+                  label: Text(role['title']!),
+                  selected: isSelected,
+                  selectedColor: Theme.of(context).primaryColor,
+                  backgroundColor: const Color(0xFF1E293B),
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.white60,
+                    fontSize: 9.sp,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  onSelected: (selected) {
+                    if (selected) {
+                      final jobText = "Title: ${role['title']}\nDescription: ${role['desc']}";
+                      _jobDescController.text = jobText;
+                      provider.updateJobDescription(jobText);
+                      setState(() => _selectedApplication = null);
+                    }
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white24, fontSize: 12),
+      filled: true,
+      fillColor: const Color(0xFF0F172A),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
     );
   }
 
   Widget _buildLabel(BuildContext context, String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 12.sp,
-        fontWeight: FontWeight.w600,
-        color: Theme.of(context).colorScheme.onSurface,
-      ),
-    );
+    return Text(text.toUpperCase(), style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.bold, color: Colors.white24, letterSpacing: 1.2));
   }
+
+  TextStyle get _sectionTitleStyle => TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: Colors.white38, letterSpacing: 1);
 }
+

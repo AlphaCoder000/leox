@@ -61,12 +61,12 @@ class FirebaseService {
       final snapshot = await _firestore
           .collection('jobs')
           .where('postedBy', isEqualTo: _auth.currentUser?.uid ?? '')
-          .orderBy('postedOn', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) {
+      final list = snapshot.docs.map((doc) {
         final data = doc.data();
         return JobModel(
+          id: doc.id,
           title: data['title'] ?? '',
           department: data['department'] ?? '',
           category: data['category'] ?? '',
@@ -88,6 +88,10 @@ class FirebaseService {
           additionalInfo: Map<String, dynamic>.from(data['additionalInfo'] ?? {}),
         );
       }).toList();
+
+      // Sort in-memory to avoid index requirement
+      list.sort((a, b) => b.postedOn.compareTo(a.postedOn));
+      return list;
     } catch (e) {
       debugPrint('[FirebaseService] Error getting employer jobs: $e');
       return [];
@@ -111,12 +115,12 @@ class FirebaseService {
       final snapshot = await _firestore
           .collection('jobs')
           .where('status', isEqualTo: 'Open') // Matches web app "Open" status
-          .orderBy('postedOn', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) {
+      final list = snapshot.docs.map((doc) {
         final data = doc.data();
         return JobModel(
+          id: doc.id,
           title: data['title'] ?? '',
           department: data['department'] ?? '',
           category: data['category'] ?? '',
@@ -138,6 +142,10 @@ class FirebaseService {
           additionalInfo: Map<String, dynamic>.from(data['additionalInfo'] ?? {}),
         );
       }).toList();
+
+      // Sort in-memory to avoid index requirement
+      list.sort((a, b) => b.postedOn.compareTo(a.postedOn));
+      return list;
     } catch (e) {
       debugPrint('[FirebaseService] Error getting all jobs: $e');
       return [];
@@ -147,9 +155,22 @@ class FirebaseService {
   /// Update a job in Firebase
   Future<void> updateJob(JobModel job) async {
     try {
-      // In a real implementation, you'd need the job ID
-      // For now, this is a placeholder
-      debugPrint('[FirebaseService] Job update not implemented yet: ${job.title}');
+      if (job.id.isEmpty) throw Exception('Job ID is missing');
+      
+      await _firestore.collection('jobs').doc(job.id).update({
+        'title': job.title,
+        'department': job.department,
+        'category': job.category,
+        'description': job.description,
+        'requirements': job.requirements,
+        'salaryRange': job.salaryRange,
+        'skills': job.skills,
+        'benefits': job.benefits,
+        'status': job.status,
+        'deadline': job.deadline != null ? Timestamp.fromDate(job.deadline!) : null,
+        'updatedAt': Timestamp.now(),
+      });
+      debugPrint('[FirebaseService] Job updated successfully: ${job.title}');
     } catch (e) {
       debugPrint('[FirebaseService] Error updating job: $e');
       rethrow;

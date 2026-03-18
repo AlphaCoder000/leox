@@ -5,6 +5,7 @@ library;
 import 'package:flutter/foundation.dart';
 import '../models/job_application_model.dart';
 import '../models/job_posting_model.dart';
+import '../models/candidate_model.dart';
 import '../services/job_application_service.dart';
 
 class JobApplicationProvider extends ChangeNotifier {
@@ -23,11 +24,17 @@ class JobApplicationProvider extends ChangeNotifier {
   List<JobApplicationModel> _applications = [];
   List<JobApplicationModel> get applications => _applications;
 
+  List<CandidateModel> _candidates = [];
+  List<CandidateModel> get candidates => _candidates;
+
   Map<String, int> _applicationStats = {};
   Map<String, int> get applicationStats => _applicationStats;
 
   JobApplicationModel? _selectedApplication;
   JobApplicationModel? get selectedApplication => _selectedApplication;
+
+  CandidateModel? _selectedCandidate;
+  CandidateModel? get selectedCandidate => _selectedCandidate;
 
   // ======== PRIVATE METHODS ========
   void _setLoading(bool value) {
@@ -61,6 +68,11 @@ class JobApplicationProvider extends ChangeNotifier {
     required String coverLetter,
     required dynamic resumeFile,
     required JobPostingModel jobPosting,
+    String experience = '',
+    String expectedSalary = '',
+    String availability = '',
+    String linkedIn = '',
+    String portfolio = '',
   }) async {
     _setLoading(true);
     _setError(null);
@@ -73,9 +85,14 @@ class JobApplicationProvider extends ChangeNotifier {
         coverLetter: coverLetter,
         resumeFile: resumeFile,
         jobPosting: jobPosting,
+        experience: experience,
+        expectedSalary: expectedSalary,
+        availability: availability,
+        linkedIn: linkedIn,
+        portfolio: portfolio,
       );
 
-      if (applicationId != null) {
+      if (applicationId.isNotEmpty) {
         _setSuccess('Application submitted successfully!');
         
         // Refresh applications list if employee
@@ -105,10 +122,37 @@ class JobApplicationProvider extends ChangeNotifier {
       _applicationStats = await _applicationService.getEmployerApplicationStats();
       
       debugPrint('[JobApplicationProvider] Loaded ${_applications.length} applications');
+      
+      // Also load candidates
+      await loadEmployerCandidates();
     } catch (e) {
       _setError('Failed to load applications: ${e.toString()}');
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Load all candidates for employer
+  Future<void> loadEmployerCandidates() async {
+    try {
+      debugPrint('[JobApplicationProvider] Loading employer candidates');
+      _candidates = await _applicationService.getEmployerCandidates();
+      debugPrint('[JobApplicationProvider] Loaded ${_candidates.length} candidates');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[JobApplicationProvider] Error loading candidates: $e');
+    }
+  }
+
+  /// Load candidates for a specific role
+  Future<void> loadEmployerCandidatesByRole(String jobTitle) async {
+    try {
+      debugPrint('[JobApplicationProvider] Loading candidates for role: $jobTitle');
+      _candidates = await _applicationService.getEmployerCandidatesByRole(jobTitle);
+      debugPrint('[JobApplicationProvider] Loaded ${_candidates.length} candidates for role');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[JobApplicationProvider] Error loading candidates by role: $e');
     }
   }
 
@@ -238,6 +282,18 @@ class JobApplicationProvider extends ChangeNotifier {
   int getApplicationCountByStatus(String status) {
     if (status == 'all') return _applications.length;
     return _applications.where((app) => app.status == status).length;
+  }
+
+  /// Filter candidates by status
+  List<CandidateModel> getCandidatesByStatus(String status) {
+    if (status == 'all') return _candidates;
+    return _candidates.where((c) => c.status == status).toList();
+  }
+
+  /// Get candidates count by status
+  int getCandidateCountByStatus(String status) {
+    if (status == 'all') return _candidates.length;
+    return _candidates.where((c) => c.status == status).length;
   }
 
   /// Select application for detailed view

@@ -39,7 +39,8 @@ class RoleOptionView extends StatelessWidget {
             SizedBox(height: 2.h),
 
             Text(
-              "Welcome to Leox",
+              "Welcome to LeoOpus",
+              textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -51,6 +52,7 @@ class RoleOptionView extends StatelessWidget {
 
             Text(
               "Choose how you'd like to continue",
+              textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontSize: 14.sp,
                 color:
@@ -142,7 +144,7 @@ class RoleOptionView extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(5.w),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Center(
                 child: CircleAvatar(
@@ -187,6 +189,7 @@ class RoleOptionView extends StatelessWidget {
                 (p) => Padding(
                   padding: EdgeInsets.only(bottom: 1.h),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.check_circle,
@@ -194,7 +197,7 @@ class RoleOptionView extends StatelessWidget {
                         color: theme.primaryColor,
                       ),
                       SizedBox(width: 3.w),
-                      Expanded(
+                      Flexible(
                         child: Text(
                           p,
                           style: TextStyle(

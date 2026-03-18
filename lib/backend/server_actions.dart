@@ -47,7 +47,7 @@ class ServerActions {
 
       // 🔁 toJson(), NOT toMap()
       await _firestore
-          .collection('job_applications')
+          .collection('applications')
           .add(application.toJson());
 
 
@@ -85,7 +85,7 @@ class ServerActions {
 
       // Update application status
       await _firestore
-          .collection('job_applications')
+          .collection('applications')
           .doc(applicationId)
           .update({
             'status': 'interview_scheduled',
@@ -133,7 +133,7 @@ class ServerActions {
       debugPrint('[ServerActions] Getting applications for user: $userId');
       
       final snapshot = await _firestore
-          .collection('job_applications')
+          .collection('applications')
           .where('employeeId', isEqualTo: userId)
           .orderBy('appliedAt', descending: true)
           .get();
@@ -184,7 +184,7 @@ class ServerActions {
       if (role == 'employee') {
         // Employee statistics
         final applications = await _firestore
-            .collection('job_applications')
+            .collection('applications')
             .where('employeeId', isEqualTo: userId)
             .get();
 
@@ -214,7 +214,7 @@ class ServerActions {
         int totalApplications = 0;
         for (final job in jobs.docs) {
           final applications = await _firestore
-              .collection('job_applications')
+              .collection('applications')
               .where('jobId', isEqualTo: job.id)
               .get();
           totalApplications += applications.docs.length;

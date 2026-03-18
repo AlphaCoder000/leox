@@ -1,11 +1,8 @@
-/// AI Resume Matcher Provider
-///
-/// Manages state for AI-powered resume matching functionality
-library;
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import '../backend/ai_workflows.dart';
 import '../services/storage_service.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 class AIResumeMatcherProvider extends ChangeNotifier {
   final AIWorkflows _aiWorkflows = AIWorkflows();
@@ -47,8 +44,9 @@ class AIResumeMatcherProvider extends ChangeNotifier {
       
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx', 'txt'],
+        allowedExtensions: ['pdf', 'txt'],
         allowMultiple: false,
+        withData: true, // 🚨 CRITICAL: Required for mobile to get file bytes
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -62,14 +60,29 @@ class AIResumeMatcherProvider extends ChangeNotifier {
         _isUploading = true;
         _uploadProgress = 0.0;
         _errorMessage = '';
+        _selectedResumeText = null; // Reset text
         notifyListeners();
         
-        // Simulate progress updates
-        for (int i = 0; i <= 10; i++) {
-          await Future.delayed(Duration(milliseconds: 100));
-          _uploadProgress = i / 10.0;
-          notifyListeners();
+        // --- STEP 1: Text Extraction (Local) ---
+        if (file.extension?.toLowerCase() == 'pdf') {
+          try {
+            debugPrint('[AIResumeMatcherProvider] Extracting text from PDF...');
+            final PdfDocument document = PdfDocument(inputBytes: file.bytes);
+            final String text = PdfTextExtractor(document).extractText();
+            document.dispose();
+            _selectedResumeText = text;
+            debugPrint('[AIResumeMatcherProvider] PDF text extracted successfully (${text.length} chars)');
+          } catch (e) {
+            debugPrint('[AIResumeMatcherProvider] PDF extraction error: $e');
+            // Continue to upload, maybe backend can handle it
+          }
+        } else if (file.extension?.toLowerCase() == 'txt') {
+          _selectedResumeText = String.fromCharCodes(file.bytes!);
         }
+
+        // --- STEP 2: Upload to Storage (Parallel) ---
+        _uploadProgress = 0.2;
+        notifyListeners();
         
         // Upload to Firebase Storage
         final storageService = StorageService();
@@ -178,7 +191,8 @@ class AIResumeMatcherProvider extends ChangeNotifier {
       debugPrint('[AIResumeMatcherProvider] Matching resume to job...');
 
       final result = await _aiWorkflows.matchResumeToJob(
-        resumeText: _selectedResumeText ?? '',
+        resumeUrl: _selectedResumeUrl,
+        resumeText: _selectedResumeText,
         jobDescription: _jobDescription,
         resumeData: _matchResults['parsed'] == true ? _matchResults : null,
       );

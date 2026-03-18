@@ -20,7 +20,7 @@ class JobCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: Card(
         elevation: 4,
-        shadowColor: Colors.white.withValues(alpha: 0.65),
+        shadowColor: Colors.white.withOpacity(0.65),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: Padding(
           padding: EdgeInsets.all(4.w),

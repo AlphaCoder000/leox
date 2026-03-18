@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/views/employee/employee_login_view.dart';
-import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -31,29 +30,10 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
   void initState() {
     super.initState();
     
-    // Listen to authentication state changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _listenToAuthChanges();
-    });
-    
     // Listen to success messages
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _listenToSuccessMessages();
     });
-  }
-
-  void _listenToAuthChanges() {
-    context.read<EmployeeAuthProvider>().addListener(_onAuthStateChanged);
-  }
-
-  void _onAuthStateChanged() {
-    final auth = context.read<EmployeeAuthProvider>();
-    if (auth.isLoggedIn && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const EmployeeDashboardView()),
-      );
-    }
   }
 
   void _listenToSuccessMessages() {
@@ -119,7 +99,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
+                      backgroundColor: colorScheme.primary.withOpacity(0.12),
                       child: Icon(
                         Icons.business_center_outlined,
                         color: colorScheme.primary,
@@ -283,37 +263,53 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                 // 🔹 PRIMARY BUTTON
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (!isEmailSelected && !isOtpSent) {
-                        setState(() => isOtpSent = true);
-                        // TODO: Firebase send OTP
-                      } else if (!isEmailSelected && isOtpSent) {
-                        // TODO: Firebase verify OTP & register
-                      } else {
-                        // Firebase email registration
-                        await _registerWithEmail();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      isEmailSelected
-                          ? "Sign Up with Email"
-                          : isOtpSent
-                          ? "Verify & Create Account"
-                          : "Send Verification Code",
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                  child: Consumer<EmployeeAuthProvider>(
+                    builder: (context, auth, child) {
+                      return ElevatedButton(
+                        onPressed: auth.isLoading ? null : () async {
+                          if (!isEmailSelected && !isOtpSent) {
+                            setState(() => isOtpSent = true);
+                            // TODO: Firebase send OTP
+                          } else if (!isEmailSelected && isOtpSent) {
+                            // TODO: Firebase verify OTP & register
+                          } else {
+                            // Firebase email registration
+                            await _registerWithEmail();
+                            
+                            // Success? main.dart will handle navigation.
+                            // We just need to clear the stack if we are on top.
+                            if (auth.isLoggedIn && mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(
+                              isEmailSelected
+                                  ? "Sign Up with Email"
+                                  : isOtpSent
+                                  ? "Verify & Create Account"
+                                  : "Send Verification Code",
+                              style: const TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                      );
+                    }
                   ),
                 ),
 
@@ -340,26 +336,41 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                 const SizedBox(height: 24),
 
                 // 🔹 GOOGLE
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await context.read<EmployeeAuthProvider>().signUpWithGoogle();
-                    },
-                    icon: Image.asset(
-                      'assets/icons/google_logo.png',
-                      height: 24,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.g_mobiledata, size: 24),
-                    ),
-                    label: const Text("Sign Up with Google"),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                Consumer<EmployeeAuthProvider>(
+                  builder: (context, auth, _) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.isLoading ? null : () async {
+                          final provider = context.read<EmployeeAuthProvider>();
+                          await provider.signUpWithGoogle();
+                          
+                          if (provider.isLoggedIn && mounted) {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          }
+                        },
+                        icon: auth.isLoading 
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Image.asset(
+                              'assets/icons/google_logo.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.g_mobiledata, size: 24),
+                            ),
+                        label: Text(auth.isLoading ? "Signing up..." : "Sign Up with Google"),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }
                 ),
 
                 const SizedBox(height: 24),
@@ -420,7 +431,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
           borderRadius: BorderRadius.circular(8),
           boxShadow: selected ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 4,
             ),
           ] : null,
@@ -507,7 +518,6 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
 
   @override
   void dispose() {
-    context.read<EmployeeAuthProvider>().removeListener(_onAuthStateChanged);
     context.read<EmployeeAuthProvider>().removeListener(_onSuccessMessage);
     super.dispose();
   }

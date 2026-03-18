@@ -25,6 +25,8 @@ class _JobApplicationViewState extends State<JobApplicationView> {
   final _experienceController = TextEditingController();
   final _salaryController = TextEditingController();
   final _availabilityController = TextEditingController();
+  final _linkedinController = TextEditingController();
+  final _portfolioController = TextEditingController();
   PlatformFile? _selectedResume;
   String _selectedExperience = '0-1 years'; // Default experience
 
@@ -42,6 +44,8 @@ class _JobApplicationViewState extends State<JobApplicationView> {
     _experienceController.dispose();
     _salaryController.dispose();
     _availabilityController.dispose();
+    _linkedinController.dispose();
+    _portfolioController.dispose();
     super.dispose();
   }
 
@@ -88,6 +92,11 @@ class _JobApplicationViewState extends State<JobApplicationView> {
       resumeFile:
           _selectedResume, // Only use uploaded resume, not existing profile resume
       jobPosting: widget.job,
+      experience: _selectedExperience,
+      expectedSalary: _salaryController.text.trim(),
+      availability: _availabilityController.text.trim(),
+      linkedIn: _linkedinController.text.trim(),
+      portfolio: _portfolioController.text.trim(),
     );
 
     if (mounted) {
@@ -261,7 +270,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     vertical: 0.5.h,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
+                    color: Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -328,7 +337,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     vertical: 0.5.h,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
+                    color: Colors.green.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -355,10 +364,10 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                 width: double.infinity,
                 padding: EdgeInsets.all(3.w),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  color: colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    color: colorScheme.primary.withOpacity(0.3),
                   ),
                 ),
                 child: Column(
@@ -502,7 +511,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     vertical: 0.5.h,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
+                    color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -606,6 +615,54 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                 prefixIcon: Icon(Icons.schedule, color: Colors.grey[600]),
               ),
             ),
+
+            SizedBox(height: 1.5.h),
+
+            // LinkedIn
+            Text(
+              'LinkedIn Profile (Optional)',
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 0.5.h),
+            TextField(
+              controller: _linkedinController,
+              decoration: InputDecoration(
+                hintText: 'https://linkedin.com/in/yourprofile',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: colorScheme.primary),
+                ),
+                prefixIcon: Icon(Icons.link, color: Colors.grey[600]),
+              ),
+            ),
+
+            SizedBox(height: 1.5.h),
+
+            // Portfolio
+            Text(
+              'Portfolio / Other Link (Optional)',
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 0.5.h),
+            TextField(
+              controller: _portfolioController,
+              decoration: InputDecoration(
+                hintText: 'https://yourportfolio.com',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: colorScheme.primary),
+                ),
+                prefixIcon: Icon(Icons.web, color: Colors.grey[600]),
+              ),
+            ),
           ],
         ),
       ),
@@ -658,7 +715,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     gradient: LinearGradient(
                       colors: [
                         colorScheme.primary,
-                        colorScheme.primary.withValues(alpha: 0.8),
+                        colorScheme.primary.withOpacity(0.8),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -666,7 +723,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.3),
+                        color: colorScheme.primary.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),

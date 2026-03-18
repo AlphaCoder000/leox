@@ -182,7 +182,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
                   decoration: BoxDecoration(
-                    color: Color(int.parse(application.statusColor.replaceAll('#', '0xFF'))),
+                    color: application.statusColor(),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

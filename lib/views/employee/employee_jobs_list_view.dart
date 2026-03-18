@@ -49,7 +49,7 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
               "Browse and apply for jobs.",
               style: TextStyle(
                 fontSize: 12.5.sp,
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),
 

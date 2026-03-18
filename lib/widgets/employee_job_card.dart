@@ -77,7 +77,7 @@ class EmployeeJobCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.4.h),
       decoration: BoxDecoration(
-        color: isOpen ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15) : Colors.grey.shade300,
+        color: isOpen ? Theme.of(context).colorScheme.primary.withOpacity(0.15) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

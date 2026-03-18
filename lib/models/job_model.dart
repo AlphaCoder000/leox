@@ -1,6 +1,7 @@
 import 'candidate_model.dart';
 
 class JobModel {
+  final String id;
   final String title;
   final String department;
   final String category;
@@ -15,7 +16,7 @@ class JobModel {
   final String salaryRange;
   final List<String> skills;
   final List<String> benefits;
-  final String status; // active, inactive, closed
+  final String status; // active, status: 'Open', 'Closed'
   final String postedBy;
   final int applicationCount;
   final DateTime? deadline;
@@ -25,6 +26,7 @@ class JobModel {
   final List<CandidateModel> candidates;
 
   JobModel({
+    this.id = '',
     required this.title,
     required this.department,
     required this.category,
@@ -39,7 +41,7 @@ class JobModel {
     this.salaryRange = '',
     this.skills = const [],
     this.benefits = const [],
-    this.status = 'active',
+    this.status = 'Open',
     this.postedBy = '',
     this.applicationCount = 0,
     this.deadline,

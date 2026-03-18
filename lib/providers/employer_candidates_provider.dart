@@ -17,6 +17,6 @@ class EmployerCandidatesProvider extends ChangeNotifier {
   }
 
   List<CandidateModel> candidatesForJob(String jobTitle) {
-    return _candidates.where((c) => c.appliedJobTitle == jobTitle).toList();
+    return _candidates.where((c) => c.jobTitle == jobTitle).toList();
   }
 }

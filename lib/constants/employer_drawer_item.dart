@@ -1,1 +1,1 @@
-enum EmployerDrawerItem { dashboard, jobs, candidates, aiMatcher, profile }
+enum EmployerDrawerItem { dashboard, jobs, candidates, notifications, aiMatcher, profile }

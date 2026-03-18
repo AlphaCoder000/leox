@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:leox/views/role_option_view.dart';
-import 'package:leox/views/employee/employee_dashboard_view.dart';
-import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/providers/theme_povider.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../providers/welcome_provider.dart';
 import '../models/resource_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({super.key});
@@ -20,53 +17,9 @@ class WelcomeView extends StatefulWidget {
 class _WelcomeViewState extends State<WelcomeView> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Loading state
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final user = snapshot.data;
-
-        // If user is logged in, check role and navigate to appropriate dashboard
-        if (user != null) {
-          return FutureBuilder<DocumentSnapshot>(
-            future: FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.uid)
-                .get(),
-            builder: (context, roleSnapshot) {
-              if (!roleSnapshot.hasData) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              final data = roleSnapshot.data!.data() as Map<String, dynamic>?;
-              final role = data?['role'];
-
-              if (role == 'employer') {
-                return const EmployerDashboardView();
-              }
-
-              if (role == 'employee') {
-                return const EmployeeDashboardView();
-              }
-
-              // If role is not found, show welcome screen
-              return _buildWelcomeContent(context);
-            },
-          );
-        }
-
-        // If user is not logged in, show welcome screen
-        return _buildWelcomeContent(context);
-      },
-    );
+    // Note: Auth state and role-based redirection are now handled centrally in main.dart
+    // This view only focuses on displaying the welcome content.
+    return _buildWelcomeContent(context);
   }
 
   Widget _buildWelcomeContent(BuildContext context) {
@@ -91,24 +44,44 @@ class _WelcomeViewState extends State<WelcomeView> {
   // 🔹 HEADER
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        6.w, // left
-        5.h, // Top
-        6.w, // right
-        2.5.h, // bottom
-      ),
+      padding: EdgeInsets.fromLTRB(6.w, 4.h, 6.w, 0.h),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            "LeoRecruit",
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
+          const SizedBox(width: 48), // Spacer to help center the text
+          Expanded(
+            child: ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  const Color(0xFF8B5CF6), // Purple pop
+                ],
+              ).createShader(bounds),
+              child: Text(
+                "LeoOpus",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -1.0,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              themeProvider.themeMode == ThemeMode.dark
+                  ? Icons.light_mode
+                  : themeProvider.themeMode == ThemeMode.light
+                      ? Icons.dark_mode
+                      : Icons.settings_brightness,
               color: theme.colorScheme.onSurface,
             ),
+            onPressed: () => themeProvider.toggleTheme(),
           ),
         ],
       ),
@@ -123,10 +96,11 @@ class _WelcomeViewState extends State<WelcomeView> {
     return Padding(
       padding: EdgeInsets.all(6.w),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             "Find Your Next Opportunity",
+            textAlign: TextAlign.center,
             style: theme.textTheme.displaySmall?.copyWith(
               fontSize: 26.sp,
               fontWeight: FontWeight.bold,
@@ -137,6 +111,7 @@ class _WelcomeViewState extends State<WelcomeView> {
           SizedBox(height: 2.5.h),
           Text(
             "Browse jobs and discover roles that match your skills and ambitions.",
+            textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontSize: 13.sp,
               color:
@@ -147,27 +122,30 @@ class _WelcomeViewState extends State<WelcomeView> {
             ),
           ),
           SizedBox(height: 4.h),
-          Row(
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                  );
-                },
-
-                child: Text(
-                  "Get Started Free",
-                  style: TextStyle(fontSize: 13.sp, color: Colors.white),
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              SizedBox(width: 4.w),
-            ],
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RoleOptionView()),
+                );
+              },
+              child: Text(
+                "Get Started Free",
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -189,14 +167,14 @@ class _WelcomeViewState extends State<WelcomeView> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               "Key Features",
               style: TextStyle(
                 color: colorScheme.primary,
-                fontSize: 10.sp,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -261,7 +239,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                         Container(
                           padding: EdgeInsets.all(2.w),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Colors.black.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
@@ -316,21 +294,21 @@ class _WelcomeViewState extends State<WelcomeView> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 4.h),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // TOP LABEL
           Center(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 "Resources",
                 style: TextStyle(
                   color: colorScheme.primary,
-                  fontSize: 10.sp,
+                  fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -389,7 +367,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                       vertical: 3.h,
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           res.category,
@@ -428,6 +406,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                         SizedBox(height: 2.5.h),
 
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               "Read More",
@@ -462,162 +441,42 @@ class _WelcomeViewState extends State<WelcomeView> {
   // 🔹 FOOTER
   Widget _footer(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Column(
         children: [
           const Divider(),
-          SizedBox(height: 1.h),
-          
-          // Theme Mode Selector
-          Container(
-            padding: EdgeInsets.all(3.w),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.dividerColor),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'App Theme',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: 1.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          final themeProvider = context.read<ThemeProvider>();
-                          themeProvider.setLight();
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(2.w),
-                          decoration: BoxDecoration(
-                            color: isDark ? theme.cardColor : colorScheme.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.light_mode,
-                                size: 16.sp,
-                                color: isDark ? colorScheme.primary : Colors.white,
-                              ),
-                              SizedBox(width: 2.w),
-                              Text(
-                                'Light',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? colorScheme.primary : Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 2.w),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          final themeProvider = context.read<ThemeProvider>();
-                          themeProvider.setDark();
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(2.w),
-                          decoration: BoxDecoration(
-                            color: !isDark ? theme.cardColor : colorScheme.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.dark_mode,
-                                size: 16.sp,
-                                color: !isDark ? colorScheme.primary : Colors.white,
-                              ),
-                              SizedBox(width: 2.w),
-                              Text(
-                                'Dark',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: !isDark ? colorScheme.primary : Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 2.w),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          final themeProvider = context.read<ThemeProvider>();
-                          themeProvider.setSystem();
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(2.w),
-                          decoration: BoxDecoration(
-                            color: theme.brightness == ThemeMode.system 
-                                ? theme.cardColor 
-                                : colorScheme.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.settings_system_daydream,
-                                size: 16.sp,
-                                color: theme.brightness == ThemeMode.system 
-                                    ? colorScheme.primary 
-                                    : Colors.white,
-                              ),
-                              SizedBox(width: 2.w),
-                              Text(
-                                'System',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: theme.brightness == ThemeMode.system 
-                                      ? colorScheme.primary 
-                                      : Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 2.h),
-              ],
-            ),
-          ),
-          
-          const Divider(),
           SizedBox(height: 2.h),
           
           // Original Footer
-          Text(
-            "© 2024 LeoRecruit",
-            style: TextStyle(
-              fontSize: 9.sp,
-              color: Theme.of(context).textTheme.bodySmall?.color,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "© 2026 ",
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+              ),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [
+                    theme.colorScheme.primary,
+                    const Color(0xFF8B5CF6),
+                  ],
+                ).createShader(bounds),
+                child: Text(
+                  "LeoOpus",
+                  style: GoogleFonts.outfit(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

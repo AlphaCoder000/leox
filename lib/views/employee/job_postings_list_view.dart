@@ -3,6 +3,7 @@
 /// Shows all available job postings for employees
 library;
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sizer/sizer.dart';
 import '../../models/job_posting_model.dart';
 import '../../views/employee/job_application_view.dart';
@@ -31,45 +32,40 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
     });
 
     try {
-      // TODO: Implement actual job postings loading from Firebase
-      // For now, using mock data
-      _jobPostings = [
-        JobPostingModel(
-          id: '1',
-          title: 'Senior Flutter Developer',
-          department: 'Engineering',
-          description: 'We are looking for an experienced Flutter developer to join our team.',
-          employerId: 'employer1',
-          companyName: 'Tech Corp',
-          location: 'San Francisco, CA',
-          jobType: 'full-time',
-          experienceLevel: 'senior',
-          salary: '120,000 - 150,000',
-          requirements: ['5+ years Flutter experience', 'B.S. in Computer Science'],
-          skills: ['Flutter', 'Dart', 'Firebase', 'Git'],
-          benefits: ['Health Insurance', '401k', 'Remote Work'],
-          postedAt: DateTime.now().subtract(const Duration(days: 3)),
-          applicationCount: 12,
-        ),
-        JobPostingModel(
-          id: '2',
-          title: 'UI/UX Designer',
-          department: 'Design',
-          description: 'Creative UI/UX designer needed for mobile app design.',
-          employerId: 'employer2',
-          companyName: 'Design Studio',
-          location: 'New York, NY',
-          jobType: 'contract',
-          experienceLevel: 'mid',
-          salary: '80,000 - 100,000',
-          requirements: ['3+ years design experience', 'Portfolio required'],
-          skills: ['Figma', 'Sketch', 'Adobe XD', 'Prototyping'],
-          benefits: ['Flexible Hours', 'Creative Environment'],
-          postedAt: DateTime.now().subtract(const Duration(days: 1)),
-          applicationCount: 8,
-        ),
-      ];
+      final FirebaseFirestore firestore = FirebaseFirestore.instance;
+      final snapshot = await firestore
+          .collection('jobs')
+          .where('status', isEqualTo: 'Open')
+          .orderBy('postedOn', descending: true)
+          .get();
+
+      final jobPostings = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return JobPostingModel(
+          id: doc.id,
+          title: data['title'] ?? '',
+          department: data['department'] ?? '',
+          description: data['description'] ?? '',
+          employerId: data['employerId'] ?? data['postedBy'] ?? '',
+          companyName: data['companyName'] ?? '',
+          location: data['location'] ?? '',
+          jobType: data['jobType'] ?? '',
+          experienceLevel: data['experienceLevel'] ?? '',
+          salary: data['salaryRange'] ?? data['salary'] ?? '',
+          requirements: List<String>.from(data['requirements'] ?? []),
+          skills: List<String>.from(data['skills'] ?? []),
+          benefits: List<String>.from(data['benefits'] ?? []),
+          status: data['status'] ?? 'Open',
+          postedAt: (data['postedOn'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          applicationCount: data['applicationCount'] ?? 0,
+        );
+      }).toList();
+
+      setState(() {
+        _jobPostings = jobPostings;
+      });
     } catch (e) {
+      debugPrint('[JobPostingsListView] Error loading jobs: $e');
       if (mounted) {
         ErrorHandlerUI.showErrorSnackbar(
           context,
@@ -281,7 +277,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                             skill,
                             style: TextStyle(fontSize: 9.sp),
                           ),
-                          backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                          backgroundColor: colorScheme.primary.withOpacity(0.1),
                           labelStyle: TextStyle(
                             color: colorScheme.primary,
                             fontSize: 9.sp,

@@ -4,6 +4,8 @@
 library;
 
 import 'package:flutter/foundation.dart';
+import 'package:leox/services/gemini_service.dart';
+import 'package:leox/services/session_service.dart';
 import '../services/api_service.dart';
 
 class AIWorkflows {
@@ -18,49 +20,28 @@ class AIWorkflows {
     try {
       debugPrint('[AIWorkflows] Parsing resume');
       
-      final Map<String, dynamic> requestData = {};
-      if (resumeFileUrl != null) {
-        requestData['resumeFileUrl'] = resumeFileUrl;
-      }
-      if (resumeText != null) {
-        requestData['resumeText'] = resumeText;
+      String textToParse = resumeText ?? '';
+      
+      // If we have a file URL but no text, we'd ideally extract text here.
+      // For now, we assume resumeText is provided or handled by the provider.
+      
+      if (textToParse.isEmpty && resumeFileUrl != null) {
+        // Fallback to API if text extraction isn't available and we have a URL
+        final authToken = await SessionService.getAuthToken();
+        final result = await ApiService.post('/match-resume', body: {'resumeFileUrl': resumeFileUrl}, authToken: authToken);
+        if (result['success'] == true) return result['data'];
+        throw Exception('No text available for Gemini parsing');
       }
 
-      final result = await ApiService.post('/match-resume', body: requestData);
+      // Use Gemini Service for parsing
+      final result = await GeminiService.parseResume(textToParse);
+      return result;
       
-      if (result['success'] == true) {
-        final parsedData = result['data'] ?? {};
-        
-        debugPrint('[AIWorkflows] Resume parsed successfully');
-        return {
-          'success': true,
-          'personalInfo': parsedData['personalInfo'] ?? {},
-          'education': parsedData['education'] ?? [],
-          'experience': parsedData['experience'] ?? [],
-          'skills': parsedData['skills'] ?? [],
-          'projects': parsedData['projects'] ?? [],
-          'certifications': parsedData['certifications'] ?? [],
-          'languages': parsedData['languages'] ?? [],
-          'summary': parsedData['summary'] ?? '',
-          'confidence': parsedData['confidence'] ?? 0.0,
-        };
-      } else {
-        throw Exception(result['message'] ?? 'Resume parsing failed');
-      }
     } catch (e) {
       debugPrint('[AIWorkflows] Error parsing resume: $e');
       return {
         'success': false,
         'error': e.toString(),
-        'personalInfo': {},
-        'education': [],
-        'experience': [],
-        'skills': [],
-        'projects': [],
-        'certifications': [],
-        'languages': [],
-        'summary': '',
-        'confidence': 0.0,
       };
     }
   }
@@ -70,40 +51,22 @@ class AIWorkflows {
   /// Match resume to job description
   /// Equivalent to web app's ai-match-resume-to-job.ts
   Future<Map<String, dynamic>> matchResumeToJob({
-    required String resumeText,
+    String? resumeUrl,
+    String? resumeText,
     required String jobDescription,
     Map<String, dynamic>? resumeData,
   }) async {
     try {
       debugPrint('[AIWorkflows] Matching resume to job');
       
-      // Call AI service for resume matching
-      final result = await ApiService.post('/ai/match-resume', body: {
-        'resumeText': resumeText,
-        'jobDescription': jobDescription,
-        'resumeData': resumeData ?? {},
-      });
+      // Use Gemini Service for matching
+      final result = await GeminiService.matchResumeToJob(
+        resumeText: resumeText ?? '',
+        jobDescription: jobDescription,
+      );
       
-      if (result['success'] == true) {
-        final matchData = result['data'] ?? {};
-        
-        debugPrint('[AIWorkflows] Resume matching completed');
-        return {
-          'success': true,
-          'overallScore': matchData['overallScore'] ?? 0.0,
-          'skillsMatch': matchData['skillsMatch'] ?? 0.0,
-          'experienceMatch': matchData['experienceMatch'] ?? 0.0,
-          'educationMatch': matchData['educationMatch'] ?? 0.0,
-          'analysis': matchData['analysis'] ?? '',
-          'strengths': List<String>.from(matchData['strengths'] ?? []),
-          'gaps': List<String>.from(matchData['gaps'] ?? []),
-          'recommendations': List<String>.from(matchData['recommendations'] ?? []),
-          'matchedSkills': List<String>.from(matchData['matchedSkills'] ?? []),
-          'missingSkills': List<String>.from(matchData['missingSkills'] ?? []),
-        };
-      } else {
-        throw Exception(result['message'] ?? 'Resume matching failed');
-      }
+      return result;
+      
     } catch (e) {
       debugPrint('[AIWorkflows] Error matching resume to job: $e');
       return {
@@ -114,11 +77,6 @@ class AIWorkflows {
         'experienceMatch': 0.0,
         'educationMatch': 0.0,
         'analysis': 'Error occurred during matching',
-        'strengths': [],
-        'gaps': [],
-        'recommendations': [],
-        'matchedSkills': [],
-        'missingSkills': [],
       };
     }
   }
@@ -137,6 +95,7 @@ class AIWorkflows {
     try {
       debugPrint('[AIWorkflows] Generating interview questions');
       
+      final authToken = await SessionService.getAuthToken();
       // Call AI service for question generation
       final result = await ApiService.post('/ai/generate-questions', body: {
         'jobDescription': jobDescription,
@@ -144,7 +103,7 @@ class AIWorkflows {
         'interviewType': interviewType,
         'questionCount': questionCount,
         'difficulty': difficulty,
-      });
+      }, authToken: authToken);
       
       if (result['success'] == true) {
         final questionsData = result['data'] ?? {};
@@ -186,12 +145,13 @@ class AIWorkflows {
     try {
       debugPrint('[AIWorkflows] Optimizing profile for: $targetRole');
       
+      final authToken = await SessionService.getAuthToken();
       // Call AI service for profile optimization
       final result = await ApiService.post('/ai/optimize-profile', body: {
         'profileData': profileData,
         'targetRole': targetRole,
         'targetSkills': targetSkills ?? [],
-      });
+      }, authToken: authToken);
       
       if (result['success'] == true) {
         final optimizationData = result['data'] ?? {};
@@ -235,12 +195,13 @@ class AIWorkflows {
     try {
       debugPrint('[AIWorkflows] Analyzing job description');
       
+      final authToken = await SessionService.getAuthToken();
       // Call AI service for job analysis
       final result = await ApiService.post('/ai/analyze-job', body: {
         'jobDescription': jobDescription,
         'jobTitle': jobTitle,
         'jobCategory': jobCategory,
-      });
+      }, authToken: authToken);
       
       if (result['success'] == true) {
         final analysisData = result['data'] ?? {};
@@ -292,12 +253,13 @@ class AIWorkflows {
     try {
       debugPrint('[AIWorkflows] Assessing skills');
       
+      final authToken = await SessionService.getAuthToken();
       // Call AI service for skill assessment
       final result = await ApiService.post('/ai/assess-skills', body: {
         'profileData': profileData,
         'experienceData': experienceData,
         'targetSkills': targetSkills,
-      });
+      }, authToken: authToken);
       
       if (result['success'] == true) {
         final assessmentData = result['data'] ?? {};
@@ -344,13 +306,14 @@ class AIWorkflows {
     try {
       debugPrint('[AIWorkflows] Getting career recommendations');
       
+      final authToken = await SessionService.getAuthToken();
       // Call AI service for career recommendations
       final result = await ApiService.post('/ai/career-recommendations', body: {
         'profileData': profileData,
         'interests': interests,
         'currentSkills': currentSkills,
         'currentRole': currentRole,
-      });
+      }, authToken: authToken);
       
       if (result['success'] == true) {
         final recommendationsData = result['data'] ?? {};

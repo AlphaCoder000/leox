@@ -232,14 +232,14 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        Colors.white.withValues(alpha: 0.9),
-                                        Colors.white.withValues(alpha: 0.7),
+                                        Colors.white.withOpacity(0.9),
+                                        Colors.white.withOpacity(0.7),
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(30),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.white.withValues(alpha: 0.3),
+                                        color: Colors.white.withOpacity(0.3),
                                         blurRadius: 30,
                                         spreadRadius: 10,
                                       ),
@@ -270,7 +270,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                               child: Column(
                                 children: [
                                   Text(
-                                    'LeoRecruit',
+                                    'LeoOpus',
                                     style: TextStyle(
                                       fontSize: 28.sp,
                                       fontWeight: FontWeight.bold,
@@ -291,7 +291,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                     style: TextStyle(
                                       fontSize: 14.sp,
                                       fontWeight: FontWeight.w300,
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color: Colors.white.withOpacity(0.8),
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -333,7 +333,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                                 shape: BoxShape.circle,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.white.withValues(alpha: 0.5),
+                                                    color: Colors.white.withOpacity(0.5),
                                                     blurRadius: 4,
                                                   ),
                                                 ],
@@ -350,7 +350,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   'Loading amazing experience...',
                                   style: TextStyle(
                                     fontSize: 11.sp,
-                                    color: Colors.white.withValues(alpha: 0.7),
+                                    color: Colors.white.withOpacity(0.7),
                                     fontWeight: FontWeight.w300,
                                   ),
                                 ),
@@ -392,7 +392,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: Colors.white.withOpacity(0.3),
                       blurRadius: 10,
                     ),
                   ],

@@ -64,7 +64,7 @@ class JobPostingModel {
       department: data['department'] ?? '',
       category: data['category'] ?? '',
       description: data['description'] ?? '',
-      employerId: data['employerId'] ?? '',
+      employerId: data['employerId'] ?? data['postedBy'] ?? '',
       companyName: data['companyName'] ?? '',
       location: data['location'] ?? '',
       jobType: data['jobType'] ?? '',

@@ -9,8 +9,8 @@ class EmployerAuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    // Updated to match google-services.json Web Client ID
-    clientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com', 
+    serverClientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com',
+    clientId: '340682426505-a78q5kk98ird4kh2emig2327aonakmbl.apps.googleusercontent.com', // Added Android-specific client ID
     scopes: ['email', 'profile'],
   );
 
@@ -35,45 +35,61 @@ class EmployerAuthProvider extends ChangeNotifier {
   String? _userEmail;
   String? get userEmail => _userEmail;
 
-  // ======== CONSTRUCTOR ========
   EmployerAuthProvider() {
     _initializeAuthState();
-    _initializeFromSession();
   }
 
   /// Initialize Firebase Auth state listener
-  void _initializeAuthState() {
-    _auth.authStateChanges().listen((User? user) async {
-      debugPrint('[EmployerAuthProvider] Auth state changed: ${user?.uid}');
-      _firebaseUser = user;
+void _initializeAuthState() {
+  _auth.authStateChanges().listen((User? user) async {
+    debugPrint('[EmployerAuthProvider] Auth state changed: ${user?.uid}');
+    _firebaseUser = user;
 
-      if (user != null) {
-        // Quick login without Firestore check for better performance
-        _setLoggedIn(true);
-        _userId = user.uid;
-        _userEmail = user.email;
-        
-        // Background role check (non-blocking)
-        _firestore.collection('users').doc(user.uid).get().then((userDoc) {
-          if (userDoc.exists) {
-            final role = userDoc.data()?['role'];
-            if (role != 'employer') {
-              _setLoggedIn(false);
-              debugPrint('[EmployerAuthProvider] User role mismatch: $role, logging out');
-            }
-          } else {
-            _setLoggedIn(false);
-            debugPrint('[EmployerAuthProvider] User document not found, logging out');
-          }
-        });
-      } else {
-        _setLoggedIn(false);
-        _userId = null;
-        _userEmail = null;
+    if (user != null) {
+      // Quick login without Firestore check for better performance
+      _setLoggedIn(true);
+      _userId = user.uid;
+      _userEmail = user.email;
+      
+      // Background role check (non-blocking) - verifies if user is an employer
+      // Using retry logic to handle potential race condition during registration
+      _checkRoleWithRetry(user.uid);
+    } else {
+      _setLoggedIn(false);
+      _userId = null;
+      _userEmail = null;
+    }
+    notifyListeners();
+  });
+}
+
+Future<void> _checkRoleWithRetry(String uid) async {
+  for (int i = 0; i < 3; i++) {
+    try {
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        final role = userDoc.data()?['role'];
+        if (role != 'employer') {
+          _setLoggedIn(false);
+          debugPrint('[EmployerAuthProvider] User role is $role (not employer). Internal state updated.');
+        } else {
+          _setLoggedIn(true); // Re-confirm
+          debugPrint('[EmployerAuthProvider] User role confirmed: employer.');
+        }
+        return; // Success
       }
-      notifyListeners();
-    });
+      
+      debugPrint('[EmployerAuthProvider] User document not found, retry ${i + 1}/3...');
+      await Future.delayed(const Duration(seconds: 1));
+    } catch (e) {
+      debugPrint('[EmployerAuthProvider] Error checking role: $e');
+    }
   }
+  
+  // After all retries
+  _setLoggedIn(false);
+  debugPrint('[EmployerAuthProvider] User document not found after retries. Internal state updated.');
+}
 
   // ======== PRIVATE METHODS ========
   void _setLoading(bool value) {
@@ -102,8 +118,71 @@ class EmployerAuthProvider extends ChangeNotifier {
 
   /// Login with Google Sign-In
   Future<void> signInWithGoogle() async {
-    // TODO: Implement Google Sign-In logic
-    debugPrint('[EmployerAuthProvider] Google Sign-In not implemented yet');
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      // Ensure Google Sign In is signed out first to force account picker
+      await _googleSignIn.signOut();
+      
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        _setLoading(false);
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user != null) {
+        // Verify role or create profile if missing
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        
+        if (userDoc.exists) {
+          final data = userDoc.data();
+          if (data != null && data['role'] != 'employer') {
+            await _auth.signOut();
+            _setError('This account is registered as an ${data['role']}, not an employer.');
+            return;
+          }
+        } else {
+          // New Google account - default to employer if signed in from this view
+          await _createEmployerProfile(user);
+          debugPrint('[EmployerAuthProvider] Created new employer profile for Google user');
+        }
+
+        final idToken = await user.getIdToken();
+        await SessionService.saveSession(
+          role: "employer",
+          userId: user.uid,
+          email: user.email ?? "",
+          authToken: idToken ?? "",
+        );
+
+        // Manually update state for immediate UI reaction
+        _firebaseUser = user;
+        _userId = user.uid;
+        _userEmail = user.email;
+        _isLoggedIn = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      _setError("Google Sign-In failed: $e");
+      debugPrint('[EmployerAuthProvider] Google Sign-In error: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Sign up with Google (for registration)
+  Future<void> signUpWithGoogle() async {
+    await signInWithGoogle();
   }
 
   /// Register with Firebase Auth
@@ -219,6 +298,13 @@ class EmployerAuthProvider extends ChangeNotifier {
           email: user.email ?? "",
           authToken: await user.getIdToken() ?? "",
         );
+
+        // Manually update internal state for immediate navigation
+        _firebaseUser = user;
+        _userId = user.uid;
+        _userEmail = user.email;
+        _isLoggedIn = true;
+        notifyListeners();
       }
 
       // Auth state listener will automatically update state
@@ -256,23 +342,7 @@ class EmployerAuthProvider extends ChangeNotifier {
   // Create employer profile in Firestore
   Future<void> _createEmployerProfile(User user) async {
     try {
-      final employerProfile = {
-        'uid': user.uid,
-        'email': user.email,
-        'role': 'employer',
-        'isVerified': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'searchTerms': [user.email?.toLowerCase() ?? ''],
-      };
-
-      // Create employer profile in employers collection
-      await _firestore
-          .collection('employers')
-          .doc(user.uid)
-          .set(employerProfile);
-
-      // Also create user document for Firebase rules
+      // 1. Create user document for role check (First! to avoid race condition)
       final userDoc = {
         'id': user.uid,
         'email': user.email,
@@ -286,6 +356,22 @@ class EmployerAuthProvider extends ChangeNotifier {
           .doc(user.uid)
           .set(userDoc);
 
+      // 2. Create or update detailed employer profile
+      final employerProfile = {
+        'uid': user.uid,
+        'email': user.email,
+        'role': 'employer',
+        'isVerified': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'searchTerms': [user.email?.toLowerCase() ?? ''],
+      };
+
+      await _firestore
+          .collection('employers')
+          .doc(user.uid)
+          .set(employerProfile, SetOptions(merge: true));
+
       debugPrint(
         '[EmployerAuthProvider] Employer profile created in Firestore',
       );
@@ -297,30 +383,30 @@ class EmployerAuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Logout employer user
-  ///
-  /// Clears Firebase Auth, session and local state
   Future<void> logout() async {
     try {
-      // 1️⃣ Clear session first
+      _setLoading(true);
+      
+      // 1. Clear session
       await SessionService.clearAuth();
 
-      // 2️⃣ Sign out from Firebase
-      await _googleSignIn.signOut();
+      // 2. Safe Sign out from Google and Firebase
+      try {
+        if (await _googleSignIn.isSignedIn()) {
+          await _googleSignIn.signOut();
+        }
+      } catch (e) {
+        debugPrint('[EmployerAuthProvider] Google Sign-Out error: $e');
+      }
+
       await _auth.signOut();
+      debugPrint('[EmployerAuthProvider] Logout initiated via FirebaseAuth.signOut()');
 
-      // 3️⃣ Force reset everything
-      _firebaseUser = null;
-      _isLoggedIn = false;
-      _userId = null;
-      _userEmail = null;
-      _errorMessage = null;
-
-      notifyListeners();
-
-      debugPrint('[EmployerAuthProvider] Logout completed and state reset');
+      // Note: State reset and notifyListeners() are handled by the authStateChanges() listener
     } catch (e) {
       debugPrint('[EmployerAuthProvider] Logout error: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -341,28 +427,5 @@ class EmployerAuthProvider extends ChangeNotifier {
     _setLoading(value);
   }
 
-  /// Initialize auth state from stored session
-  Future<void> _initializeFromSession() async {
-    try {
-      final isAuth = await SessionService.isAuthenticated();
-      final role = await SessionService.getRole();
-      final userId = await SessionService.getUserId();
-      final email = await SessionService.getUserEmail();
 
-      if (isAuth && role == 'employer' && userId != null && email != null) {
-        // Check if Firebase Auth user matches session
-        final currentUser = _auth.currentUser;
-        if (currentUser != null && currentUser.uid == userId) {
-          _setLoggedIn(true, userId: userId, email: email);
-          debugPrint('[EmployerAuthProvider] Session initialized: User logged in');
-        } else {
-          // Session exists but Firebase Auth doesn't match, clear session
-          await SessionService.clearAuth();
-          debugPrint('[EmployerAuthProvider] Session mismatch: Cleared invalid session');
-        }
-      }
-    } catch (e) {
-      debugPrint('[EmployerAuthProvider] Session initialization error: $e');
-    }
-  }
 }

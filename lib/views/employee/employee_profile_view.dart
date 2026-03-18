@@ -421,7 +421,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   "View and manage your personal information.",
                   style: TextStyle(
                     fontSize: 12.5.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                 ),
 
@@ -444,7 +444,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               CircleAvatar(
                                 radius: 36,
                                   backgroundColor:
-                                      colorScheme.primary.withValues(alpha: 0.15),
+                                      colorScheme.primary.withOpacity(0.15),
                                   backgroundImage:
                                       ((profile.profilePicture ?? '')
                                               .isNotEmpty)
@@ -556,7 +556,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               return Chip(
                                 label: Text(skill),
                                 backgroundColor: colorScheme.primary
-                                    .withValues(alpha: 0.1),
+                                    .withOpacity(0.1),
                                 onDeleted: () {
                                   profileProvider.removeSkill(skill);
                                 },
@@ -708,7 +708,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
               subtitle,
               style: TextStyle(
                 fontSize: 11.5.sp,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
               ),
             ),
             SizedBox(height: 2.h),
@@ -733,29 +733,79 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
   }
 
   static void _confirmDelete(BuildContext context) {
+    String confirmationText = '';
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
+      builder: (_) => StatefulBuilder(
+        builder: (dialogContext, setState) {
+          return AlertDialog(
             title: const Text("Delete Account"),
-            content: const Text(
-              "This action is irreversible. Are you sure you want to delete your account?",
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("This action cannot be undone. All your applications and data will be permanently deleted."),
+                SizedBox(height: 1.5.h),
+                const Text('Please type "delete" to confirm:'),
+                SizedBox(height: 1.h),
+                TextField(
+                  onChanged: (val) {
+                    setState(() {
+                      confirmationText = val;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    hintText: "delete",
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  ),
+                ),
+              ],
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text("Cancel"),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                onPressed: () {
-                  Navigator.pop(context);
-                  // TODO: call provider.deleteAccount()
-                },
+                onPressed: confirmationText.trim().toLowerCase() == 'delete'
+                    ? () async {
+                        Navigator.pop(dialogContext);
+                        
+                        // Show a loading dialog
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => const Center(child: CircularProgressIndicator()),
+                        );
+                        
+                        final provider = context.read<EmployeeProfileProvider>();
+                        bool success = await provider.deleteAccount();
+                        
+                        // Using a new context if needed or mounted check
+                        if (context.mounted) {
+                          Navigator.pop(context); // close loading
+                          if (success) {
+                            Navigator.of(context).pushNamedAndRemoveUntil('/role-option', (route) => false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Account deleted successfully')),
+                            );
+                          } else {
+                            ErrorHandlerUI.showErrorSnackbar(
+                              context,
+                              provider.errorMessage ?? 'Failed to delete account',
+                            );
+                          }
+                        }
+                      }
+                    : null,
                 child: const Text("Delete"),
               ),
             ],
-          ),
+          );
+        },
+      ),
     );
   }
 }

@@ -77,7 +77,7 @@ class EmployerJobsProvider extends ChangeNotifier {
     try {
       // For now, use a simple approach - in real implementation, you'd store job ID
       // This is a simplified version for demo purposes
-      await _firebaseService.deleteJob(job.postedOn.toString());
+      await _firebaseService.deleteJob(job.id);
       _jobs.remove(job);
       notifyListeners();
       debugPrint('[EmployerJobsProvider] Job deleted: ${job.title}');
@@ -99,7 +99,7 @@ class EmployerJobsProvider extends ChangeNotifier {
       await _firebaseService.updateJob(updatedJob);
 
       final index =
-          _jobs.indexWhere((job) => job.title == oldJob.title);
+          _jobs.indexWhere((job) => job.id == updatedJob.id);
 
       if (index != -1) {
         _jobs[index] = updatedJob;
@@ -112,14 +112,6 @@ class EmployerJobsProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
-  }
-
-  // ================= DUMMY =================
-
-  void loadDummyData() {
-    _jobs = [];
-    notifyListeners();
-    debugPrint('[EmployerJobsProvider] Dummy data cleared - using Firebase only');
   }
 
   // ================= HELPERS =================

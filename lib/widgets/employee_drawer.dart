@@ -5,11 +5,11 @@ import 'package:leox/views/employee/employee_ai_resume_matcher.dart';
 import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/employee/employee_jobs_list_view.dart';
 import 'package:leox/views/employee/employee_profile_view.dart';
-import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/common/notifications_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
-enum EmployeeDrawerItem { dashboard, jobs, aiMatcher, profile }
+enum EmployeeDrawerItem { dashboard, jobs, notifications, aiMatcher, profile }
 
 class EmployeeDrawer extends StatelessWidget {
   final EmployeeDrawerItem selectedItem;
@@ -24,6 +24,7 @@ class EmployeeDrawer extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
+      width: 70.w,
       backgroundColor: _drawerBg,
       surfaceTintColor: Colors.transparent,
       child: Column(
@@ -39,7 +40,7 @@ class EmployeeDrawer extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(2.5.w),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.15),
+                    color: colorScheme.primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -91,6 +92,17 @@ class EmployeeDrawer extends StatelessWidget {
 
                 _drawerItem(
                   context,
+                  icon: Icons.notifications_none_outlined,
+                  activeIcon: Icons.notifications,
+                  title: "Notifications",
+                  isSelected: selectedItem == EmployeeDrawerItem.notifications,
+                  onTap: () {
+                    _navigate(context, const NotificationsView());
+                  },
+                ),
+
+                _drawerItem(
+                  context,
                   icon: Icons.smart_toy_outlined,
                   activeIcon: Icons.smart_toy,
                   title: "AI Resume Matcher",
@@ -126,7 +138,7 @@ class EmployeeDrawer extends StatelessWidget {
               "v1.0.0",
               style: TextStyle(
                 fontSize: 10.sp,
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.white.withOpacity(0.45),
               ),
             ),
           ),
@@ -150,14 +162,14 @@ class EmployeeDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 0.6.h),
       child: Material(
         elevation: isSelected ? 6 : 0,
-        shadowColor: colorScheme.primary.withValues(alpha: 0.4),
+        shadowColor: colorScheme.primary.withOpacity(0.4),
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: colorScheme.primary.withValues(alpha: 0.15),
-          highlightColor: colorScheme.primary.withValues(alpha: 0.08),
+          splashColor: colorScheme.primary.withOpacity(0.15),
+          highlightColor: colorScheme.primary.withOpacity(0.08),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
             decoration: BoxDecoration(
@@ -169,7 +181,7 @@ class EmployeeDrawer extends StatelessWidget {
                 Icon(
                   isSelected ? activeIcon : icon,
                   size: 18.sp,
-                  color: Colors.white.withValues(alpha: 0.65),
+                  color: Colors.white.withOpacity(0.65),
                 ),
                 SizedBox(width: 4.w),
                 Text(
@@ -180,7 +192,7 @@ class EmployeeDrawer extends StatelessWidget {
                     color:
                         isSelected
                             ? Colors.white
-                            : Colors.white.withValues(alpha: 0.85),
+                            : Colors.white.withOpacity(0.85),
                   ),
                 ),
               ],
@@ -220,55 +232,88 @@ class EmployeeDrawer extends StatelessWidget {
   }
 
   // ================= LOGOUT DIALOG =================
-void _confirmLogout(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text("Logout"),
-      content: const Text("Are you sure you want to logout?"),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: _drawerBg,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: _divider),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent,
+        title: Row(
+          children: [
+            const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            SizedBox(width: 3.w),
+            Text(
+              "Logout",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          "Are you sure you want to sign out of your employee account? You'll need to login again to see your applications and saved jobs.",
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12.sp,
           ),
-          onPressed: () async {
-            // 1️⃣ Close dialog
-            Navigator.pop(context);
-
-            // 2️⃣ Close drawer
-            Navigator.of(context).pop();
-
-            // 3️⃣ Small delay
-            await Future.delayed(const Duration(milliseconds: 200));
-
-            // 4️⃣ Perform logout directly (no double confirmation)
-            if (!context.mounted) return;
-            await context.read<EmployeeAuthProvider>().logout();
-            
-            // 5️⃣ Reset profile provider
-            if (!context.mounted) return;
-            context.read<EmployeeProfileProvider>().reset();
-            
-            // 6️⃣ Navigate to role selection
-            if (!context.mounted) return;
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const RoleOptionView()),
-              (route) => false,
-            );
-          },
-          child: const Text("Logout"),
         ),
-      ],
-    ),
-  );
-}
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 11.sp,
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 2.w),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ),
+              onPressed: () async {
+                // 1. Close dialog using its builder context
+                Navigator.of(dialogContext).pop();
+                
+                // 2. Perform logout and reset profile
+                final auth = context.read<EmployeeAuthProvider>();
+                final profile = context.read<EmployeeProfileProvider>();
+                
+                await auth.logout();
+                profile.reset();
+              },
+              child: Text(
+                "Yes, Logout",
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-void _navigate(BuildContext context, Widget page) {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+  void _navigate(BuildContext context, Widget page) {
+    Navigator.of(context).pop(); // Close drawer first
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 }

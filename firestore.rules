@@ -37,6 +37,14 @@ service cloud.firestore {
       allow get: if isAuthenticated();
       allow list: if isAuthenticated(); // Allow listing employers
       allow create, update, delete: if isOwner(userId);
+      
+      // Subcollection for applications
+      match /applications/{docId} {
+        // Employers manage their own list
+        allow read, update, delete: if isOwner(userId);
+        // Authenticated employees can submit applications
+        allow create: if isAuthenticated();
+      }
     }
 
     // --- EMPLOYEES COLLECTION ---
@@ -44,6 +52,11 @@ service cloud.firestore {
       allow get: if isAuthenticated();
       allow list: if isEmployer(); // Only employers can list candidates
       allow create, update, delete: if isOwner(userId);
+      
+      // Subcollection for applications
+      match /applications/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // --- JOBS COLLECTION ---
@@ -63,23 +76,28 @@ service cloud.firestore {
       );
     }
 
-    // --- APPLICATIONS COLLECTION ---
-    match /applications/{applicationId} {
-      // Employees can read their own applications
-      // Employers can read applications for their jobs (this is hard to enforce purely in rules efficiently without denormalization)
-      // For now, we allow reading if involved
-      allow read: if isAuthenticated() && (
-        resource.data.employeeId == request.auth.uid ||
-        // Employers would need to query by jobId, so we allow if they are authenticated 
-        // A stricter rule would require checking the job's owner, but that requires a get() which costs money.
-        // Simplified:
-        isAuthenticated() 
-      );
-      
-      allow create: if isAuthenticated(); // Employees apply
-      allow update: if isAuthenticated(); // Employers update status
+    // --- APPLICATIONS COLLECTION (Global Access for Employees/Employers) ---
+    match /applications/{allPaths=**} {
+      allow read, write: if isAuthenticated();
     }
     
+    // --- CANDIDATES COLLECTION (Global Access for Employees/Employers) ---
+    match /candidates/{allPaths=**} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // --- NOTIFICATIONS COLLECTION ---
+    match /notifications/{notificationId} {
+      // Allows users to view notifications (Query should filter by userId)
+      allow read: if isAuthenticated();
+      
+      // Allow any authenticated user to create a notification
+      allow create: if isAuthenticated();
+      
+      // Users can only update (mark as read) or delete their own notifications
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
     // --- STORAGE RULES (If applicable here, though this is firestore.rules) ---
     // Note: Storage rules are separate.
   }
