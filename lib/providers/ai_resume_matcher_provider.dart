@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import '../backend/ai_workflows.dart';
 import '../services/storage_service.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
-
 class AIResumeMatcherProvider extends ChangeNotifier {
   final AIWorkflows _aiWorkflows = AIWorkflows();
 
