@@ -173,11 +173,11 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             children: [
               Text(
                 "Optimize Your Fit",
-                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               Text(
                 "Let AI review your resume against any role",
-                style: TextStyle(fontSize: 11.sp, color: Colors.white54),
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold,, color: Colors.white54),
               ),
             ],
           ),
@@ -203,7 +203,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             children: [
               const Icon(Icons.edit_note_rounded, color: Colors.indigoAccent),
               SizedBox(width: 2.w),
-              Text("Analysis Scope", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text("Analysis Scope", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, color: Colors.white)),
             ],
           ),
           SizedBox(height: 3.h),
@@ -300,7 +300,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
           border: Border.all(color: Colors.white.withOpacity(0.05)),
         ),
         child: Center(
-          child: Text("AI results will appear here", style: TextStyle(color: Colors.white24, fontSize: 11.sp)),
+          child: Text("AI results will appear here", style: TextStyle(color: Colors.white24, fontSize: 13.sp, fontWeight: FontWeight.bold,)),
         ),
       );
     }
@@ -322,7 +322,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Match report", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text("Match report", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, color: Colors.white)),
               _buildGradeBadge(provider.getScoreGrade(overallScore), scoreColor),
             ],
           ),
@@ -366,7 +366,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
               color: color,
             ),
           ),
-          Text("${score.toInt()}%", style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text("${score.toInt()}%", style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, color: Colors.white)),
         ],
       ),
     );
@@ -397,7 +397,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(color: color, fontSize: 10.sp, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        Text(title, style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, letterSpacing: 1)),
         SizedBox(height: 1.5.h),
         ...list.map((item) => Padding(
           padding: EdgeInsets.only(bottom: 0.8.h),
@@ -457,7 +457,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
                   backgroundColor: const Color(0xFF1E293B),
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : Colors.white60,
-                    fontSize: 9.sp,
+                    fontSize: 11.sp, fontWeight: FontWeight.bold,,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   onSelected: (selected) {
@@ -488,9 +488,9 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
   }
 
   Widget _buildLabel(BuildContext context, String text) {
-    return Text(text.toUpperCase(), style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.bold, color: Colors.white24, letterSpacing: 1.2));
+    return Text(text.toUpperCase(), style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, color: Colors.white24, letterSpacing: 1.2));
   }
 
-  TextStyle get _sectionTitleStyle => TextStyle(fontSize: 10.sp, fontWeight: FontWeight.bold, color: Colors.white38, letterSpacing: 1);
+  TextStyle get _sectionTitleStyle => TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold, color: Colors.white38, letterSpacing: 1);
 }
 

@@ -112,7 +112,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                     Text(
                       "Employee Registration",
                       style: TextStyle(
-                        fontSize: 21.sp, // Updated from 20.0 to 21.sp
+                        fontSize: 23.sp, fontWeight: FontWeight.bold,, // Updated from 20.0 to 21.sp
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -125,7 +125,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                 Text(
                   "Create an account to search for job opportunities.",
                   style: TextStyle(
-                    fontSize: 15.sp, // Updated from 14.0 to 15.sp
+                    fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.0 to 15.sp
                     color: isDark ? Colors.grey[400] : Colors.black54,
                   ),
                 ),
@@ -345,7 +345,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                       child: Text(
                         "OR CONTINUE WITH",
                         style: TextStyle(
-                          fontSize: 13.sp, // Updated from 12.0 to 13.sp
+                          fontSize: 15.sp, fontWeight: FontWeight.bold,, // Updated from 12.0 to 13.sp
                           color: isDark ? Colors.grey[500] : Colors.black54,
                         ),
                       ),
@@ -403,7 +403,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                       Text(
                         "Already have an account?",
                         style: TextStyle(
-                          fontSize: 15.sp, // Updated from 14.0 to 15.sp
+                          fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.0 to 15.sp
                           color: isDark ? Colors.grey[400] : Colors.black54,
                         ),
                       ),
@@ -461,7 +461,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 15.sp, // Fixed from 15.sp to 15.sp
+              fontSize: 17.sp, fontWeight: FontWeight.bold,, // Fixed from 15.sp to 15.sp
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: theme.colorScheme.onSurface,
             ),
@@ -513,7 +513,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 15.sp, // Fixed from 15.sp to 15.sp
+        fontSize: 17.sp, fontWeight: FontWeight.bold,, // Fixed from 15.sp to 15.sp
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),

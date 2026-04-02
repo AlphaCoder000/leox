@@ -42,13 +42,13 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
           children: [
             Text(
               "Job Listings",
-              style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 21.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 0.6.h),
             Text(
               "Browse and apply for jobs.",
               style: TextStyle(
-                fontSize: 14.sp, // Updated from 12.5.sp to 14.sp
+                fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 12.5.sp to 14.sp
                 color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),

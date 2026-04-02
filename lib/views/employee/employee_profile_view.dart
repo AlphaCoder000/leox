@@ -119,7 +119,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   Text(
                     "Edit Profile",
                     style: TextStyle(
-                      fontSize: 21.sp, // Updated from 16.sp to 21.sp
+                      fontSize: 23.sp, fontWeight: FontWeight.bold,, // Updated from 16.sp to 21.sp
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -413,7 +413,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                 Text(
                   "My Profile",
                   style: TextStyle(
-                    fontSize: 19.sp, // Updated from 18.sp to 19.sp
+                    fontSize: 21.sp, fontWeight: FontWeight.bold,, // Updated from 18.sp to 19.sp
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -421,7 +421,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                 Text(
                   "View and manage your personal information.",
                   style: TextStyle(
-                    fontSize: 14.sp, // Updated from 12.5.sp to 14.sp
+                    fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 12.5.sp to 14.sp
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                 ),
@@ -459,7 +459,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                                     .toUpperCase()
                                                 : "?",
                                             style: TextStyle(
-                                              fontSize: 22.sp, // Updated from 22.sp to 22.sp (already correct)
+                                              fontSize: 24.sp, fontWeight: FontWeight.bold,, // Updated from 22.sp to 22.sp (already correct)
                                               fontWeight: FontWeight.bold,
                                               color: colorScheme.primary,
                                             ),
@@ -486,7 +486,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                         Text(
                           "${profile.firstName} ${profile.lastName}",
                           style: TextStyle(
-                            fontSize: 15.sp, // Updated from 14.sp to 15.sp
+                            fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.sp to 15.sp
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -496,7 +496,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                             child: Text(
                               profile.headline ?? '',
                               style: TextStyle(
-                                fontSize: 13.sp, // Updated from 11.sp to 13.sp
+                                fontSize: 15.sp, fontWeight: FontWeight.bold,, // Updated from 11.sp to 13.sp
                                 color: colorScheme.primary,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -546,7 +546,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                     if (profile.skills.isEmpty)
                       Text(
                         "No skills added yet. Click edit to add some.",
-                        style: TextStyle(fontSize: 14.sp),
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,),
                       )
                     else
                       Wrap(
@@ -584,7 +584,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               child: Text(
                                 "Resume uploaded",
                                 style: TextStyle(
-                                  fontSize: 14.sp, // Updated from 12.sp to 14.sp
+                                  fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 12.sp to 14.sp
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -640,7 +640,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                       Text(
                         "Danger Zone",
                         style: TextStyle(
-                          fontSize: 16.sp, // Updated from 15.sp to 16.sp
+                          fontSize: 18.sp, fontWeight: FontWeight.bold,, // Updated from 15.sp to 16.sp
                           fontWeight: FontWeight.bold,
                           color: Colors.red,
                         ),
@@ -649,7 +649,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                       Text(
                         "Permanently delete your account and all associated data.",
                         style: TextStyle(
-                          fontSize: 13.sp, // Updated from 11.5.sp to 13.sp
+                          fontSize: 15.sp, fontWeight: FontWeight.bold,, // Updated from 11.5.sp to 13.sp
                           color: Colors.red.shade700,
                         ),
                       ),
@@ -706,7 +706,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15.sp, // Updated from 14.sp to 15.sp
+                      fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.sp to 15.sp
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -722,7 +722,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 14.sp, // Updated from 11.5.sp to 14.sp
+                fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 11.5.sp to 14.sp
                 color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
               ),
             ),
@@ -741,7 +741,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
         children: [
           Icon(icon, size: 18, color: Colors.grey),
           SizedBox(width: 3.w),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 14.sp))),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,))),
         ],
       ),
     );
