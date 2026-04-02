@@ -26,8 +26,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
             Text(
               job.title,
               style: TextStyle(
-                fontSize: 20.sp, fontWeight: FontWeight.bold,,
-                fontWeight: FontWeight.bold,
+                fontSize: 20.sp, fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
             ),
@@ -35,7 +34,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
             Text(
               job.companyName,
               style: TextStyle(
-                fontSize: 14.sp, fontWeight: FontWeight.bold,,
+                fontSize: 14.sp, fontWeight: FontWeight.bold,
                 color: theme.textTheme.bodyMedium?.color?.withValues(
                   alpha: 0.7,
                 ),
@@ -50,7 +49,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
               title: "Job Description",
               child: Text(
                 job.description,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,, height: 1.5),
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, height: 1.5),
               ),
             ),
 
@@ -163,8 +162,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
                 child: Text(
                   "Apply Now",
                   style: TextStyle(
-                    fontSize: 15.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 15.sp, fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -199,7 +197,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 1.5.h),
             child,
@@ -226,8 +224,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 14.sp, fontWeight: FontWeight.bold,,
-              fontWeight: FontWeight.w600,
+              fontSize: 14.sp, fontWeight: FontWeight.w600,
               color: valueColor ?? Theme.of(context).colorScheme.onSurface,
             ),
           ),

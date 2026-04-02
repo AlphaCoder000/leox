@@ -212,15 +212,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                 Text(
                   "Dashboard",
                   style: TextStyle(
-                    fontSize: 22.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 22.sp, fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 0.8.h),
                 Text(
                   "Your personal application overview.",
                   style: TextStyle(
-                    fontSize: 17.sp, fontWeight: FontWeight.bold,,
+                    fontSize: 17.sp, fontWeight: FontWeight.bold,
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.51),
                     fontWeight: FontWeight.w600,
                   ),
@@ -272,15 +271,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                             Text(
                               "Profile Completion",
                               style: TextStyle(
-                                fontSize: 20.sp, fontWeight: FontWeight.bold,,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 20.sp, fontWeight: FontWeight.w600,
                               ),
                             ),
                             Text(
                               "${dashboard.profileCompletionPercentage.toStringAsFixed(0)}%",
                               style: TextStyle(
-                                fontSize: 19.sp, fontWeight: FontWeight.bold,,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 19.sp, fontWeight: FontWeight.w600,
                                 color: colorScheme.primary,
                               ),
                             ),
@@ -307,7 +304,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                               ? "Great! Your profile looks complete."
                               : "Complete your profile to improve visibility.",
                           style: TextStyle(
-                            fontSize: 16.sp, fontWeight: FontWeight.bold,,
+                            fontSize: 16.sp, fontWeight: FontWeight.bold,
                             color: theme.textTheme.bodySmall?.color
                                 ?.withOpacity(0.7),
                           ),
@@ -334,15 +331,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                         Text(
                           "Recent Applications",
                           style: TextStyle(
-                            fontSize: 20.sp, fontWeight: FontWeight.bold,,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 20.sp, fontWeight: FontWeight.w600,
                           ),
                         ),
                         SizedBox(height: 0.8.h),
                         Text(
                           "Your latest job applications",
                           style: TextStyle(
-                            fontSize: 16.sp, fontWeight: FontWeight.bold,,
+                            fontSize: 16.sp, fontWeight: FontWeight.bold,
                             color: theme.textTheme.bodySmall?.color
                                 ?.withOpacity(0.7),
                           ),
@@ -368,7 +364,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                 Text(
                                   "Start applying to jobs to see them here.",
                                   style: TextStyle(
-                                    fontSize: 13.sp, fontWeight: FontWeight.bold,,
+                                    fontSize: 13.sp, fontWeight: FontWeight.bold,
                                     color: Colors.grey,
                                   ),
                                 ),
@@ -433,8 +429,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: TextStyle(
-                                                      fontSize: 19.sp, fontWeight: FontWeight.bold,,
-                                                      fontWeight:
+                                                      fontSize: 19.sp, fontWeight:
                                                           FontWeight.w600,
                                                     ),
                                                   ),
@@ -442,7 +437,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                                   Text(
                                                     app.companyName,
                                                     style: TextStyle(
-                                                      fontSize: 17.sp, fontWeight: FontWeight.bold,,
+                                                      fontSize: 17.sp, fontWeight: FontWeight.bold,
                                                       color:
                                                           colorScheme.primary,
                                                     ),
@@ -465,8 +460,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                               child: Text(
                                                 app.statusLabel(),
                                                 style: TextStyle(
-                                                  fontSize: 15.sp, fontWeight: FontWeight.bold,,
-                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 15.sp, fontWeight: FontWeight.w600,
                                                   color: app.statusColor(),
                                                 ),
                                               ),
@@ -477,7 +471,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                         Text(
                                           app.statusWithDays(),
                                           style: TextStyle(
-                                            fontSize: 16.sp, fontWeight: FontWeight.bold,,
+                                            fontSize: 16.sp, fontWeight: FontWeight.bold,
                                             color: theme
                                                 .textTheme
                                                 .bodySmall
@@ -526,8 +520,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   "Logout",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18.sp, fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -536,7 +529,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
               "Are you sure you want to sign out of your employee account?",
               style: TextStyle(
                 color: Colors.white.withOpacity(0.7),
-                fontSize: 14.sp, fontWeight: FontWeight.bold,,
+                fontSize: 14.sp, fontWeight: FontWeight.bold,
               ),
             ),
             actions: [
@@ -546,7 +539,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   "Cancel",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
-                    fontSize: 13.sp, fontWeight: FontWeight.bold,,
+                    fontSize: 13.sp, fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -581,8 +574,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   child: Text(
                     "Yes, Logout",
                     style: TextStyle(
-                      fontSize: 13.sp, fontWeight: FontWeight.bold,,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13.sp, fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),

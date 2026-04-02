@@ -97,7 +97,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                     Text(
                       "Employee Login",
                       style: TextStyle(
-                        fontSize: 23.sp, fontWeight: FontWeight.bold,, // Updated from 20.0 to 21.sp
+                        fontSize: 23.sp, fontWeight: FontWeight.bold, // Updated from 20.0 to 21.sp
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -108,7 +108,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                 Text(
                   "Sign in to apply for jobs.",
                   style: TextStyle(
-                    fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.0 to 15.sp
+                    fontSize: 17.sp, fontWeight: FontWeight.bold, // Updated from 14.0 to 15.sp
                     color: isDark ? Colors.grey[400] : Colors.black54,
                   ),
                 ),
@@ -355,7 +355,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                       Text(
                         "Don't have an account?",
                         style: TextStyle(
-                          fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.0 to 15.sp
+                          fontSize: 17.sp, fontWeight: FontWeight.bold, // Updated from 14.0 to 15.sp
                           color: isDark ? Colors.grey[400] : Colors.black54,
                         ),
                       ),
@@ -416,7 +416,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 17.sp, fontWeight: FontWeight.bold,, 
+              fontSize: 17.sp, fontWeight: FontWeight.bold, 
               fontWeight: selected
                   ? FontWeight.w600
                   : FontWeight.w500,
@@ -432,8 +432,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 17.sp, fontWeight: FontWeight.bold,, 
-        fontWeight: FontWeight.w600,
+        fontSize: 17.sp, fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),
     );

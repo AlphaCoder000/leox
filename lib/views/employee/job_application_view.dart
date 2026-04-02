@@ -191,8 +191,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             Text(
               'Job Details',
               style: TextStyle(
-                fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                fontWeight: FontWeight.bold,
+                fontSize: 18.sp, fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
               ),
             ),
@@ -208,12 +207,12 @@ class _JobApplicationViewState extends State<JobApplicationView> {
               SizedBox(height: 1.h),
               Text(
                 'Description',
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 0.5.h),
               Text(
                 widget.job.description,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
               ),
             ],
           ],
@@ -232,7 +231,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             width: 25.w,
             child: Text(
               '$label:',
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(child: Text(value, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,))),
@@ -258,8 +257,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                 Text(
                   'Cover Letter',
                   style: TextStyle(
-                    fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18.sp, fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
                   ),
                 ),
@@ -276,7 +274,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                   child: Text(
                     'Required',
                     style: TextStyle(
-                      fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                      fontSize: 12.sp, fontWeight: FontWeight.bold,
                       color: Colors.red,
                       fontWeight: FontWeight.w600,
                     ),
@@ -287,7 +285,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             SizedBox(height: 1.h),
             Text(
               'Tell the employer why you\'re perfect for this role',
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
             ),
             SizedBox(height: 1.h),
             TextField(
@@ -325,8 +323,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                 Text(
                   'Resume',
                   style: TextStyle(
-                    fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18.sp, fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
                   ),
                 ),
@@ -343,7 +340,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                   child: Text(
                     'Recommended',
                     style: TextStyle(
-                      fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                      fontSize: 12.sp, fontWeight: FontWeight.bold,
                       color: Colors.green,
                       fontWeight: FontWeight.w600,
                     ),
@@ -354,7 +351,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             SizedBox(height: 1.h),
             Text(
               'Upload your resume to increase your chances of getting hired',
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
             ),
             SizedBox(height: 1.5.h),
 
@@ -381,8 +378,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     Text(
                       _selectedResume!.name,
                       style: TextStyle(
-                        fontSize: 16.sp, fontWeight: FontWeight.bold,,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp, fontWeight: FontWeight.w600,
                         color: colorScheme.primary,
                       ),
                       textAlign: TextAlign.center,
@@ -445,7 +441,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     Text(
                       'Click to upload your resume',
                       style: TextStyle(
-                        fontSize: 16.sp, fontWeight: FontWeight.bold,,
+                        fontSize: 16.sp, fontWeight: FontWeight.bold,
                         color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
@@ -454,7 +450,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     Text(
                       'PDF, DOC, DOCX (Max 5MB)',
                       style: TextStyle(
-                        fontSize: 13.sp, fontWeight: FontWeight.bold,,
+                        fontSize: 13.sp, fontWeight: FontWeight.bold,
                         color: Colors.grey[500],
                       ),
                     ),
@@ -499,8 +495,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                 Text(
                   'Additional Information',
                   style: TextStyle(
-                    fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18.sp, fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
                   ),
                 ),
@@ -517,7 +512,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                   child: Text(
                     'Helps employers know you better',
                     style: TextStyle(
-                      fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                      fontSize: 12.sp, fontWeight: FontWeight.bold,
                       color: Colors.blue,
                       fontWeight: FontWeight.w600,
                     ),
@@ -530,7 +525,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             // Experience Level
             Text(
               'Experience Level',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.5.h),
             Container(
@@ -572,7 +567,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             // Expected Salary
             Text(
               'Expected Salary (Optional)',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.5.h),
             TextField(
@@ -596,7 +591,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             // Availability
             Text(
               'Availability',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.5.h),
             TextField(
@@ -621,7 +616,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             // LinkedIn
             Text(
               'LinkedIn Profile (Optional)',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.5.h),
             TextField(
@@ -645,7 +640,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
             // Portfolio
             Text(
               'Portfolio / Other Link (Optional)',
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.5.h),
             TextField(
@@ -761,8 +756,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                                 Text(
                                   'Submit Application',
                                   style: TextStyle(
-                                    fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18.sp, fontWeight: FontWeight.w600,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
