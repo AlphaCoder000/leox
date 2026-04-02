@@ -9,6 +9,7 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -17,10 +18,12 @@ import '../models/job_application_model.dart';
 import '../models/job_posting_model.dart';
 import '../models/candidate_model.dart';
 import '../models/employee_profile_model.dart';
-import 'profile_service.dart';
-import 'storage_service.dart';
+import '../services/profile_service.dart';
+import '../services/storage_service.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../services/notification_service.dart';
+import '../backend/ai_workflows.dart';
 
 class JobApplicationService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -128,7 +131,69 @@ class JobApplicationService {
         resumeUrl = employeeProfile.resumeUrl;
         resumeName = employeeProfile.resumeName.isNotEmpty ? employeeProfile.resumeName : 'resume.pdf';
       }
-      
+
+      // Calculate AI Match Score before saving
+      double aiMatchScore = 0.0;
+      String aiMatchReasoning = 'AI analysis not performed.';
+      try {
+        debugPrint('[JobApplicationService] Analyzing AI match score...');
+        final aiWorkflows = AIWorkflows();
+        
+        String employeeText = '';
+        
+        // Extract PDF text if a new resume was uploaded or if an existing profile resume is bound
+        String extractedResumeText = '';
+        List<int>? bytes;
+
+        try {
+          if (resumeFile != null && resumeName != null && resumeName.toLowerCase().endsWith('.pdf')) {
+            if (resumeFile is PlatformFile) {
+               bytes = resumeFile.bytes ?? await File(resumeFile.path!).readAsBytes();
+            } else if (resumeFile is XFile) {
+               bytes = await resumeFile.readAsBytes();
+            } else if (resumeFile is String) {
+               final file = File(resumeFile);
+               if (await file.exists()) bytes = await file.readAsBytes();
+            }
+          } else if (resumeUrl != null && resumeUrl.isNotEmpty) {
+             if (resumeName != null && resumeName.toLowerCase().endsWith('.pdf')) {
+                final ref = FirebaseStorage.instance.refFromURL(resumeUrl);
+                bytes = await ref.getData(10485760); // Max 10MB
+             }
+          }
+          
+          if (bytes != null) {
+            final PdfDocument document = PdfDocument(inputBytes: bytes);
+            extractedResumeText = PdfTextExtractor(document).extractText();
+            document.dispose();
+            debugPrint('[JobApplicationService] Extracted ${extractedResumeText.length} characters from resume PDF');
+          }
+        } catch (e) {
+          debugPrint('[JobApplicationService] Could not extract PDF text: $e');
+        }
+
+        if (extractedResumeText.trim().isNotEmpty) {
+           employeeText = 'RESUME CONTENT:\n$extractedResumeText';
+        } else {
+           employeeText = 'Resume content unavailable.';
+        }
+
+        final result = await aiWorkflows.matchResumeToJob(
+          resumeText: employeeText,
+          jobDescription: jobPosting.description,
+        );
+
+        if (result['success'] == true) {
+          aiMatchScore = (result['overallScore'] ?? 0.0).toDouble();
+          aiMatchReasoning = result['analysis'] ?? 'AI Match analysis successful';
+          debugPrint('[JobApplicationService] AI Match Score: $aiMatchScore');
+        } else {
+          debugPrint('[JobApplicationService] Failed to generate AI match score: ${result['error']}');
+        }
+      } catch (e) {
+        debugPrint('[JobApplicationService] Error calculating AI match: $e');
+      }
+
       // Create application document
       final application = JobApplicationModel(
         id: '', // Will be set by Firestore
@@ -153,6 +218,8 @@ class JobApplicationService {
         jobType: jobPosting.jobType,
         jobLocation: jobPosting.location,
         salary: jobPosting.salary,
+        matchScore: aiMatchScore,
+        matchReasoning: aiMatchReasoning,
         experience: experience,
         expectedSalary: expectedSalary,
         availability: availability,
@@ -220,6 +287,8 @@ class JobApplicationService {
         jobType: application.jobType,
         jobLocation: application.jobLocation,
         headline: application.employeeHeadline,
+        matchScore: application.matchScore,
+        matchReasoning: application.matchReasoning,
         experience: application.experience,
         expectedSalary: application.expectedSalary,
         availability: application.availability,
@@ -610,53 +679,8 @@ class JobApplicationService {
         debugPrint('[JobApplicationService] Step 5 Error: $e');
       }
 
-      // 6. Send notification to employee
-      try {
-        String title = '';
-        String message = '';
-        
-        switch (status) {
-          case 'reviewed':
-            title = 'Application Under Review';
-            message = 'Your application for ${currentApp.jobTitle} is now being reviewed by ${currentApp.companyName.isEmpty ? "the employer" : currentApp.companyName}.';
-            break;
-          case 'shortlisted':
-            title = 'Congratulations! You are Shortlisted';
-            message = 'You have been shortlisted for the ${currentApp.jobTitle} position. Expect to hear more soon!';
-            break;
-          case 'hired':
-            title = '🎉 You are HIRED!';
-            message = 'Great news! You have been selected for the ${currentApp.jobTitle} role. Welcome aboard!';
-            break;
-          case 'rejected':
-            title = 'Application Update';
-            message = 'Thank you for your interest in the ${currentApp.jobTitle} position. Unfortunately, the company has decided to move forward with other candidates.';
-            break;
-          default:
-            title = 'Application Status Updated';
-            message = 'The status of your application for ${currentApp.jobTitle} has been updated to $status.';
-        }
-
-        if (title.isNotEmpty && currentApp.employeeId.isNotEmpty) {
-          debugPrint('[JobApplicationService] Sending notification to employee: ${currentApp.employeeId}');
-          await _notificationService.sendNotification(
-            recipientId: currentApp.employeeId,
-            title: title,
-            message: message,
-            type: ['hired', 'rejected', 'shortlisted'].contains(status) ? status : 'application_status',
-            data: {
-              'applicationId': applicationId,
-              'jobId': currentApp.jobId,
-              'status': status,
-            },
-          );
-          debugPrint('[JobApplicationService] Step 6: Notification sent');
-        } else {
-          debugPrint('[JobApplicationService] Step 6 SKIPPED: Missing title or employeeId');
-        }
-      } catch (e) {
-        debugPrint('[JobApplicationService] Step 6 Error (Notification): $e');
-      }
+      // 6. Notification to employee has been disabled
+      debugPrint('[JobApplicationService] Step 6 SKIPPED: Notification to employee is disabled by design');
 
       debugPrint('[JobApplicationService] === END STATUS UPDATE (SUCCESS) ===');
       return true;

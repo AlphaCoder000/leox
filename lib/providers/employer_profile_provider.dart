@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:io';
 import '../models/employer_profile_model.dart';
 import '../services/profile_service.dart';
@@ -59,26 +60,29 @@ class EmployerProfileProvider extends ChangeNotifier {
 
   /// Update employer profile
   Future<bool> updateProfile({
-    required String name,
-    required String phone,
     required String companyName,
+    required String contactNumber,
+    required String address,
+    required String linkedin,
   }) async {
     _setLoading(true);
     _setError(null);
 
     try {
       final updateData = {
-        'name': name,
-        'phone': phone,
         'companyName': companyName,
+        'contactNumber': contactNumber,
+        'address': address,
+        'linkedin': linkedin,
       };
 
       await _profileService.updateEmployerProfile(updateData);
       
       // Reload or update local
-      _profile.name = name;
-      _profile.phone = phone;
       _profile.companyName = companyName;
+      _profile.contactNumber = contactNumber;
+      _profile.address = address;
+      _profile.linkedin = linkedin;
       
       notifyListeners();
       return true;
@@ -177,6 +181,25 @@ class EmployerProfileProvider extends ChangeNotifier {
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
+        try {
+          final user = _auth.currentUser;
+          if (user != null) {
+            bool isGoogle = user.providerData.any((p) => p.providerId == 'google.com');
+            if (isGoogle) {
+              final googleSignIn = GoogleSignIn();
+              final googleUser = await googleSignIn.signInSilently() ?? await googleSignIn.signIn();
+              if (googleUser != null) {
+                final googleAuth = await googleUser.authentication;
+                final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
+                await user.reauthenticateWithCredential(credential);
+                await user.delete(); // Delete after re-auth
+                
+                _profile = EmployerProfileModel(name: "", email: "", phone: "", companyName: "");
+                return true;
+              }
+            }
+          }
+        } catch (_) {}
         _setError('Please log out and log back in to permanently delete your account.');
       } else {
         _setError(e.message ?? 'Authentication failed');

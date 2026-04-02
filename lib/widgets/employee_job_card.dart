@@ -30,7 +30,7 @@ class EmployeeJobCard extends StatelessWidget {
                   child: Text(
                     job.title,
                     style: TextStyle(
-                      fontSize: 14.5.sp,
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -44,7 +44,7 @@ class EmployeeJobCard extends StatelessWidget {
             Text(
               job.department,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: 16.sp,
                 color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
               ),
             ),
@@ -83,7 +83,7 @@ class EmployeeJobCard extends StatelessWidget {
       child: Text(
         status,
         style: TextStyle(
-          fontSize: 10.5.sp,
+          fontSize: 15.sp,
           fontWeight: FontWeight.w600,
           color: isOpen ? Colors.blue : Colors.black54,
         ),

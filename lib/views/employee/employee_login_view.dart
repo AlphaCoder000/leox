@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/views/employee/employee_register_view.dart';
-import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/general/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -16,6 +16,7 @@ class EmployeeLoginView extends StatefulWidget {
 class _EmployeeLoginViewState extends State<EmployeeLoginView> {
   bool isEmailSelected = true;
   bool isOtpSent = false;
+  bool _obscurePassword = true;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -96,7 +97,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                     Text(
                       "Employee Login",
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontSize: 21.sp, // Updated from 20.0 to 21.sp
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -107,7 +108,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                 Text(
                   "Sign in to apply for jobs.",
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: 15.sp, // Updated from 14.0 to 15.sp
                     color: isDark ? Colors.grey[400] : Colors.black54,
                   ),
                 ),
@@ -161,7 +162,11 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                   const SizedBox(height: 8),
                   _inputField(
                       controller: passwordController,
-                      isPassword: true),
+                      isPassword: true,
+                      obscureText: _obscurePassword,
+                      onToggleVisibility: () {
+                        setState(() { _obscurePassword = !_obscurePassword; });
+                      }),
                 ] else ...[
                   if (!isOtpSent) ...[
                     _label(context, "Phone Number"),
@@ -287,7 +292,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                         : "Send Verification Code",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 16, // Updated from 16 to 16.sp
                                   color: Colors.white,
                                 ),
                               ),
@@ -350,7 +355,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                       Text(
                         "Don't have an account?",
                         style: TextStyle(
-                          fontSize: 14.0,
+                          fontSize: 15.sp, // Updated from 14.0 to 15.sp
                           color: isDark ? Colors.grey[400] : Colors.black54,
                         ),
                       ),
@@ -411,7 +416,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 14.0,
+              fontSize: 15.sp, 
               fontWeight: selected
                   ? FontWeight.w600
                   : FontWeight.w500,
@@ -427,10 +432,9 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14.0,
+        fontSize: 15.sp, 
         fontWeight: FontWeight.w600,
-        color:
-            Theme.of(context).colorScheme.onSurface,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -442,10 +446,12 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
         TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
     VoidCallback? onChanged,
+    bool obscureText = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: isPassword ? obscureText : false,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       decoration: InputDecoration(
@@ -453,6 +459,15 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,
         fillColor: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.grey[100],
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
+                ),
+                onPressed: onToggleVisibility,
+              )
+            : null,
       ),
       onChanged: (value) {
         _clearError();

@@ -35,7 +35,7 @@ class NotificationsView extends StatelessWidget {
         ),
         title: Text(
           "Notifications",
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 20.sp),
         ),
         actions: [
           if (notificationProvider.unreadCount > 0)
@@ -73,33 +73,37 @@ class NotificationsView extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.notifications_none_outlined,
-                size: 40.w,
-                color: Colors.grey.withOpacity(0.3),
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                "No notifications yet",
-                style: GoogleFonts.outfit(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.notifications_none_outlined,
+                  size: 40.w,
+                  color: Colors.grey.withOpacity(0.3),
                 ),
-              ),
-              SizedBox(height: 1.h),
-              Text(
-                "We'll notify you when an update occurs.",
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  color: Colors.grey,
+                SizedBox(height: 2.h),
+                Text(
+                  "No notifications yet",
+                  style: GoogleFonts.outfit(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+                SizedBox(height: 1.h),
+                Text(
+                  "We'll notify you when an update occurs.",
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -115,7 +119,26 @@ class NotificationsView extends StatelessWidget {
         if (isUnread) {
           context.read<NotificationProvider>().markAsRead(notification.id);
         }
-        // Handle navigation based on type if needed
+        showDialog(
+          context: context,
+          builder: (alertDialogContext) => AlertDialog(
+            title: Text(notification.title, style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18.sp)),
+            content: Text(notification.message, style: TextStyle(fontSize: 14.sp, color: theme.textTheme.bodyMedium?.color)),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(alertDialogContext);
+                  context.read<NotificationProvider>().deleteNotification(notification.id);
+                },
+                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(alertDialogContext),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
       },
       child: Container(
         padding: EdgeInsets.all(4.w),
@@ -142,7 +165,7 @@ class NotificationsView extends StatelessWidget {
               child: Icon(
                 _getTypeIcon(notification.type),
                 color: _getTypeColor(notification.type),
-                size: 18.sp,
+                size: 20.sp,
               ),
             ),
             SizedBox(width: 4.w),
@@ -157,17 +180,28 @@ class NotificationsView extends StatelessWidget {
                         child: Text(
                           notification.title,
                           style: GoogleFonts.outfit(
-                            fontSize: 13.sp,
+                            fontSize: 16.sp,
                             fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
                           ),
                         ),
                       ),
-                      Text(
-                        timeago.format(notification.createdAt),
-                        style: TextStyle(
-                          fontSize: 9.sp,
-                          color: Colors.grey,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            timeago.format(notification.createdAt),
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(width: 2.w),
+                          GestureDetector(
+                            onTap: () {
+                              context.read<NotificationProvider>().deleteNotification(notification.id);
+                            },
+                            child: Icon(Icons.delete_outline, size: 19.sp, color: Colors.red),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -175,7 +209,7 @@ class NotificationsView extends StatelessWidget {
                   Text(
                     notification.message,
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 15.sp,
                       color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                     ),
                   ),

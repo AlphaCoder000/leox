@@ -44,13 +44,13 @@ class EmployerProfileView extends StatelessWidget {
 
       drawer: const EmployerDrawer(selectedItem: EmployerDrawerItem.profile),
 
-      appBar: AppBar(title: const Text("My Profile")),
+      appBar: AppBar(title: const Text("My Profile", style: TextStyle(fontSize: 20),)),
 
 
 
       body: SingleChildScrollView(
 
-        padding: EdgeInsets.all(4.w),
+        padding: EdgeInsets.all(2.w),
 
         child: Column(
 
@@ -60,7 +60,7 @@ class EmployerProfileView extends StatelessWidget {
 
             _header(theme),
 
-            SizedBox(height: 3.h),
+            SizedBox(height: 2.h),
 
 
 
@@ -70,61 +70,37 @@ class EmployerProfileView extends StatelessWidget {
 
 
             _infoCard(
-
               context,
-
-              title: "Personal Information",
-
-              subtitle: "Your contact details",
-
-              onEdit: () => _openEditSheet(context),
-
-              children: [
-
-                _row(Icons.email_outlined, profile.email),
-
-                _row(
-
-                  Icons.phone_outlined,
-
-                  profile.phone.isEmpty ? "Not provided" : profile.phone,
-
-                ),
-
-              ],
-
-            ),
-
-
-
-            SizedBox(height: 2.5.h),
-
-
-
-            _infoCard(
-
-              context,
-
               title: "Company Information",
-
               subtitle: "Details about your company",
-
+              onEdit: () => _openEditSheet(context),
               children: [
-
+                _row(Icons.email_outlined, profile.email),
                 _row(
-
                   Icons.business_outlined,
-
                   profile.companyName.isEmpty
-
                       ? "Not provided"
-
                       : profile.companyName,
-
                 ),
-
+                _row(
+                  Icons.phone_outlined,
+                  (profile.contactNumber ?? '').isEmpty
+                      ? "Not provided"
+                      : profile.contactNumber!,
+                ),
+                _row(
+                  Icons.location_on_outlined,
+                  (profile.address ?? '').isEmpty
+                      ? "Not provided"
+                      : profile.address!,
+                ),
+                _row(
+                  Icons.link_outlined,
+                  (profile.linkedin ?? '').isEmpty
+                      ? "Not provided"
+                      : profile.linkedin!,
+                ),
               ],
-
             ),
 
 
@@ -159,19 +135,11 @@ class EmployerProfileView extends StatelessWidget {
 
       Text(
 
-        "My Profile",
-
-        style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-
-      ),
-
-      Text(
-
         "View and manage your personal information.",
 
         style: TextStyle(
 
-          fontSize: 12.5.sp,
+          fontSize: 16.sp,
 
           color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
 
@@ -188,7 +156,7 @@ class EmployerProfileView extends StatelessWidget {
   Widget _profileCard(BuildContext context, ThemeData theme, EmployerProfileModel profile) => Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     child: Padding(
-      padding: EdgeInsets.symmetric(vertical: 3.h),
+      padding: EdgeInsets.symmetric(vertical: 1.h),
       child: Column(
         children: [
           GestureDetector(
@@ -203,7 +171,7 @@ class EmployerProfileView extends StatelessWidget {
                       : null,
                   child: (profile.profilePicture ?? '').isEmpty
                       ? Text(
-                          profile.name.isNotEmpty ? profile.name[0] : "?",
+                          profile.companyName.isNotEmpty ? profile.companyName[0] : "?",
                           style: TextStyle(
                             fontSize: 22.sp,
                             fontWeight: FontWeight.bold,
@@ -230,8 +198,8 @@ class EmployerProfileView extends StatelessWidget {
           ),
           SizedBox(height: 1.5.h),
           Text(
-            profile.name,
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+            profile.companyName.isNotEmpty ? profile.companyName : "Company Name",
+            style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -284,7 +252,7 @@ class EmployerProfileView extends StatelessWidget {
 
                     style: TextStyle(
 
-                      fontSize: 14.sp,
+                      fontSize: 17.sp,
 
                       fontWeight: FontWeight.w600,
 
@@ -314,7 +282,7 @@ class EmployerProfileView extends StatelessWidget {
 
               style: TextStyle(
 
-                fontSize: 11.5.sp,
+                fontSize: 14.sp,
 
                 color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
 
@@ -350,7 +318,7 @@ class EmployerProfileView extends StatelessWidget {
 
         SizedBox(width: 3.w),
 
-        Expanded(child: Text(text, style: TextStyle(fontSize: 12.5.sp))),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 16.sp))),
 
       ],
 
@@ -384,7 +352,7 @@ class EmployerProfileView extends StatelessWidget {
 
           style: TextStyle(
 
-            fontSize: 15.sp,
+            fontSize: 16.sp,
 
             fontWeight: FontWeight.bold,
 
@@ -536,127 +504,73 @@ class _EditProfileSheet extends StatefulWidget {
 
 
 class _EditProfileSheetState extends State<_EditProfileSheet> {
-
-  late TextEditingController nameCtrl;
-
-  late TextEditingController phoneCtrl;
-
   late TextEditingController companyCtrl;
-
-
+  late TextEditingController contactNumberCtrl;
+  late TextEditingController addressCtrl;
+  late TextEditingController linkedinCtrl;
 
   @override
-
   void initState() {
-
     final profile = context.read<EmployerProfileProvider>().profile;
-
-    nameCtrl = TextEditingController(text: profile.name);
-
-    phoneCtrl = TextEditingController(text: profile.phone);
-
     companyCtrl = TextEditingController(text: profile.companyName);
-
+    contactNumberCtrl = TextEditingController(text: profile.contactNumber);
+    addressCtrl = TextEditingController(text: profile.address);
+    linkedinCtrl = TextEditingController(text: profile.linkedin);
     super.initState();
-
   }
 
-
-
   @override
-
   Widget build(BuildContext context) {
-
     return Padding(
-
       padding: EdgeInsets.fromLTRB(
-
         4.w,
-
         4.w,
-
         4.w,
-
         MediaQuery.of(context).viewInsets.bottom + 2.h,
-
       ),
-
       child: Column(
-
         mainAxisSize: MainAxisSize.min,
-
         children: [
-
           Text(
-
-            "Edit Profile",
-
+            "Edit Company Information",
             style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
-
           ),
-
           SizedBox(height: 2.h),
 
-
-
           TextField(
-
-            controller: nameCtrl,
-
-            decoration: const InputDecoration(labelText: "Name"),
-
-          ),
-
-          TextField(
-
-            controller: phoneCtrl,
-
-            decoration: const InputDecoration(labelText: "Phone"),
-
-          ),
-
-          TextField(
-
             controller: companyCtrl,
-
-            decoration: const InputDecoration(labelText: "Company"),
-
+            decoration: const InputDecoration(labelText: "Company Name"),
+          ),
+          TextField(
+            controller: contactNumberCtrl,
+            decoration: const InputDecoration(labelText: "Contact Number"),
+          ),
+          TextField(
+            controller: addressCtrl,
+            decoration: const InputDecoration(labelText: "Address"),
+          ),
+          TextField(
+            controller: linkedinCtrl,
+            decoration: const InputDecoration(labelText: "LinkedIn (Optional)"),
           ),
 
-
-
           SizedBox(height: 2.h),
-
-
 
           ElevatedButton(
-
             onPressed: () {
-
               context.read<EmployerProfileProvider>().updateProfile(
-
-                name: nameCtrl.text,
-
-                phone: phoneCtrl.text,
-
-                companyName: companyCtrl.text,
-
+                companyName: companyCtrl.text.trim(),
+                contactNumber: contactNumberCtrl.text.trim(),
+                address: addressCtrl.text.trim(),
+                linkedin: linkedinCtrl.text.trim(),
               );
-
               Navigator.pop(context);
-
             },
-
             child: const Text("Save Changes"),
-
           ),
-
         ],
-
       ),
-
     );
-
   }
 
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/general/role_option_view.dart';
 import 'package:leox/providers/theme_povider.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
-import '../providers/welcome_provider.dart';
-import '../models/resource_model.dart';
+import '../../providers/welcome_provider.dart';
+import '../../models/resource_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class WelcomeView extends StatefulWidget {
@@ -102,7 +102,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             "Find Your Next Opportunity",
             textAlign: TextAlign.center,
             style: theme.textTheme.displaySmall?.copyWith(
-              fontSize: 26.sp,
+              fontSize: 24.sp,
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
               height: 1.2,
@@ -113,7 +113,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             "Browse jobs and discover roles that match your skills and ambitions.",
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 13.sp,
+              fontSize: 16.sp,
               color:
                   theme.brightness == Brightness.dark
                       ? Colors.grey[400]
@@ -140,7 +140,7 @@ class _WelcomeViewState extends State<WelcomeView> {
               child: Text(
                 "Get Started Free",
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: 18.sp,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -174,7 +174,7 @@ class _WelcomeViewState extends State<WelcomeView> {
               "Key Features",
               style: TextStyle(
                 color: colorScheme.primary,
-                fontSize: 15.sp,
+                fontSize: 17.sp,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -201,7 +201,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             "LeoRecruit provides the tools to build your dream team.",
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 12.sp,
+              fontSize: 16.sp,
               color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
               height: 1.5,
             ),

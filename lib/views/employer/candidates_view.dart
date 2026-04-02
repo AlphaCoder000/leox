@@ -22,7 +22,8 @@ class CandidatesView extends StatefulWidget {
   State<CandidatesView> createState() => _CandidatesViewState();
 }
 
-class _CandidatesViewState extends State<CandidatesView> with TickerProviderStateMixin {
+class _CandidatesViewState extends State<CandidatesView>
+    with TickerProviderStateMixin {
   late TabController _statusTabController;
   String? _selectedJobTitle;
   final TextEditingController _searchController = TextEditingController();
@@ -52,10 +53,8 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
     final applicationProvider = context.watch<JobApplicationProvider>();
 
     // Get unique job titles for filtering
-    final jobTitles = applicationProvider.candidates
-        .map((c) => c.jobTitle)
-        .toSet()
-        .toList();
+    final jobTitles =
+        applicationProvider.candidates.map((c) => c.jobTitle).toSet().toList();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -64,7 +63,7 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
         slivers: [
           // 🔹 APP BAR
           SliverAppBar(
-            expandedHeight: 12.h,
+            expandedHeight: 7.h,
             floating: false,
             pinned: true,
             elevation: 0,
@@ -118,17 +117,24 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
                           ),
                           child: TextField(
                             controller: _searchController,
-                            onChanged: (value) => setState(() => _searchQuery = value),
+                            onChanged:
+                                (value) => setState(() => _searchQuery = value),
                             decoration: InputDecoration(
                               hintText: 'Search candidates...',
+                              hintStyle: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
                               prefixIcon: const Icon(Icons.search),
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(vertical: 1.5.h),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 1.5.h,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(width: 3.w),
+                      SizedBox(width: 2.w),
                       // Filter Button
                       Container(
                         decoration: BoxDecoration(
@@ -136,28 +142,44 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: PopupMenuButton<String?>(
-                          icon: Icon(Icons.filter_list, color: colorScheme.primary),
-                          onSelected: (value) => setState(() => _selectedJobTitle = value),
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(value: null, child: Text('All Jobs')),
-                            ...jobTitles.map((title) => PopupMenuItem(
-                              value: title,
-                              child: Text(title),
-                            )),
-                          ],
+                          icon: Icon(
+                            Icons.filter_list,
+                            color: colorScheme.primary,
+                          ),
+                          onSelected:
+                              (value) =>
+                                  setState(() => _selectedJobTitle = value),
+                          itemBuilder:
+                              (context) => [
+                                const PopupMenuItem(
+                                  value: null,
+                                  child: Text('All Jobs'),
+                                ),
+                                ...jobTitles.map(
+                                  (title) => PopupMenuItem(
+                                    value: title,
+                                    child: Text(title),
+                                  ),
+                                ),
+                              ],
                         ),
                       ),
                     ],
                   ),
                   if (_selectedJobTitle != null) ...[
-                    SizedBox(height: 1.h),
+                    SizedBox(height: 0.5.h),
                     Row(
                       children: [
                         Chip(
                           label: Text('Job: $_selectedJobTitle'),
-                          onDeleted: () => setState(() => _selectedJobTitle = null),
+                          onDeleted:
+                              () => setState(() => _selectedJobTitle = null),
                           backgroundColor: colorScheme.primary.withOpacity(0.1),
-                          labelStyle: TextStyle(color: colorScheme.primary, fontSize: 10.sp),
+                          labelStyle: TextStyle(
+                            color: colorScheme.primary,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
                           deleteIconColor: colorScheme.primary,
                         ),
                       ],
@@ -181,12 +203,30 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
                 indicatorSize: TabBarIndicatorSize.label,
                 labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold),
                 tabs: [
-                  Tab(text: 'All (${applicationProvider.getCandidateCountByStatus('all')})'),
-                  Tab(text: 'Pending (${applicationProvider.getCandidateCountByStatus('pending')})'),
-                  Tab(text: 'Reviewed (${applicationProvider.getCandidateCountByStatus('reviewed')})'),
-                  Tab(text: 'Shortlisted (${applicationProvider.getCandidateCountByStatus('shortlisted')})'),
-                  Tab(text: 'Rejected (${applicationProvider.getCandidateCountByStatus('rejected')})'),
-                  Tab(text: 'Hired (${applicationProvider.getCandidateCountByStatus('hired')})'),
+                  Tab(
+                    text:
+                        'All (${applicationProvider.getCandidateCountByStatus('all')})',
+                  ),
+                  Tab(
+                    text:
+                        'Pending (${applicationProvider.getCandidateCountByStatus('pending')})',
+                  ),
+                  Tab(
+                    text:
+                        'Reviewed (${applicationProvider.getCandidateCountByStatus('reviewed')})',
+                  ),
+                  Tab(
+                    text:
+                        'Shortlisted (${applicationProvider.getCandidateCountByStatus('shortlisted')})',
+                  ),
+                  Tab(
+                    text:
+                        'Rejected (${applicationProvider.getCandidateCountByStatus('rejected')})',
+                  ),
+                  Tab(
+                    text:
+                        'Hired (${applicationProvider.getCandidateCountByStatus('hired')})',
+                  ),
                 ],
               ),
               theme.scaffoldBackgroundColor,
@@ -212,25 +252,31 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
     );
   }
 
-
   Widget _buildCandidatesList(String status) {
     final applicationProvider = context.watch<JobApplicationProvider>();
     var candidates = applicationProvider.getCandidatesByStatus(status);
 
     // Apply Filters
     if (_selectedJobTitle != null) {
-      candidates = candidates.where((c) => c.jobTitle == _selectedJobTitle).toList();
+      candidates =
+          candidates.where((c) => c.jobTitle == _selectedJobTitle).toList();
     }
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
-      candidates = candidates.where((c) => 
-        c.name.toLowerCase().contains(query) || 
-        c.jobTitle.toLowerCase().contains(query) ||
-        c.email.toLowerCase().contains(query)
-      ).toList();
+      candidates =
+          candidates
+              .where(
+                (c) =>
+                    c.name.toLowerCase().contains(query) ||
+                    c.jobTitle.toLowerCase().contains(query) ||
+                    c.email.toLowerCase().contains(query),
+              )
+              .toList();
     }
 
-    if (applicationProvider.isLoading && candidates.isEmpty && _searchQuery.isEmpty) {
+    if (applicationProvider.isLoading &&
+        candidates.isEmpty &&
+        _searchQuery.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -271,9 +317,13 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
           ),
           SizedBox(height: 2.h),
           Text(
-            _searchQuery.isNotEmpty ? 'No candidates match your search' :
-            _selectedJobTitle != null ? 'No candidates for this job' :
-            status == 'all' ? 'No applications yet' : 'No $status applications',
+            _searchQuery.isNotEmpty
+                ? 'No candidates match your search'
+                : _selectedJobTitle != null
+                ? 'No candidates for this job'
+                : status == 'all'
+                ? 'No applications yet'
+                : 'No $status applications',
             style: GoogleFonts.outfit(
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,
@@ -291,10 +341,10 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 2.5.h),
+      margin: EdgeInsets.only(bottom: 1.5.h),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
@@ -316,200 +366,249 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => JobApplicationDetailsView(
-                    application: candidate,
-                    isEmployer: true,
-                  ),
+                  builder:
+                      (_) => JobApplicationDetailsView(
+                        application: candidate,
+                        isEmployer: true,
+                      ),
                 ),
               );
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Bar with Status
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-                color: _getStatusColor(candidate.status).withOpacity(0.1),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Applied ${_formatDate(candidate.appliedAt)}',
-                      style: TextStyle(
-                        fontSize: 9.sp,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+              children: [
+                // Top Bar with Status
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                  color: _getStatusColor(candidate.status).withOpacity(0.1),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Applied ${_formatDate(candidate.appliedAt)}',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    _buildStatusBadge(candidate.status),
-                  ],
+                      _buildStatusBadge(candidate.status),
+                    ],
+                  ),
                 ),
-              ),
 
-              Padding(
-                padding: EdgeInsets.all(4.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Candidate Info Row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Avatar
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.primary.withOpacity(0.3),
-                              width: 2,
+                Padding(
+                  padding: EdgeInsets.all(2.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Candidate Info Row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Avatar
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.primary.withOpacity(0.3),
+                                width: 2,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 5.w,
+                              backgroundColor: colorScheme.primary.withOpacity(
+                                0.1,
+                              ),
+                              backgroundImage:
+                                  candidate.avatarUrl.isNotEmpty
+                                      ? NetworkImage(candidate.avatarUrl)
+                                      : null,
+                              child:
+                                  candidate.avatarUrl.isEmpty
+                                      ? Icon(
+                                        Icons.person,
+                                        size: 9.w,
+                                        color: colorScheme.primary,
+                                      )
+                                      : null,
                             ),
                           ),
-                          child: CircleAvatar(
-                            radius: 8.w,
-                            backgroundColor: colorScheme.primary.withOpacity(0.1),
-                            backgroundImage: candidate.avatarUrl.isNotEmpty
-                                ? NetworkImage(candidate.avatarUrl)
-                                : null,
-                            child: candidate.avatarUrl.isEmpty
-                                ? Icon(Icons.person, size: 8.w, color: colorScheme.primary)
-                                : null,
-                          ),
-                        ),
-                        SizedBox(width: 4.w),
-                        // Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                candidate.name,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 15.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (candidate.headline.isNotEmpty)
-                                Text(
-                                  candidate.headline,
-                                  style: TextStyle(
-                                    fontSize: 10.sp,
-                                    color: Colors.grey[600],
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              SizedBox(height: 0.5.h),
-                              Row(
-                                children: [
-                                  Icon(Icons.email_outlined, size: 12, color: colorScheme.primary),
-                                  SizedBox(width: 1.w),
-                                  Expanded(
-                                    child: Text(
-                                      candidate.email,
-                                      style: TextStyle(fontSize: 9.sp, color: Colors.grey),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 2.h),
-
-                    // Job Title Section
-                    Container(
-                      padding: EdgeInsets.all(3.w),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colorScheme.primary.withOpacity(0.1)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.work_rounded, size: 18, color: colorScheme.primary),
-                          SizedBox(width: 3.w),
+                          SizedBox(width: 4.w),
+                          // Details
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  candidate.jobTitle,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.primary,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      candidate.name,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 17.sp,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4.w),
+                                    if (candidate.headline.isNotEmpty)
+                                      Text(
+                                        candidate.headline,
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          color: Colors.grey[600],
+                                          fontStyle: FontStyle.italic,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                                Text(
-                                  '${candidate.jobType} • ${candidate.jobLocation}',
-                                  style: TextStyle(fontSize: 9.sp, color: Colors.grey[600]),
+                                SizedBox(height: 0.5.h),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.email_outlined,
+                                      size: 12,
+                                      color: colorScheme.primary,
+                                    ),
+                                    SizedBox(width: 1.w),
+                                    Expanded(
+                                      child: Text(
+                                        candidate.email,
+                                        style: TextStyle(
+                                          fontSize: 15.sp,
+                                          color: Colors.grey,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                    ),
 
-                    // Skills Section
-                    if (candidate.skills.isNotEmpty) ...[
                       SizedBox(height: 2.h),
-                      Wrap(
-                        spacing: 2.w,
-                        runSpacing: 1.h,
-                        children: candidate.skills.take(4).map((skill) => Container(
-                          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.6.h),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+
+                      // Job Title Section
+                      Container(
+                        padding: EdgeInsets.all(2.w),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: colorScheme.primary.withOpacity(0.1),
                           ),
-                          child: Text(
-                            skill,
-                            style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.w500),
-                          ),
-                        )).toList(),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.work_rounded,
+                              size: 18,
+                              color: colorScheme.primary,
+                            ),
+                            SizedBox(width: 3.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        candidate.jobTitle,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4.w),
+                                      Text(
+                                        '${candidate.jobType} • ${candidate.jobLocation}',
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
 
-                    SizedBox(height: 3.h),
-
-                    // Actions
-                    Row(
-                      children: [
-                        _buildActionButton(
-                          onTap: () => _viewResume(candidate),
-                          icon: Icons.description_outlined,
-                          label: 'CV',
-                          color: colorScheme.primary,
-                        ),
-                        SizedBox(width: 3.w),
-                        _buildActionButton(
-                          onTap: () => _contactCandidate(candidate),
-                          icon: Icons.alternate_email,
-                          label: 'Contact',
-                          color: Colors.green,
-                        ),
-                        SizedBox(width: 3.w),
-                        Expanded(
-                          child: _buildStatusUpdateDropdown(candidate),
+                      // Skills Section
+                      if (candidate.skills.isNotEmpty) ...[
+                        SizedBox(height: 1.h),
+                        Wrap(
+                          spacing: 2.w,
+                          runSpacing: 1.h,
+                          children:
+                              candidate.skills
+                                  .take(4)
+                                  .map(
+                                    (skill) => Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 2.w,
+                                        vertical: 0.6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        skill,
+                                        style: TextStyle(
+                                          fontSize: 13.sp,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                         ),
                       ],
-                    ),
-                  ],
+
+                      SizedBox(height: 1.h),
+
+                      // Actions
+                      Row(
+                        children: [
+                          _buildActionButton(
+                            onTap: () => _viewResume(candidate),
+                            icon: Icons.description_outlined,
+                            label: 'CV',
+                            color: colorScheme.primary,
+                          ),
+                          SizedBox(width: 3.w),
+                          _buildActionButton(
+                            onTap: () => _contactCandidate(candidate),
+                            icon: Icons.alternate_email,
+                            label: 'Contact',
+                            color: Colors.green,
+                          ),
+                          SizedBox(width: 3.w),
+                          Expanded(
+                            child: _buildStatusUpdateDropdown(candidate),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildActionButton({
     required VoidCallback onTap,
@@ -535,7 +634,7 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 10.sp,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -555,7 +654,10 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
           padding: EdgeInsets.symmetric(vertical: 1.2.h),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+              colors: [
+                colorScheme.primary,
+                colorScheme.primary.withOpacity(0.8),
+              ],
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
@@ -573,7 +675,7 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
                 'Update',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 10.sp,
+                  fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -582,17 +684,26 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
           ),
         ),
         onSelected: (status) => _updateApplicationStatus(candidate.id, status),
-        itemBuilder: (context) => [
-          _buildPopupItem('reviewed', Icons.visibility_outlined, 'Mark Reviewed'),
-          _buildPopupItem('shortlisted', Icons.star_outline, 'Shortlist'),
-          _buildPopupItem('rejected', Icons.close, 'Reject'),
-          _buildPopupItem('hired', Icons.verified_user_outlined, 'Hired'),
-        ],
+        itemBuilder:
+            (context) => [
+              _buildPopupItem(
+                'reviewed',
+                Icons.visibility_outlined,
+                'Mark Reviewed',
+              ),
+              _buildPopupItem('shortlisted', Icons.star_outline, 'Shortlist'),
+              _buildPopupItem('rejected', Icons.close, 'Reject'),
+              _buildPopupItem('hired', Icons.work, 'Hire'),
+            ],
       ),
     );
   }
 
-  PopupMenuItem<String> _buildPopupItem(String value, IconData icon, String label) {
+  PopupMenuItem<String> _buildPopupItem(
+    String value,
+    IconData icon,
+    String label,
+  ) {
     return PopupMenuItem(
       value: value,
       child: Row(
@@ -617,7 +728,7 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
         _getStatusDisplay(status).toUpperCase(),
         style: TextStyle(
           color: Colors.white,
-          fontSize: 7.sp,
+          fontSize: 12.sp,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.5,
         ),
@@ -627,23 +738,35 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'pending': return Colors.orange[700]!;
-      case 'reviewed': return Colors.blue[600]!;
-      case 'shortlisted': return Colors.teal[600]!;
-      case 'rejected': return Colors.red[600]!;
-      case 'hired': return Colors.purple[600]!;
-      default: return Colors.grey[600]!;
+      case 'pending':
+        return Colors.orange[700]!;
+      case 'reviewed':
+        return Colors.blue[600]!;
+      case 'shortlisted':
+        return Colors.teal[600]!;
+      case 'rejected':
+        return Colors.red[600]!;
+      case 'hired':
+        return Colors.purple[600]!;
+      default:
+        return Colors.grey[600]!;
     }
   }
 
   String _getStatusDisplay(String status) {
     switch (status) {
-      case 'pending': return 'New';
-      case 'reviewed': return 'Reviewing';
-      case 'shortlisted': return 'Shortlisted';
-      case 'rejected': return 'Rejected';
-      case 'hired': return 'Hired';
-      default: return status;
+      case 'pending':
+        return 'New';
+      case 'reviewed':
+        return 'Reviewing';
+      case 'shortlisted':
+        return 'Shortlisted';
+      case 'rejected':
+        return 'Rejected';
+      case 'hired':
+        return 'Hired';
+      default:
+        return status;
     }
   }
 
@@ -673,7 +796,8 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
         }
       }
     } else {
-      if (mounted) ErrorHandlerUI.showErrorSnackbar(context, 'No resume available');
+      if (mounted)
+        ErrorHandlerUI.showErrorSnackbar(context, 'No resume available');
     }
   }
 
@@ -689,16 +813,21 @@ class _CandidatesViewState extends State<CandidatesView> with TickerProviderStat
       }
     } catch (e) {
       if (mounted) {
-        ErrorHandlerUI.showErrorSnackbar(context, 'Error opening email app: $e');
+        ErrorHandlerUI.showErrorSnackbar(
+          context,
+          'Error opening email app: $e',
+        );
       }
     }
   }
 
-  Future<void> _updateApplicationStatus(String applicationId, String status) async {
-    final success = await context.read<JobApplicationProvider>().updateApplicationStatus(
-      applicationId: applicationId,
-      status: status,
-    );
+  Future<void> _updateApplicationStatus(
+    String applicationId,
+    String status,
+  ) async {
+    final success = await context
+        .read<JobApplicationProvider>()
+        .updateApplicationStatus(applicationId: applicationId, status: status);
 
     if (mounted && success) {
       ErrorHandlerUI.showSuccessSnackbar(context, 'Status updated to $status');
@@ -718,11 +847,12 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: backgroundColor,
-      child: _tabBar,
-    );
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(color: backgroundColor, child: _tabBar);
   }
 
   @override
@@ -730,4 +860,3 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     return false;
   }
 }
-

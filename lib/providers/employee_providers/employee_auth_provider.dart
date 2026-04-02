@@ -403,6 +403,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
   Future<void> registerWithFirebaseEmail({
     required String email,
     required String password,
+    String? name,
   }) async {
     _setLoading(true);
     _setError(null);
@@ -426,7 +427,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
       );
 
       // Create employee profile in Firestore
-      await _createEmployeeProfile(credential.user!);
+      await _createEmployeeProfile(credential.user!, name: name);
 
       // Set success message for UI feedback
       _setSuccessMessage('Registration successful! Welcome to LeoRecruit.');
@@ -472,7 +473,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
   }
 
   // Create employee profile in Firestore
-  Future<void> _createEmployeeProfile(User user) async {
+  Future<void> _createEmployeeProfile(User user, {String? name}) async {
     try {
       // 1. Create user document for role check (First! to avoid race condition)
       final userDoc = {
@@ -492,6 +493,8 @@ Future<void> _checkRoleWithRetry(String uid) async {
       final employeeProfile = {
         'uid': user.uid,
         'email': user.email,
+        'firstName': name ?? '',
+        'lastName': '',
         'role': 'employee',
         'isVerified': false,
         'createdAt': FieldValue.serverTimestamp(),
@@ -515,7 +518,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
       // Don't fail registration if profile creation fails
     }
   }
-
+/*
   // Check if profile exists and repair if missing (for already logged-in users)
   Future<void> _checkAndRepairProfile(User user) async {
     try {
@@ -528,7 +531,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
       debugPrint('[EmployeeAuthProvider] Profile repair check failed: $e');
     }
   }
-
+*/
   /// Show success message
   void _showSuccessMessage(String message) {
     _setSuccessMessage(message);

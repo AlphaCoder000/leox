@@ -5,6 +5,7 @@ import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:leox/providers/theme_povider.dart';
 
 import '../../providers/employer_dashboard_provider.dart';
 import '../../widgets/employer_drawer.dart';
@@ -43,25 +44,43 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
       drawer: const EmployerDrawer(selectedItem: EmployerDrawerItem.dashboard),
 
       appBar: AppBar(
-        title: const Text("Dashboard"),
+        title: const Text("Dashboard", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
         actions: [
+          Consumer<ThemeProvider>(
+            builder:
+                (context, themeProvider, _) => IconButton(
+                  icon: Icon(
+                    themeProvider.themeMode == ThemeMode.light
+                        ? Icons.light_mode_outlined
+                        : themeProvider.themeMode == ThemeMode.dark
+                        ? Icons.dark_mode_outlined
+                        : Icons.settings_system_daydream_outlined,
+                  ),
+                  onPressed: () {
+                    themeProvider.toggleTheme();
+                  },
+                ),
+          ),
           // 🔔 NOTIFICATIONS
           Consumer<NotificationProvider>(
-            builder: (context, notificationProvider, _) => IconButton(
-              icon: Badge(
-                label: Text(notificationProvider.unreadCount.toString()),
-                isLabelVisible: notificationProvider.unreadCount > 0,
-                child: const Icon(Icons.notifications_none_outlined),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const NotificationsView()),
-                );
-              },
-            ),
+            builder:
+                (context, notificationProvider, _) => IconButton(
+                  icon: Badge(
+                    label: Text(notificationProvider.unreadCount.toString()),
+                    isLabelVisible: notificationProvider.unreadCount > 0,
+                    child: const Icon(Icons.notifications_none_outlined),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationsView(),
+                      ),
+                    );
+                  },
+                ),
           ),
-          
+
           SizedBox(width: 1.w),
 
           Padding(
@@ -97,28 +116,44 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                         ),
                         Text(
                           profile.email,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: 'profile',
-                      child: Text("My Profile"),
-                    ),
-                    const PopupMenuItem(value: 'logout', child: Text("Logout")),
-                  ];
-              },
-              child: CircleAvatar(
-                backgroundColor: colorScheme.primary,
-                child: const Text(
-                  "A",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'profile',
+                    child: Text("My Profile"),
                   ),
-                ),
+                  const PopupMenuItem(value: 'logout', child: Text("Logout")),
+                ];
+              },
+              child: Consumer<EmployerProfileProvider>(
+                builder: (context, profileProvider, child) {
+                  final profile = profileProvider.profile;
+                  if ((profile.profilePicture ?? '').isNotEmpty) {
+                    return CircleAvatar(
+                      backgroundImage: NetworkImage(profile.profilePicture!),
+                      backgroundColor: colorScheme.primary,
+                    );
+                  }
+                  return CircleAvatar(
+                    backgroundColor: colorScheme.primary,
+                    child: Text(
+                      profile.companyName.isNotEmpty
+                          ? profile.companyName[0].toUpperCase()
+                          : "A",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -126,37 +161,38 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
       ),
 
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
+        padding: EdgeInsets.all(3.w), // Reduced from 4.w to 3.w for more space
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Overview",
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: 21.sp,
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: 1.h),
+            SizedBox(height: 2.h),
             Text(
               "Here is your recruitment summary.",
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
                 color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),
 
-            SizedBox(height: 3.h),
+            SizedBox(height: 2.h),
 
             // 🔹 STATS GRID
             GridView.count(
               crossAxisCount: 2,
-              crossAxisSpacing: 4.w,
-              mainAxisSpacing: 2.h,
+              crossAxisSpacing: 3.w, // Reduced from 4.w to make cards wider
+              mainAxisSpacing: 2.h, // Keep the same vertical spacing
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.2,
+              childAspectRatio: 1.4, // Reduced from 1.8 to make cards wider (more square)
               children: [
                 StatCard(
                   title: "Total Jobs",
@@ -190,7 +226,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
             Text(
               "Candidate Pipeline",
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: 19.sp,
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
@@ -214,7 +250,12 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 4.w),
               child: Column(
                 children: [
-                  _pipelineItem(context, "Applied", dashboard.pending, Colors.blue),
+                  _pipelineItem(
+                    context,
+                    "Applied",
+                    dashboard.pending,
+                    Colors.blue,
+                  ),
                   _pipelineItem(
                     context,
                     "Reviewed",
@@ -227,7 +268,6 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                     dashboard.shortlisted,
                     Colors.orange,
                   ),
-                  _pipelineItem(context, "Interviewed", 0, Colors.teal), // TODO: Add interviewed count
                   _pipelineItem(
                     context,
                     "Hired",
@@ -265,7 +305,8 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 1.5.h),
-      decoration: isLast
+      decoration:
+          isLast
               ? null
               : BoxDecoration(
                 border: Border(
@@ -289,7 +330,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               Text(
                 stage,
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.w500,
                   color: theme.colorScheme.onSurface,
                 ),
@@ -315,79 +356,84 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
       ),
     );
   }
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF0B1220),
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF1C2536)),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.logout_rounded, color: Colors.redAccent),
-            SizedBox(width: 3.w),
-            Text(
-              "Logout",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-              ),
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: const Color(0xFF0B1220),
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF1C2536)),
             ),
-          ],
-        ),
-        content: Text(
-          "Are you sure you want to sign out of your employer account?",
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 12.sp,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 11.sp,
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 2.w),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            title: Row(
+              children: [
+                const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                SizedBox(width: 3.w),
+                Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ],
+            ),
+            content: Text(
+              "Are you sure you want to sign out of your employer account?",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 12.sp,
               ),
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-                
-                // Clear any sub-pages and return to root before logout
-                Navigator.of(context).popUntil((route) => route.isFirst);
-                await context.read<EmployerAuthProvider>().logout();
-              },
-              child: Text(
-                "Yes, Logout",
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.bold,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 11.sp,
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: EdgeInsets.only(left: 2.w),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 5.w,
+                      vertical: 1.2.h,
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.of(dialogContext).pop();
+
+                    // Clear any sub-pages and return to root before logout
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    await context.read<EmployerAuthProvider>().logout();
+                  },
+                  child: Text(
+                    "Yes, Logout",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

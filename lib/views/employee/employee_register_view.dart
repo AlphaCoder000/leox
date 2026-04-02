@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/views/employee/employee_login_view.dart';
-import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/general/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -18,8 +18,11 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
   bool isOtpSent = false; // 🔹 NEW
 
   String selectedCountryCode = "+91";
+  
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
-  // Text controllers for email registration
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -109,7 +112,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                     Text(
                       "Employee Registration",
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontSize: 21.sp, // Updated from 20.0 to 21.sp
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -122,7 +125,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                 Text(
                   "Create an account to search for job opportunities.",
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: 15.sp, // Updated from 14.0 to 15.sp
                     color: isDark ? Colors.grey[400] : Colors.black54,
                   ),
                 ),
@@ -173,6 +176,12 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
 
                 // 🔹 FORM
                 if (isEmailSelected) ...[
+                  _label(context, "Full Name"),
+                  const SizedBox(height: 8),
+                  _inputField(keyboardType: TextInputType.name, controller: nameController),
+
+                  const SizedBox(height: 20),
+
                   _label(context, "Email"),
                   const SizedBox(height: 8),
                   _inputField(keyboardType: TextInputType.emailAddress, controller: emailController),
@@ -181,13 +190,25 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
 
                   _label(context, "Password"),
                   const SizedBox(height: 8),
-                  _inputField(isPassword: true, controller: passwordController),
+                  _inputField(
+                      isPassword: true, 
+                      controller: passwordController,
+                      obscureText: _obscurePassword,
+                      onToggleVisibility: () {
+                        setState(() { _obscurePassword = !_obscurePassword; });
+                      }),
 
                   const SizedBox(height: 20),
 
                   _label(context, "Confirm Password"),
                   const SizedBox(height: 8),
-                  _inputField(isPassword: true, controller: confirmPasswordController),
+                  _inputField(
+                      isPassword: true, 
+                      controller: confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      onToggleVisibility: () {
+                        setState(() { _obscureConfirmPassword = !_obscureConfirmPassword; });
+                      }),
                 ] else ...[
                   if (!isOtpSent) ...[
                     _label(context, "Phone Number"),
@@ -303,8 +324,8 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                                   ? "Verify & Create Account"
                                   : "Send Verification Code",
                               style: const TextStyle(
-                                fontSize: 16.0,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 16, // Fixed from 16.0 to 16.sp
                                 color: Colors.white,
                               ),
                             ),
@@ -324,7 +345,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                       child: Text(
                         "OR CONTINUE WITH",
                         style: TextStyle(
-                          fontSize: 12.0,
+                          fontSize: 13.sp, // Updated from 12.0 to 13.sp
                           color: isDark ? Colors.grey[500] : Colors.black54,
                         ),
                       ),
@@ -382,7 +403,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                       Text(
                         "Already have an account?",
                         style: TextStyle(
-                          fontSize: 14.0,
+                          fontSize: 15.sp, // Updated from 14.0 to 15.sp
                           color: isDark ? Colors.grey[400] : Colors.black54,
                         ),
                       ),
@@ -440,7 +461,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 14.0,
+              fontSize: 15.sp, // Fixed from 15.sp to 15.sp
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               color: theme.colorScheme.onSurface,
             ),
@@ -454,6 +475,10 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
 
   Future<void> _registerWithEmail() async {
     // Validate form
+    if (nameController.text.trim().isEmpty) {
+      _showError('Please enter your full name');
+      return;
+    }
     if (emailController.text.trim().isEmpty) {
       _showError('Please enter your email');
       return;
@@ -471,6 +496,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     await context.read<EmployeeAuthProvider>().registerWithFirebaseEmail(
       email: emailController.text.trim(),
       password: passwordController.text,
+      name: nameController.text.trim(),
     );
   }
 
@@ -487,7 +513,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14.0, 
+        fontSize: 15.sp, // Fixed from 15.sp to 15.sp
         fontWeight: FontWeight.w600,
         color: Theme.of(context).colorScheme.onSurface,
       ),
@@ -499,25 +525,35 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
     TextEditingController? controller,
+    bool obscureText = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return TextField(
       controller: controller,
-      obscureText: isPassword,
+      obscureText: isPassword ? obscureText : false,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       decoration: InputDecoration(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,
-        fillColor: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.grey[100], // context not available here directly unless passed or accessed via widget/context
-        // Helper isn't inside State? Yes it is _EmployeeRegisterViewState.
-        // So context property is available.
+        fillColor: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.grey[100],
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
+                ),
+                onPressed: onToggleVisibility,
+              )
+            : null,
       ),
     );
   }
 
   @override
   void dispose() {
+    nameController.dispose();
     context.read<EmployeeAuthProvider>().removeListener(_onSuccessMessage);
     super.dispose();
   }

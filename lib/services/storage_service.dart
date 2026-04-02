@@ -46,7 +46,7 @@ class StorageService {
 
       UploadTask uploadTask;
 
-      final fileName = file.name ?? 'file';
+      final fileName = file.name;
       final contentType = _getContentType(fileName);
 
       if (kIsWeb) {

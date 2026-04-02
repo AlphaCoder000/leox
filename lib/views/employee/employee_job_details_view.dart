@@ -33,7 +33,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
             ),
             SizedBox(height: 0.6.h),
             Text(
-              job.department,
+              job.companyName,
               style: TextStyle(
                 fontSize: 12.5.sp,
                 color: theme.textTheme.bodyMedium?.color?.withValues(
@@ -95,27 +95,15 @@ class EmployeeJobDetailsView extends StatelessWidget {
                 children: [
                   _infoRow(
                     context,
-                    Icons.work_outline,
-                    "Department",
-                    job.department,
-                  ),
-                  _infoRow(
-                    context,
-                    Icons.category_outlined,
-                    "Category",
-                    job.category,
-                  ),
-                  _infoRow(
-                    context,
                     Icons.calendar_today_outlined,
                     "Posted On",
                     "${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
                   ),
                   _infoRow(
                     context,
-                    Icons.person_outline,
-                    "Posted By",
-                    job.postedBy,
+                    Icons.business_outlined,
+                    "Company",
+                    job.companyName.isNotEmpty ? job.companyName : "Unknown",
                   ),
                   _infoRow(
                     context,
