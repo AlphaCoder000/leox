@@ -34,7 +34,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    //final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: CustomScrollView(
@@ -68,7 +68,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
 
   Widget _buildAppBar(BuildContext context, ColorScheme colorScheme) {
     return SliverAppBar(
-      expandedHeight: 25.h,
+      expandedHeight: 20.h,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -90,7 +90,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                 Hero(
                   tag: 'avatar-${widget.application.id}',
                   child: CircleAvatar(
-                    radius: 12.w,
+                    radius: 10.w,
                     backgroundColor: Colors.white24,
                     backgroundImage: widget.application.avatarUrl.isNotEmpty
                         ? NetworkImage(widget.application.avatarUrl)
@@ -104,7 +104,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                 Text(
                   widget.application.name,
                   style: GoogleFonts.outfit(
-                    fontSize: 18.sp,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -112,8 +112,9 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                 Text(
                   widget.application.headline,
                   style: TextStyle(
-                    fontSize: 11.sp,
+                    fontSize: 18.sp,
                     color: Colors.white70,
+                    fontWeight: FontWeight.w600
                   ),
                 ),
               ],
@@ -146,14 +147,15 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: statusColor,
-                    fontSize: 12.sp,
+                    fontSize: 16.sp,
                   ),
                 ),
                 Text(
                   _getStatusDescription(_currentStatus),
                   style: TextStyle(
                     color: statusColor.withOpacity(0.8),
-                    fontSize: 10.sp,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500
                   ),
                 ),
               ],
@@ -167,6 +169,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
   Widget _buildCandidateInfo(ColorScheme colorScheme, ThemeData theme) {
     return _buildSection(
       title: 'Candidate Details',
+      
       icon: Icons.person_outline,
       child: Column(
         children: [
@@ -348,7 +351,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
               Text(
                 title,
                 style: GoogleFonts.outfit(
-                  fontSize: 14.sp,
+                  fontSize: 17.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),

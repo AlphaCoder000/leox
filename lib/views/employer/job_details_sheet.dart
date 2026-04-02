@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:leox/models/job_model.dart';
 import 'package:sizer/sizer.dart';
+import 'package:provider/provider.dart';
+import 'package:leox/providers/employer_jobs_provider.dart';
+import 'package:leox/views/employer/create_job_view.dart';
 
 class JobDetailsSheet extends StatelessWidget {
   final JobModel job;
@@ -19,7 +22,7 @@ class JobDetailsSheet extends StatelessWidget {
       minChildSize: 0.6,
       builder: (_, controller) {
         return Container(
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
             color: theme.scaffoldBackgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -39,23 +42,71 @@ class JobDetailsSheet extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
 
               // 🔹 JOB TITLE
-              Text(
-                job.title,
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      job.title,
+                      style: TextStyle(
+                        fontSize: 21.sp,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert_rounded,
+                      color: colorScheme.onSurface,
+                    ),
+                    onSelected: (value) {
+                      Navigator.pop(context); // Close the sheet
+                      if (value == 'delete') {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Delete Job"),
+                            content: const Text("Are you sure you want to delete this job posting?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  context.read<EmployerJobsProvider>().deleteJob(job);
+                                },
+                                child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (value == 'edit') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateJobView(jobToEdit: job),
+                          ),
+                        );
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'edit', child: Text("Edit")),
+                      PopupMenuItem(value: 'delete', child: Text("Delete")),
+                    ],
+                  ),
+                ],
               ),
 
-              SizedBox(height: 1.h),
 
               // 🔹 META CHIPS
               Wrap(
-                spacing: 2.w,
+                spacing: 1.w,
                 runSpacing: 1.h,
                 children: [
                   _chip(context, Icons.apartment_rounded, job.department),
@@ -63,7 +114,7 @@ class JobDetailsSheet extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: 3.h),
+              SizedBox(height: 1.5.h),
 
               // 🔹 DESCRIPTION
               _sectionCard(
@@ -72,14 +123,14 @@ class JobDetailsSheet extends StatelessWidget {
                 child: Text(
                   job.description,
                   style: TextStyle(
-                    fontSize: 13.5.sp,
+                    fontSize: 15.sp,
                     height: 1.5,
                     color: colorScheme.onSurface,
                   ),
                 ),
               ),
 
-              SizedBox(height: 2.5.h),
+              SizedBox(height: 1.5.h),
 
               // 🔹 REQUIREMENTS
               _sectionCard(
@@ -104,7 +155,7 @@ class JobDetailsSheet extends StatelessWidget {
                                 child: Text(
                                   req,
                                   style: TextStyle(
-                                    fontSize: 13.sp,
+                                    fontSize: 15.sp,
                                     height: 1.4,
                                     color: colorScheme.onSurface,
                                   ),
@@ -139,12 +190,12 @@ class JobDetailsSheet extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14.sp, color: colorScheme.primary),
+          Icon(icon, size: 19.sp, color: colorScheme.primary),
           SizedBox(width: 1.5.w),
           Text(
             text,
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 15.sp,
               fontWeight: FontWeight.w500,
               color: colorScheme.primary,
             ),
@@ -181,7 +232,7 @@ class JobDetailsSheet extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 15.sp,
+              fontSize: 18.sp,
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
             ),

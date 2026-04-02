@@ -96,7 +96,7 @@ class ProfileService {
       final userId = _auth.currentUser?.uid;
       if (userId == null) throw Exception('User not authenticated');
 
-      final fileName = file.name ?? 'resume.pdf';
+      final fileName = file.name;
       final fileExtension = fileName.split('.').last;
       
       final downloadUrl = await _storageService.uploadFile(

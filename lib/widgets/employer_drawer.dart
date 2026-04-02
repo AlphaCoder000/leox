@@ -45,7 +45,7 @@ class EmployerDrawer extends StatelessWidget {
                   ),
                   child: Icon(
                     Icons.work_rounded,
-                    size: 22.sp,
+                    size: 24.sp,
                     color: colorScheme.primary,
                   ),
                 ),
@@ -53,7 +53,7 @@ class EmployerDrawer extends StatelessWidget {
                 Text(
                   "LeoRecruit",
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -185,7 +185,7 @@ class EmployerDrawer extends StatelessWidget {
               children: [
                 Icon(
                   isSelected ? activeIcon : icon,
-                  size: 18.sp,
+                  size: 22.sp,
                   color:
                       isSelected
                           ? Colors.white
@@ -195,7 +195,7 @@ class EmployerDrawer extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: 17.sp,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color:
                         isSelected
@@ -227,7 +227,7 @@ class EmployerDrawer extends StatelessWidget {
               Text(
                 "Logout",
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: 17.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.redAccent,
                 ),

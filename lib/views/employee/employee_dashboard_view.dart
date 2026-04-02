@@ -12,6 +12,7 @@ import '../../providers/notification_provider.dart';
 import '../common/notifications_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:leox/providers/theme_povider.dart';
 
 class EmployeeDashboardView extends StatefulWidget {
   const EmployeeDashboardView({super.key});
@@ -26,7 +27,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Load dashboard data after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EmployeeDashboardProvider>().loadDashboard();
@@ -44,7 +45,6 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
     // Auth state is now managed reactively by main.dart
   }
 
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -55,26 +55,44 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
       drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard),
 
       appBar: AppBar(
-        title: const Text("Dashboard"),
+        title: const Text("Dashboard", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21)),
         actions: [
+          Consumer<ThemeProvider>(
+            builder:
+                (context, themeProvider, _) => IconButton(
+                  icon: Icon(
+                    themeProvider.themeMode == ThemeMode.light
+                        ? Icons.light_mode_outlined
+                        : themeProvider.themeMode == ThemeMode.dark
+                        ? Icons.dark_mode_outlined
+                        : Icons.settings_system_daydream_outlined,
+                  ),
+                  onPressed: () {
+                    themeProvider.toggleTheme();
+                  },
+                ),
+          ),
 
           Consumer<NotificationProvider>(
-            builder: (context, notificationProvider, _) => Padding(
-              padding: EdgeInsets.only(right: 2.w),
-              child: IconButton(
-                icon: Badge(
-                  label: Text(notificationProvider.unreadCount.toString()),
-                  isLabelVisible: notificationProvider.unreadCount > 0,
-                  child: const Icon(Icons.notifications_none_outlined),
+            builder:
+                (context, notificationProvider, _) => Padding(
+                  padding: EdgeInsets.only(right: 2.w),
+                  child: IconButton(
+                    icon: Badge(
+                      label: Text(notificationProvider.unreadCount.toString()),
+                      isLabelVisible: notificationProvider.unreadCount > 0,
+                      child: const Icon(Icons.notifications_none_outlined),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsView(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NotificationsView()),
-                  );
-                },
-              ),
-            ),
           ),
 
           Padding(
@@ -99,7 +117,6 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                 if (value == 'logout') {
                   _showLogoutDialog(context);
                 }
-
               },
 
               itemBuilder: (_) {
@@ -134,15 +151,29 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   const PopupMenuItem(value: 'logout', child: Text("Logout")),
                 ];
               },
-              child: CircleAvatar(
-                backgroundColor: colorScheme.primary,
-                child: const Text(
-                  "A",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              child: Consumer<EmployeeProfileProvider>(
+                builder: (context, profileProvider, child) {
+                  final profile = profileProvider.profile;
+                  if (profile != null &&
+                      (profile.profilePicture ?? '').isNotEmpty) {
+                    return CircleAvatar(
+                      backgroundImage: NetworkImage(profile.profilePicture),
+                      backgroundColor: colorScheme.primary,
+                    );
+                  }
+                  return CircleAvatar(
+                    backgroundColor: colorScheme.primary,
+                    child: Text(
+                      (profile?.firstName.isNotEmpty ?? false)
+                          ? profile!.firstName[0].toUpperCase()
+                          : "E",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
@@ -174,14 +205,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
           final dashboard = dashboardProvider.dashboard;
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(4.w),
+            padding: EdgeInsets.all(3.w), // Reduced from 4.w to match employer dashboard
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Dashboard",
                   style: TextStyle(
-                    fontSize: 19.sp,
+                    fontSize: 22.sp, fontWeight: FontWeight.bold,,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -189,21 +220,22 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                 Text(
                   "Your personal application overview.",
                   style: TextStyle(
-                    fontSize: 13.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.15),
+                    fontSize: 17.sp, fontWeight: FontWeight.bold,,
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.51),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 
                 SizedBox(height: 3.h),
 
-                // 🔹 STATS ROW 1
+                // 🔹 STATS GRID
                 GridView.count(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 4.w,
-                  mainAxisSpacing: 2.h,
+                  crossAxisSpacing: 3.w, // Reduced from 4.w to match employer dashboard
+                  mainAxisSpacing: 2.h, // Keep the same vertical spacing
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.3,
+                  childAspectRatio: 1.4, // Updated from 2.0 to 1.4 to match employer dashboard
                   children: [
                     StatCard(
                       title: "Applications Sent",
@@ -216,32 +248,6 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                       value: dashboard.applicationsUnderReview,
                       subtitle: "Applications under review.",
                       icon: Icons.access_time_outlined,
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: 2.h),
-
-                // 🔹 STATS ROW 2
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 4.w,
-                  mainAxisSpacing: 2.h,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.3,
-                  children: [
-                    StatCard(
-                      title: "Offers Received",
-                      value: dashboard.acceptedOffers,
-                      subtitle: "Job offers received.",
-                      icon: Icons.card_giftcard_outlined,
-                    ),
-                    StatCard(
-                      title: "Rejected",
-                      value: dashboard.rejectedApplications,
-                      subtitle: "Applications rejected.",
-                      icon: Icons.close_outlined,
                     ),
                   ],
                 ),
@@ -266,14 +272,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                             Text(
                               "Profile Completion",
                               style: TextStyle(
-                                fontSize: 16.sp,
+                                fontSize: 20.sp, fontWeight: FontWeight.bold,,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             Text(
                               "${dashboard.profileCompletionPercentage.toStringAsFixed(0)}%",
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 19.sp, fontWeight: FontWeight.bold,,
                                 fontWeight: FontWeight.w600,
                                 color: colorScheme.primary,
                               ),
@@ -286,7 +292,8 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                           child: LinearProgressIndicator(
                             value: dashboard.profileCompletionPercentage / 100,
                             minHeight: 8,
-                            backgroundColor: colorScheme.surfaceContainerHighest,
+                            backgroundColor:
+                                colorScheme.surfaceContainerHighest,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               dashboard.profileCompletionPercentage >= 80
                                   ? Colors.green
@@ -300,7 +307,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                               ? "Great! Your profile looks complete."
                               : "Complete your profile to improve visibility.",
                           style: TextStyle(
-                            fontSize: 12.sp,
+                            fontSize: 16.sp, fontWeight: FontWeight.bold,,
                             color: theme.textTheme.bodySmall?.color
                                 ?.withOpacity(0.7),
                           ),
@@ -327,7 +334,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                         Text(
                           "Recent Applications",
                           style: TextStyle(
-                            fontSize: 16.sp,
+                            fontSize: 20.sp, fontWeight: FontWeight.bold,,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -335,7 +342,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                         Text(
                           "Your latest job applications",
                           style: TextStyle(
-                            fontSize: 12.sp,
+                            fontSize: 16.sp, fontWeight: FontWeight.bold,,
                             color: theme.textTheme.bodySmall?.color
                                 ?.withOpacity(0.7),
                           ),
@@ -355,13 +362,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                 SizedBox(height: 1.2.h),
                                 Text(
                                   "No applications yet.",
-                                  style: TextStyle(fontSize: 13.sp),
+                                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold,),
                                 ),
                                 SizedBox(height: 0.4.h),
                                 Text(
                                   "Start applying to jobs to see them here.",
                                   style: TextStyle(
-                                    fontSize: 11.5.sp,
+                                    fontSize: 13.sp, fontWeight: FontWeight.bold,,
                                     color: Colors.grey,
                                   ),
                                 ),
@@ -384,10 +391,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => JobApplicationDetailsView(
-                                          application: CandidateModel.fromEmployeeApplication(app),
-                                          isEmployer: false,
-                                        ),
+                                        builder:
+                                            (_) => JobApplicationDetailsView(
+                                              application:
+                                                  CandidateModel.fromEmployeeApplication(
+                                                    app,
+                                                  ),
+                                              isEmployer: false,
+                                            ),
                                       ),
                                     );
                                   },
@@ -397,34 +408,43 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                     decoration: BoxDecoration(
                                       color: colorScheme.surface,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: theme.dividerColor),
+                                      border: Border.all(
+                                        color: theme.dividerColor,
+                                      ),
                                     ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     app.jobTitle,
                                                     maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                     style: TextStyle(
-                                                      fontSize: 13.sp,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 19.sp, fontWeight: FontWeight.bold,,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                   SizedBox(height: 0.5.h),
                                                   Text(
                                                     app.companyName,
                                                     style: TextStyle(
-                                                      fontSize: 11.sp,
-                                                      color: colorScheme.primary,
+                                                      fontSize: 17.sp, fontWeight: FontWeight.bold,,
+                                                      color:
+                                                          colorScheme.primary,
                                                     ),
                                                   ),
                                                 ],
@@ -439,12 +459,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                                 color: app
                                                     .statusColor()
                                                     .withOpacity(0.2),
-                                                borderRadius: BorderRadius.circular(8),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               child: Text(
                                                 app.statusLabel(),
                                                 style: TextStyle(
-                                                  fontSize: 10.sp,
+                                                  fontSize: 15.sp, fontWeight: FontWeight.bold,,
                                                   fontWeight: FontWeight.w600,
                                                   color: app.statusColor(),
                                                 ),
@@ -456,8 +477,11 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                         Text(
                                           app.statusWithDays(),
                                           style: TextStyle(
-                                            fontSize: 11.sp,
-                                            color: theme.textTheme.bodySmall?.color
+                                            fontSize: 16.sp, fontWeight: FontWeight.bold,,
+                                            color: theme
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color
                                                 ?.withOpacity(0.6),
                                           ),
                                         ),
@@ -481,85 +505,90 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
       ),
     );
   }
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF0B1220),
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF1C2536)),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.logout_rounded, color: Colors.redAccent),
-            SizedBox(width: 3.w),
-            Text(
-              "Logout",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-              ),
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: const Color(0xFF0B1220),
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF1C2536)),
             ),
-          ],
-        ),
-        content: Text(
-          "Are you sure you want to sign out of your employee account?",
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 12.sp,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 11.sp,
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 2.w),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            title: Row(
+              children: [
+                const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                SizedBox(width: 3.w),
+                Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp, fontWeight: FontWeight.bold,,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ],
+            ),
+            content: Text(
+              "Are you sure you want to sign out of your employee account?",
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 14.sp, fontWeight: FontWeight.bold,,
               ),
-              onPressed: () async {
-                // Close dialog
-                Navigator.of(dialogContext).pop();
-                
-                // Clear any sub-pages and return to root before logout
-                Navigator.of(context).popUntil((route) => route.isFirst);
-                
-                final auth = context.read<EmployeeAuthProvider>();
-                final profile = context.read<EmployeeProfileProvider>();
-                
-                await auth.logout();
-                profile.reset();
-              },
-              child: Text(
-                "Yes, Logout",
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.bold,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 13.sp, fontWeight: FontWeight.bold,,
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: EdgeInsets.only(left: 2.w),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 5.w,
+                      vertical: 1.2.h,
+                    ),
+                  ),
+                  onPressed: () async {
+                    // Close dialog
+                    Navigator.of(dialogContext).pop();
+
+                    // Clear any sub-pages and return to root before logout
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+
+                    final auth = context.read<EmployeeAuthProvider>();
+                    final profile = context.read<EmployeeProfileProvider>();
+
+                    await auth.logout();
+                    profile.reset();
+                  },
+                  child: Text(
+                    "Yes, Logout",
+                    style: TextStyle(
+                      fontSize: 13.sp, fontWeight: FontWeight.bold,,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

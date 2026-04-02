@@ -34,12 +34,12 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
             .where(
               (job) =>
                   job.title.toLowerCase().contains(query.toLowerCase()) ||
-                  job.department.toLowerCase().contains(query.toLowerCase()),
+                  job.category.toLowerCase().contains(query.toLowerCase()),
             )
             .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Jobs")),
+      appBar: AppBar(title: const Text("Jobs", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20))),
       drawer: const EmployerDrawer(selectedItem: EmployerDrawerItem.jobs),
 
       floatingActionButton: FloatingActionButton.extended(
@@ -56,10 +56,11 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(4.w),
+            padding: EdgeInsets.all(3.w),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Search jobs by title or department...",
+                hintText: "Search jobs by title or category...",
+                hintStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Colors.grey.shade300),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: query.isNotEmpty
                     ? IconButton(
@@ -77,7 +78,7 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
 
           if (provider.errorMessage != null)
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+              padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 1.h),
               child: Container(
                 padding: EdgeInsets.all(2.w),
                 decoration: BoxDecoration(
@@ -116,7 +117,7 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
                           Text(
                             "No jobs found",
                             style: TextStyle(
-                              fontSize: 14.sp,
+                              fontSize: 17.sp,
                               color: Colors.grey,
                             ),
                           ),
@@ -125,7 +126,7 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
                     )
                     : ListView.builder(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 4.w,
+                        horizontal: 2.w,
                         vertical: 1.h,
                       ),
                       itemCount: jobs.length,

@@ -26,16 +26,16 @@ class EmployeeJobDetailsView extends StatelessWidget {
             Text(
               job.title,
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: 20.sp, fontWeight: FontWeight.bold,,
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
             ),
             SizedBox(height: 0.6.h),
             Text(
-              job.department,
+              job.companyName,
               style: TextStyle(
-                fontSize: 12.5.sp,
+                fontSize: 14.sp, fontWeight: FontWeight.bold,,
                 color: theme.textTheme.bodyMedium?.color?.withValues(
                   alpha: 0.7,
                 ),
@@ -50,7 +50,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
               title: "Job Description",
               child: Text(
                 job.description,
-                style: TextStyle(fontSize: 12.8.sp, height: 1.5),
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,, height: 1.5),
               ),
             ),
 
@@ -74,7 +74,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     r,
-                                    style: TextStyle(fontSize: 12.8.sp),
+                                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,),
                                   ),
                                 ),
                               ],
@@ -95,27 +95,15 @@ class EmployeeJobDetailsView extends StatelessWidget {
                 children: [
                   _infoRow(
                     context,
-                    Icons.work_outline,
-                    "Department",
-                    job.department,
-                  ),
-                  _infoRow(
-                    context,
-                    Icons.category_outlined,
-                    "Category",
-                    job.category,
-                  ),
-                  _infoRow(
-                    context,
                     Icons.calendar_today_outlined,
                     "Posted On",
                     "${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
                   ),
                   _infoRow(
                     context,
-                    Icons.person_outline,
-                    "Posted By",
-                    job.postedBy,
+                    Icons.business_outlined,
+                    "Company",
+                    job.companyName.isNotEmpty ? job.companyName : "Unknown",
                   ),
                   _infoRow(
                     context,
@@ -175,7 +163,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
                 child: Text(
                   "Apply Now",
                   style: TextStyle(
-                    fontSize: 13.5.sp,
+                    fontSize: 15.sp, fontWeight: FontWeight.bold,,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -211,7 +199,7 @@ class EmployeeJobDetailsView extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 14.5.sp, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 1.5.h),
             child,
@@ -234,11 +222,11 @@ class EmployeeJobDetailsView extends StatelessWidget {
         children: [
           Icon(icon, size: 18.sp, color: Colors.grey),
           SizedBox(width: 3.w),
-          Expanded(child: Text(label, style: TextStyle(fontSize: 12.sp))),
+          Expanded(child: Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold,))),
           Text(
             value,
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 14.sp, fontWeight: FontWeight.bold,,
               fontWeight: FontWeight.w600,
               color: valueColor ?? Theme.of(context).colorScheme.onSurface,
             ),

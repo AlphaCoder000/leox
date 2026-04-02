@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../models/employee_profile_model.dart';
 import '../../services/profile_service.dart';
 import '../../services/storage_service.dart';
@@ -338,9 +339,9 @@ class EmployeeProfileProvider extends ChangeNotifier {
       String uid = user.uid;
 
       // Delete Profile picture
-      if (_profile?.profilePicture != null && _profile!.profilePicture!.isNotEmpty) {
+      if (_profile?.profilePicture != null && _profile!.profilePicture.isNotEmpty) {
         try {
-          await _storageService.deleteFile(_profile!.profilePicture!);
+          await _storageService.deleteFile(_profile!.profilePicture);
         } catch (_) {}
       }
       
@@ -369,6 +370,25 @@ class EmployeeProfileProvider extends ChangeNotifier {
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
+        try {
+          final user = _auth.currentUser;
+          if (user != null) {
+            bool isGoogle = user.providerData.any((p) => p.providerId == 'google.com');
+            if (isGoogle) {
+              final googleSignIn = GoogleSignIn();
+              final googleUser = await googleSignIn.signInSilently() ?? await googleSignIn.signIn();
+              if (googleUser != null) {
+                final googleAuth = await googleUser.authentication;
+                final credential = GoogleAuthProvider.credential(idToken: googleAuth.idToken);
+                await user.reauthenticateWithCredential(credential);
+                await user.delete(); // Delete after re-auth
+                
+                reset();
+                return true;
+              }
+            }
+          }
+        } catch (_) {}
         _setError('Please log out and log back in to permanently delete your account.');
       } else {
         _setError(e.message ?? 'Authentication failed');

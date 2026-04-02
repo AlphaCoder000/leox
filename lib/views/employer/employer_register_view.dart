@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
-import 'package:leox/views/role_option_view.dart';
+import 'package:leox/views/general/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -13,13 +13,16 @@ class EmployerRegisterView extends StatefulWidget {
 }
 
 class _EmployerRegisterViewState extends State<EmployerRegisterView> {
-  final bool _obscurePassword = true;
-  final bool _obscureConfirmPassword = true;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   
   final TextEditingController _companyController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _contactNumberController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _linkedinController = TextEditingController();
 
   @override
   void initState() {
@@ -32,6 +35,9 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _contactNumberController.dispose();
+    _addressController.dispose();
+    _linkedinController.dispose();
     super.dispose();
   }
 
@@ -41,6 +47,8 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
     if (_companyController.text.trim().isEmpty ||
         _emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty ||
+        _contactNumberController.text.trim().isEmpty ||
+        _addressController.text.trim().isEmpty ||
         _confirmPasswordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields')),
@@ -59,6 +67,10 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
       await auth.registerWithFirebaseEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        companyName: _companyController.text.trim(),
+        contactNumber: _contactNumberController.text.trim(),
+        address: _addressController.text.trim(),
+        linkedin: _linkedinController.text.trim(),
       );
       
       // Success? main.dart handles navigation.
@@ -126,7 +138,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                     Text(
                       "Employer Registration",
                       style: TextStyle(
-                        fontSize: 20.0,
+                        fontSize: 21.sp, // Updated from 20.0 to 21.sp
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -137,7 +149,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                 Text(
                   "Create your employer account to manage jobs and review candidates.",
                   style: TextStyle(
-                    fontSize: 14.0,
+                    fontSize: 15.sp, // Updated from 14.0 to 15.sp
                     color: isDark ? Colors.grey[400] : Colors.black54,
                   ),
                 ),
@@ -153,11 +165,31 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                     children: [
                       _buildTextField("Company Name", _companyController),
                       const SizedBox(height: 16),
+                      _buildTextField("Contact Number", _contactNumberController),
+                      const SizedBox(height: 16),
+                      _buildTextField("Company Address", _addressController),
+                      const SizedBox(height: 16),
                       _buildTextField("Email", _emailController),
                       const SizedBox(height: 16),
-                      _buildTextField("Password", _passwordController, isPassword: true),
+                      _buildTextField("Company LinkedIn (Optional)", _linkedinController),
                       const SizedBox(height: 16),
-                      _buildTextField("Confirm Password", _confirmPasswordController, isPassword: true),
+                      _buildTextField("Password", _passwordController, 
+                          isPassword: true, 
+                          obscureText: _obscurePassword, 
+                          onToggleVisibility: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          }),
+                      const SizedBox(height: 16),
+                      _buildTextField("Confirm Password", _confirmPasswordController, 
+                          isPassword: true, 
+                          obscureText: _obscureConfirmPassword, 
+                          onToggleVisibility: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          }),
                       const SizedBox(height: 32),
                       Consumer<EmployerAuthProvider>(
                         builder: (context, auth, child) {
@@ -185,7 +217,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                                       "Register",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 16.0, // Fixed from 16.sp to 16.0
                                         color: Colors.white,
                                       ),
                                     ),
@@ -241,7 +273,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                       Text(
                         "Already have an account?",
                         style: TextStyle(
-                          fontSize: 14.0,
+                          fontSize: 15.sp, // Updated from 14.0 to 15.sp
                           color: isDark ? Colors.grey[400] : Colors.black54,
                         ),
                       ),
@@ -274,6 +306,8 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
     String label,
     TextEditingController controller, {
     bool isPassword = false,
+    bool obscureText = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +315,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 14.0,
+            fontSize: 15.0, // Fixed from 15.sp to 15.0
             fontWeight: FontWeight.w600,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -289,7 +323,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isPassword ? obscureText : false,
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -303,6 +337,15 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
             fillColor:
                 Theme.of(context).inputDecorationTheme.fillColor ??
                 Colors.grey[100],
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.6),
+                    ),
+                    onPressed: onToggleVisibility,
+                  )
+                : null,
           ),
         ),
       ],

@@ -14,7 +14,8 @@ class EmployerJobsProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  EmployerJobsProvider() : _firebaseService = FirebaseService();
+  EmployerJobsProvider({FirebaseService? firebaseService}) 
+      : _firebaseService = firebaseService ?? FirebaseService();
 
   // ================= PRIVATE =================
 

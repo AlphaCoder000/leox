@@ -156,7 +156,6 @@ class FirebaseService {
   Future<void> updateJob(JobModel job) async {
     try {
       if (job.id.isEmpty) throw Exception('Job ID is missing');
-      
       await _firestore.collection('jobs').doc(job.id).update({
         'title': job.title,
         'department': job.department,
@@ -164,6 +163,10 @@ class FirebaseService {
         'description': job.description,
         'requirements': job.requirements,
         'salaryRange': job.salaryRange,
+        'companyName': job.companyName,
+        'location': job.location,
+        'jobType': job.jobType,
+        'experienceLevel': job.experienceLevel,
         'skills': job.skills,
         'benefits': job.benefits,
         'status': job.status,
@@ -183,7 +186,7 @@ class FirebaseService {
   Future<void> applyForJob(String jobId, String coverLetter) async {
     try {
       final employeeId = _auth.currentUser?.uid ?? '';
-      final employeeEmail = _auth.currentUser?.email ?? '';
+      //final employeeEmail = _auth.currentUser?.email ?? '';
       
       // Get job details for denormalized data
       final jobDoc = await _firestore.collection('jobs').doc(jobId).get();

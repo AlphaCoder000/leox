@@ -1,0 +1,36 @@
+﻿00:00 +0: loading D:/Shinnovation/leox/test/integration/api_integration_test.dart
+00:00 +0: API Service Integration Tests should handle successful GET request
+Test server not available: ApiException: GET request failed: ApiException: Failed to parse response: FormatException: Unexpected end of input (at character 1)
+
+^
+ (Status: 400) (Status: null)
+00:00 +1: API Service Integration Tests should handle 404 error
+00:00 +1 -1: API Service Integration Tests should handle 404 error [E]
+  Expected: contains '404'
+    Actual: 'ApiException: GET request failed: ApiException: Failed to parse response: FormatException: Unexpected end of input (at character 1)\n'
+              '\n'
+              '^\n'
+              ' (Status: 400) (Status: null)'
+     Which: does not contain '404'
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 474:18  expect
+  test\integration\api_integration_test.dart 31:9     main.<fn>.<fn>
+  
+00:00 +1 -1: API Service Integration Tests should handle network timeout
+00:00 +2 -1: Connectivity Service Tests should initialize correctly
+00:00 +2 -2: Connectivity Service Tests should initialize correctly [E]
+  MissingPluginException(No implementation found for method check on channel dev.fluttercommunity.plus/connectivity)
+  package:flutter/src/services/platform_channel.dart 368:7  MethodChannel._invokeMethod
+  
+00:00 +2 -2: Connectivity Service Tests should check connectivity status
+00:00 +2 -3: Connectivity Service Tests should check connectivity status [E]
+  MissingPluginException(No implementation found for method check on channel dev.fluttercommunity.plus/connectivity)
+  package:flutter/src/services/platform_channel.dart 368:7  MethodChannel._invokeMethod
+  
+00:00 +2 -3: Connectivity Service Tests should provide connectivity stream
+00:00 +2 -4: Connectivity Service Tests should provide connectivity stream [E]
+  MissingPluginException(No implementation found for method check on channel dev.fluttercommunity.plus/connectivity)
+  package:flutter/src/services/platform_channel.dart 368:7  MethodChannel._invokeMethod
+  
+00:00 +2 -4: Some tests failed.
