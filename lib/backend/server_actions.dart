@@ -3,16 +3,16 @@
 /// Contains core business logic for job applications, interviews, etc.
 library;
 
-import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import '../services/api_service.dart';
+//import '../services/api_service.dart';
 import '../models/employee_application_model.dart';
 
 class ServerActions {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  //final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final ApiService _apiService = ApiService();
+  //final ApiService _apiService = ApiService();
 
   // ======== JOB APPLICATIONS ========
 

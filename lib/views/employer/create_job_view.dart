@@ -6,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class CreateJobView extends StatefulWidget {
-  const CreateJobView({super.key});
+  final JobModel? jobToEdit;
+
+  const CreateJobView({super.key, this.jobToEdit});
 
   @override
   State<CreateJobView> createState() => _CreateJobViewState();
@@ -18,21 +20,51 @@ class _CreateJobViewState extends State<CreateJobView> {
   final titleCtrl = TextEditingController();
   final companyCtrl = TextEditingController();
   final locationCtrl = TextEditingController();
-  final deptCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final reqCtrl = TextEditingController();
   final salaryCtrl = TextEditingController();
+  final otherCategoryCtrl = TextEditingController();
 
   String category = "Mechanical Engineering";
   String jobType = "Full-time";
   String experience = "Mid-Level";
+  String status = "Open";
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.jobToEdit != null) {
+      final j = widget.jobToEdit!;
+      titleCtrl.text = j.title;
+      companyCtrl.text = j.companyName;
+      locationCtrl.text = j.location;
+      descCtrl.text = j.description;
+      reqCtrl.text = j.requirements.join('\n');
+      salaryCtrl.text = j.salaryRange;
+      salaryCtrl.text = j.salaryRange;
+      category = j.category;
+      if (![
+        "Data Science", "Machine Learning", "Software Development", "Mobile App Development", 
+        "UI/UX Design", "Cybersecurity", "Product Management", "Marketing", "Finance", 
+        "Human Resources", "Business Analysis", "Content Writing", "Architecture", 
+        "Civil Engineering", "Mechanical Engineering", "Other"
+      ].contains(category)) {
+        otherCategoryCtrl.text = category;
+        category = "Other";
+      }
+      jobType = j.jobType;
+      experience = j.experienceLevel;
+      status = j.status;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final jobsProvider = context.read<EmployerJobsProvider>();
+    final isEditing = widget.jobToEdit != null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Create New Job")),
+      appBar: AppBar(title: Text(isEditing ? "Edit Job" : "Create New Job")),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(4.w),
         child: Form(
@@ -43,27 +75,21 @@ class _CreateJobViewState extends State<CreateJobView> {
               _sectionTitle(context, "Job Details"),
 
               _field(
-                label: "Job Title",
+                label: "Job Title *",
                 controller: titleCtrl,
                 validator: "Job title is required",
               ),
 
               _field(
-                label: "Company Name",
+                label: "Company Name *",
                 controller: companyCtrl,
                 validator: "Company name is required",
               ),
 
               _field(
-                label: "Location",
+                label: "Location *",
                 controller: locationCtrl,
                 validator: "Location is required",
-              ),
-
-              _field(
-                label: "Department",
-                controller: deptCtrl,
-                validator: "Department is required",
               ),
 
               DropdownButtonFormField<String>(
@@ -90,10 +116,20 @@ class _CreateJobViewState extends State<CreateJobView> {
                   DropdownMenuItem(value: "Architecture", child: Text("Architecture")),
                   DropdownMenuItem(value: "Civil Engineering", child: Text("Civil Engineering")),
                   DropdownMenuItem(value: "Mechanical Engineering", child: Text("Mechanical Engineering")),
+                  DropdownMenuItem(value: "Other", child: Text("Other")),
                 ],
                 onChanged: (v) => setState(() => category = v!),
                 validator: (v) => v == null || v.isEmpty ? "Select a category" : null,
               ),
+
+              if (category == "Other") ...[
+                const SizedBox(height: 16),
+                _field(
+                  label: "Specify Job Category *",
+                  controller: otherCategoryCtrl,
+                  validator: "Please specify the job category",
+                ),
+              ],
 
               const SizedBox(height: 16),
 
@@ -102,7 +138,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: jobType,
-                      decoration: InputDecoration(labelText: "Job Type"),
+                      decoration: const InputDecoration(labelText: "Job Type"),
                       items: const [
                         DropdownMenuItem(value: "Full-time", child: Text("Full-time")),
                         DropdownMenuItem(value: "Part-time", child: Text("Part-time")),
@@ -116,7 +152,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: experience,
-                      decoration: InputDecoration(labelText: "Experience"),
+                      decoration: const InputDecoration(labelText: "Experience"),
                       items: const [
                         DropdownMenuItem(value: "Entry", child: Text("Entry")),
                         DropdownMenuItem(value: "Mid-Level", child: Text("Mid-Level")),
@@ -130,9 +166,22 @@ class _CreateJobViewState extends State<CreateJobView> {
               ),
 
               const SizedBox(height: 16),
+              
+              DropdownButtonFormField<String>(
+                value: status,
+                decoration: const InputDecoration(labelText: "Status"),
+                items: const [
+                  DropdownMenuItem(value: "Open", child: Text("Open")),
+                  DropdownMenuItem(value: "Closed", child: Text("Closed")),
+                  DropdownMenuItem(value: "On Hold", child: Text("On Hold")),
+                ],
+                onChanged: (v) => setState(() => status = v!),
+              ),
+
+              const SizedBox(height: 16),
 
               _field(
-                label: "Salary Range (e.g. 50k-80k)",
+                label: "Salary Range (e.g. 50k-80k) *",
                 controller: salaryCtrl,
                 validator: "Salary range is required",
               ),
@@ -140,14 +189,14 @@ class _CreateJobViewState extends State<CreateJobView> {
               const SizedBox(height: 16),
 
               _field(
-                label: "Job Description",
+                label: "Job Description *",
                 controller: descCtrl,
                 maxLines: 4,
                 validator: "Job description is required",
               ),
 
               _field(
-                label: "Requirements (one per line)",
+                label: "Requirements (one per line) *",
                 controller: reqCtrl,
                 maxLines: 4,
                 validator: "At least one requirement is required",
@@ -159,7 +208,7 @@ class _CreateJobViewState extends State<CreateJobView> {
               Center(
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.check_circle_outline_rounded),
-                  label: const Text("Post Job"),
+                  label: Text(isEditing ? "Save Changes" : "Post Job"),
                   style: ElevatedButton.styleFrom(
                     elevation: 4,
                     shadowColor: Theme.of(context).primaryColor.withOpacity(0.4),
@@ -167,21 +216,27 @@ class _CreateJobViewState extends State<CreateJobView> {
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       try {
-                        await jobsProvider.addJob(
-                          JobModel(
-                            title: titleCtrl.text.trim(),
-                            companyName: companyCtrl.text.trim(),
-                            location: locationCtrl.text.trim(),
-                            department: deptCtrl.text.trim(),
-                            category: category,
-                            jobType: jobType,
-                            experienceLevel: experience,
-                            salaryRange: salaryCtrl.text.trim(),
-                            description: descCtrl.text.trim(),
-                            requirements: reqCtrl.text.trim().split('\n'),
-                            postedOn: DateTime.now(),
-                          ),
+                        final newJob = JobModel(
+                          id: widget.jobToEdit?.id ?? '', // Keeps the same ID if editing
+                          title: titleCtrl.text.trim(),
+                          companyName: companyCtrl.text.trim(),
+                          location: locationCtrl.text.trim(),
+                          department: widget.jobToEdit?.department ?? '',
+                          category: category == "Other" ? otherCategoryCtrl.text.trim() : category,
+                          jobType: jobType,
+                          experienceLevel: experience,
+                          salaryRange: salaryCtrl.text.trim(),
+                          description: descCtrl.text.trim(),
+                          requirements: reqCtrl.text.trim().split('\n'),
+                          postedOn: widget.jobToEdit?.postedOn ?? DateTime.now(),
+                          status: status,
                         );
+
+                        if (isEditing) {
+                          await jobsProvider.updateJob(widget.jobToEdit!, newJob);
+                        } else {
+                          await jobsProvider.addJob(newJob);
+                        }
 
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -193,7 +248,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                                     color: Colors.white,
                                   ),
                                   SizedBox(width: 3.w),
-                                  const Text("Job posted successfully!"),
+                                  Text(isEditing ? "Job updated successfully!" : "Job posted successfully!"),
                                 ],
                               ),
                               backgroundColor: Colors.green,
@@ -204,7 +259,6 @@ class _CreateJobViewState extends State<CreateJobView> {
                             ),
                           );
 
-                          // Navigate to job list page instead of just popping
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (context) => const EmployerJobsListView(),
@@ -223,7 +277,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                                     color: Colors.white,
                                   ),
                                   SizedBox(width: 3.w),
-                                  Text("Failed to post job: ${e.toString()}"),
+                                  Text("Failed to ${isEditing ? 'update' : 'post'} job: ${e.toString()}"),
                                 ],
                               ),
                               backgroundColor: Colors.red,
@@ -301,10 +355,10 @@ class _CreateJobViewState extends State<CreateJobView> {
     titleCtrl.dispose();
     companyCtrl.dispose();
     locationCtrl.dispose();
-    deptCtrl.dispose();
     descCtrl.dispose();
     reqCtrl.dispose();
     salaryCtrl.dispose();
+    otherCategoryCtrl.dispose();
     super.dispose();
   }
 }

@@ -4,6 +4,9 @@ class EmployerProfileModel {
   String phone;
   String companyName;
   String? profilePicture;
+  String? contactNumber;
+  String? address;
+  String? linkedin;
 
   EmployerProfileModel({
     required this.name,
@@ -11,6 +14,9 @@ class EmployerProfileModel {
     required this.phone,
     required this.companyName,
     this.profilePicture,
+    this.contactNumber,
+    this.address,
+    this.linkedin,
   });
 
   factory EmployerProfileModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +26,9 @@ class EmployerProfileModel {
       phone: json['phone'] ?? '',
       companyName: json['companyName'] ?? '',
       profilePicture: json['profilePicture'],
+      contactNumber: json['contactNumber'],
+      address: json['address'] ?? json['location'],
+      linkedin: json['linkedin'],
     );
   }
 
@@ -30,6 +39,9 @@ class EmployerProfileModel {
       'phone': phone,
       'companyName': companyName,
       if (profilePicture != null) 'profilePicture': profilePicture,
+      if (contactNumber != null) 'contactNumber': contactNumber,
+      if (address != null) 'address': address,
+      if (linkedin != null) 'linkedin': linkedin,
     };
   }
 }

@@ -8,7 +8,7 @@ class ConnectivityService {
   ConnectivityService._internal();
 
   final Connectivity _connectivity = Connectivity();
-  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   
   bool _isConnected = true;
   bool _isChecking = false;
@@ -57,7 +57,7 @@ class ConnectivityService {
 
   /// Dispose the connectivity subscription
   void dispose() {
-    _connectivitySubscription.cancel();
+    _connectivitySubscription?.cancel();
     _connectivityController.close();
   }
 }

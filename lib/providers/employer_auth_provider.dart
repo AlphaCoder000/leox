@@ -189,6 +189,10 @@ Future<void> _checkRoleWithRetry(String uid) async {
   Future<void> registerWithFirebaseEmail({
     required String email,
     required String password,
+    String? companyName,
+    String? contactNumber,
+    String? address,
+    String? linkedin,
   }) async {
     _setLoading(true);
     _setError(null);
@@ -212,7 +216,13 @@ Future<void> _checkRoleWithRetry(String uid) async {
       );
 
       // Create employer profile in Firestore
-      await _createEmployerProfile(credential.user!);
+      await _createEmployerProfile(
+        credential.user!,
+        companyName: companyName,
+        contactNumber: contactNumber,
+        address: address,
+        linkedin: linkedin,
+      );
 
       // Set success message for UI feedback
       _setSuccessMessage('Registration successful! Welcome to LeoRecruit.');
@@ -340,7 +350,13 @@ Future<void> _checkRoleWithRetry(String uid) async {
   }
 
   // Create employer profile in Firestore
-  Future<void> _createEmployerProfile(User user) async {
+  Future<void> _createEmployerProfile(
+    User user, {
+    String? companyName,
+    String? contactNumber,
+    String? address,
+    String? linkedin,
+  }) async {
     try {
       // 1. Create user document for role check (First! to avoid race condition)
       final userDoc = {
@@ -365,6 +381,10 @@ Future<void> _checkRoleWithRetry(String uid) async {
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
         'searchTerms': [user.email?.toLowerCase() ?? ''],
+        if (companyName != null && companyName.isNotEmpty) 'companyName': companyName,
+        if (contactNumber != null && contactNumber.isNotEmpty) 'contactNumber': contactNumber,
+        if (address != null && address.isNotEmpty) 'location': address,
+        if (linkedin != null && linkedin.isNotEmpty) 'linkedin': linkedin,
       };
 
       await _firestore

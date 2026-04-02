@@ -5,7 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:leox/services/session_service.dart';
 import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/employer/employer_dashboard_view.dart';
-import 'package:leox/views/welcome_view.dart';
+import 'package:leox/views/general/welcome_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';

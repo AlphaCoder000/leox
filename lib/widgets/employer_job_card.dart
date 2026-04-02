@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leox/models/job_model.dart';
 import 'package:leox/providers/employer_jobs_provider.dart';
 import 'package:leox/views/employer/job_details_sheet.dart';
+import 'package:leox/views/employer/create_job_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -17,19 +18,19 @@ class JobCard extends StatelessWidget {
 
     return InkWell(
       onTap: () => _openDetails(context),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Card(
-        elevation: 4,
+        elevation: 3,
         shadowColor: Colors.white.withOpacity(0.65),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.all(3.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ================= TITLE + ACTIONS =================
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Text(
@@ -37,8 +38,8 @@ class JobCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 15.5.sp,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 19.sp,
+                        fontWeight: FontWeight.w500,
                         color: colorScheme.onSurface,
                       ),
                     ),
@@ -47,13 +48,38 @@ class JobCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert_rounded,
-                      color: colorScheme.primary.withAlpha(38),
+                      color: colorScheme.primary.withAlpha(100),
                     ),
                     onSelected: (value) {
                       if (value == 'delete') {
-                        context.read<EmployerJobsProvider>().deleteJob(job);
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Delete Job"),
+                            content: const Text("Are you sure you want to delete this job posting?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  context.read<EmployerJobsProvider>().deleteJob(job);
+                                },
+                                child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (value == 'edit') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateJobView(jobToEdit: job),
+                          ),
+                        );
                       }
-                      // Edit → next step
                     },
                     itemBuilder:
                         (_) => const [
@@ -64,19 +90,17 @@ class JobCard extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: 1.h),
-
               // ================= META CHIPS =================
               Wrap(
-                spacing: 2.w,
+                spacing: 1.5.w,
                 runSpacing: 0.8.h,
                 children: [
-                  _chip(context, Icons.apartment_rounded, job.department),
-                  _chip(context, Icons.category_rounded, job.category),
+                   _chip(context, Icons.work_outline_rounded, job.jobType),
+                   _chip(context, Icons.verified_outlined, job.status),
                 ],
               ),
 
-              SizedBox(height: 1.5.h),
+              SizedBox(height: 1.h),
 
               // ================= DESCRIPTION PREVIEW =================
               Text(
@@ -84,13 +108,13 @@ class JobCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: 16.sp,
                   height: 1.4,
                   color: theme.textTheme.bodyMedium?.color,
                 ),
               ),
 
-              SizedBox(height: 2.h),
+              SizedBox(height:1.h),
 
               // ================= FOOTER =================
               Row(
@@ -99,7 +123,7 @@ class JobCard extends StatelessWidget {
                   Text(
                     "Posted on ${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
                     style: TextStyle(
-                      fontSize: 11.5.sp,
+                      fontSize: 14.sp,
                       color: theme.textTheme.bodySmall?.color?.withAlpha(153),
                     ),
                   ),
@@ -112,7 +136,7 @@ class JobCard extends StatelessWidget {
                     ),
                     child: Icon(
                       Icons.chevron_right_rounded,
-                      size: 18.sp,
+                      size: 20.sp,
                       color: colorScheme.primary,
                     ),
                   ),
@@ -139,12 +163,12 @@ class JobCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13.sp, color: colorScheme.primary),
-          SizedBox(width: 1.5.w),
+          Icon(icon, size: 16.sp, color: colorScheme.primary),
+          SizedBox(width: 1.w),
           Text(
             text,
             style: TextStyle(
-              fontSize: 11.5.sp,
+              fontSize: 15.sp,
               fontWeight: FontWeight.w500,
               color: colorScheme.primary,
             ),

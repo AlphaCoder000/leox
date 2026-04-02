@@ -2,9 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:leox/views/employee/employee_login_view.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
-import 'package:leox/views/privacy_policy_view.dart';
-import 'package:leox/views/terms_of_service_view.dart';
-import 'package:leox/views/welcome_view.dart';
+import 'package:leox/views/general/privacy_policy_view.dart';
+import 'package:leox/views/general/terms_of_service_view.dart';
+import 'package:leox/views/general/welcome_view.dart';
 import 'package:sizer/sizer.dart';
 
 class RoleOptionView extends StatelessWidget {
@@ -42,19 +42,20 @@ class RoleOptionView extends StatelessWidget {
               "Welcome to LeoOpus",
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontSize: 20.sp,
+                fontSize: 23.sp,
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,
               ),
             ),
 
-            SizedBox(height: 1.h),
+            SizedBox(height: 5.h),
 
             Text(
               "Choose how you'd like to continue",
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 14.sp,
+                fontSize: 17.sp,
+                fontWeight: FontWeight.w600,
                 color:
                     isDark
                         ? Colors.grey[400]
@@ -160,7 +161,7 @@ class RoleOptionView extends StatelessWidget {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 18.sp,
+                    fontSize: 21.sp,
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.onSurface,
                   ),
@@ -174,7 +175,7 @@ class RoleOptionView extends StatelessWidget {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: 16.sp,
                     color:
                         isDark
                             ? Colors.grey[400]
@@ -185,30 +186,32 @@ class RoleOptionView extends StatelessWidget {
 
               SizedBox(height: 2.5.h),
 
-              ...points.map(
-                (p) => Padding(
-                  padding: EdgeInsets.only(bottom: 1.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        size: 18,
-                        color: theme.primaryColor,
-                      ),
-                      SizedBox(width: 3.w),
-                      Flexible(
-                        child: Text(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: points.map(
+                  (p) => Padding(
+                    padding: EdgeInsets.only(bottom: 1.h),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 18,
+                          color: theme.primaryColor,
+                        ),
+                        SizedBox(width: 3.w),
+                        Text(
                           p,
                           style: TextStyle(
-                            fontSize: 12.5.sp,
+                            fontSize: 16.sp,
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                ).toList(),
               ),
             ],
           ),
