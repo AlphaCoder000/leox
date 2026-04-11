@@ -111,7 +111,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
           Text(
             'No job postings available',
             style: TextStyle(
-              fontSize: 18.sp, fontWeight: FontWeight.bold,,
+              fontSize: 18.sp, fontWeight: FontWeight.bold,
               color: Colors.grey[600],
             ),
           ),
@@ -119,7 +119,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
           Text(
             'Check back later for new opportunities',
             style: TextStyle(
-              fontSize: 14.sp, fontWeight: FontWeight.bold,,
+              fontSize: 14.sp, fontWeight: FontWeight.bold,
               color: Colors.grey[500],
             ),
           ),
@@ -164,8 +164,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                       Text(
                         job.title,
                         style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18.sp, fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
                         ),
                       ),
@@ -173,7 +172,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                       Text(
                         job.companyName,
                         style: TextStyle(
-                          fontSize: 14.sp, fontWeight: FontWeight.bold,,
+                          fontSize: 14.sp, fontWeight: FontWeight.bold,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -194,8 +193,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                     job.statusDisplay,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12.sp, fontWeight: FontWeight.bold,,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 12.sp, fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -211,7 +209,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                 SizedBox(width: 1.w),
                 Text(
                   job.location,
-                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold,, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
                 ),
                 SizedBox(width: 3.w),
                 
@@ -219,7 +217,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                 SizedBox(width: 1.w),
                 Text(
                   job.jobTypeDisplay,
-                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold,, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
                 ),
                 SizedBox(width: 3.w),
                 
@@ -227,7 +225,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                 SizedBox(width: 1.w),
                 Text(
                   job.experienceLevelDisplay,
-                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold,, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -242,8 +240,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                 Text(
                   job.salary,
                   style: TextStyle(
-                    fontSize: 14.sp, fontWeight: FontWeight.bold,,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14.sp, fontWeight: FontWeight.w600,
                     color: colorScheme.primary,
                   ),
                 ),
@@ -258,8 +255,8 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                     ? '${job.description.substring(0, 150)}...'
                     : job.description,
                 style: TextStyle(
-                  fontSize: 13.sp, fontWeight: FontWeight.bold,,
-                  color: Colors.grey[700],
+                  fontSize: 13.sp, fontWeight: FontWeight.bold,
+                  color: Colors.grey[600],
                 ),
               ),
             ],
@@ -275,12 +272,12 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                     .map((skill) => Chip(
                           label: Text(
                             skill,
-                            style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold,),
+                            style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold),
                           ),
-                          backgroundColor: colorScheme.primary.withOpacity(0.1),
+                          backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                           labelStyle: TextStyle(
                             color: colorScheme.primary,
-                            fontSize: 11.sp, fontWeight: FontWeight.bold,,
+                            fontSize: 11.sp, fontWeight: FontWeight.bold,
                           ),
                         ))
                     .toList(),
@@ -289,7 +286,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                 Text(
                   '+${job.skills.length - 4} more skills',
                   style: TextStyle(
-                    fontSize: 11.sp, fontWeight: FontWeight.bold,,
+                    fontSize: 11.sp, fontWeight: FontWeight.bold,
                     color: Colors.grey[600],
                   ),
                 ),
@@ -309,7 +306,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                       Text(
                         '${job.applicationCount} applicants',
                         style: TextStyle(
-                          fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                          fontSize: 12.sp, fontWeight: FontWeight.bold,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -321,7 +318,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                 Text(
                   '${job.daysSincePosting}d ago',
                   style: TextStyle(
-                    fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                    fontSize: 12.sp, fontWeight: FontWeight.bold,
                     color: Colors.grey[500],
                   ),
                 ),
@@ -343,8 +340,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
                   child: Text(
                     job.isAcceptingApplications ? 'Apply Now' : 'Closed',
                     style: TextStyle(
-                      fontSize: 13.sp, fontWeight: FontWeight.bold,,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 13.sp, fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
