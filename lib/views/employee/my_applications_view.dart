@@ -107,7 +107,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                   ? 'No applications yet'
                   : 'No ${status.toLowerCase()} applications',
               style: TextStyle(
-                fontSize: 18.sp, fontWeight: FontWeight.bold,,
+                fontSize: 18.sp, fontWeight: FontWeight.bold,
                 color: Colors.grey[600],
               ),
             ),
@@ -115,7 +115,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
             Text(
               'Start applying for jobs to see them here',
               style: TextStyle(
-                fontSize: 14.sp, fontWeight: FontWeight.bold,,
+                fontSize: 14.sp, fontWeight: FontWeight.bold,
                 color: Colors.grey[500],
               ),
             ),
@@ -161,8 +161,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                       Text(
                         application.jobTitle,
                         style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold,,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18.sp, fontWeight: FontWeight.bold,
                           color: colorScheme.primary,
                         ),
                       ),
@@ -170,7 +169,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                       Text(
                         application.companyName,
                         style: TextStyle(
-                          fontSize: 14.sp, fontWeight: FontWeight.bold,,
+                          fontSize: 14.sp, fontWeight: FontWeight.bold,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -189,8 +188,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                     application.statusDisplay,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12.sp, fontWeight: FontWeight.bold,,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 12.sp, fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -212,21 +210,21 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                   if (application.jobDepartment.isNotEmpty) ...[
                     Text(
                       'Department: ${application.jobDepartment}',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold,),
+                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
                     ),
                   ],
                   if (application.jobType.isNotEmpty) ...[
                     SizedBox(height: 0.3.h),
                     Text(
                       'Type: ${application.jobType}',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold,),
+                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
                     ),
                   ],
                   if (application.jobLocation.isNotEmpty) ...[
                     SizedBox(height: 0.3.h),
                     Text(
                       'Location: ${application.jobLocation}',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold,),
+                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
                     ),
                   ],
                   if (application.salary.isNotEmpty) ...[
@@ -234,8 +232,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                     Text(
                       'Salary: \$${application.salary}',
                       style: TextStyle(
-                        fontSize: 12.sp, fontWeight: FontWeight.bold,,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 12.sp, fontWeight: FontWeight.w600,
                         color: colorScheme.primary,
                       ),
                     ),
@@ -253,7 +250,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                 Text(
                   'Applied on ${application.appliedAt.day}/${application.appliedAt.month}/${application.appliedAt.year}',
                   style: TextStyle(
-                    fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                    fontSize: 12.sp, fontWeight: FontWeight.bold,
                     color: Colors.grey[600],
                   ),
                 ),
@@ -266,8 +263,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
               Text(
                 'Cover Letter:',
                 style: TextStyle(
-                  fontSize: 13.sp, fontWeight: FontWeight.bold,,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13.sp, fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 0.5.h),
@@ -298,7 +294,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                     child: Text(
                       'Resume: ${application.resumeName ?? 'No resume'}',
                       style: TextStyle(
-                        fontSize: 12.sp, fontWeight: FontWeight.bold,,
+                        fontSize: 12.sp, fontWeight: FontWeight.bold,
                         color: colorScheme.primary,
                       ),
                     ),
@@ -319,7 +315,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                     icon: const Icon(Icons.description, size: 16),
                     label: Text(
                       'View Resume',
-                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold,),
+                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: colorScheme.primary),
@@ -338,7 +334,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                       icon: const Icon(Icons.delete_outline, size: 16),
                       label: Text(
                         'Withdraw',
-                        style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold,),
+                        style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.red),

@@ -119,7 +119,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   Text(
                     "Edit Profile",
                     style: TextStyle(
-                      fontSize: 23.sp, fontWeight: FontWeight.bold,, // Updated from 16.sp to 21.sp
+                      fontSize: 23.sp,// Updated from 16.sp to 21.sp
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -413,16 +413,15 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                 Text(
                   "My Profile",
                   style: TextStyle(
-                    fontSize: 21.sp, fontWeight: FontWeight.bold,, // Updated from 18.sp to 19.sp
-                    fontWeight: FontWeight.bold,
+                    fontSize: 21.sp, fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 0.5.h),
                 Text(
                   "View and manage your personal information.",
                   style: TextStyle(
-                    fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 12.5.sp to 14.sp
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    fontSize: 16.sp, fontWeight: FontWeight.normal,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                   ),
                 ),
 
@@ -444,41 +443,39 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                             children: [
                               CircleAvatar(
                                 radius: 36,
-                                  backgroundColor:
-                                      colorScheme.primary.withOpacity(0.15),
-                                  backgroundImage:
-                                      ((profile.profilePicture ?? '')
-                                              .isNotEmpty)
-                                          ? NetworkImage(profile.profilePicture)
-                                          : null,
-                                  child:
-                                      ((profile.profilePicture ?? '').isEmpty)
-                                          ? Text(
-                                            (profile.firstName).isNotEmpty
-                                                ? profile.firstName[0]
-                                                    .toUpperCase()
-                                                : "?",
-                                            style: TextStyle(
-                                              fontSize: 24.sp, fontWeight: FontWeight.bold,, // Updated from 22.sp to 22.sp (already correct)
-                                              fontWeight: FontWeight.bold,
-                                              color: colorScheme.primary,
-                                            ),
-                                          )
-                                          : null,
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: CircleAvatar(
-                                    radius: 12,
-                                    backgroundColor: colorScheme.primary,
-                                    child: const Icon(
-                                      Icons.camera_alt,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
+                                backgroundColor: colorScheme.primary.withOpacity(0.1),
+                                backgroundImage:
+                                    ((profile.profilePicture ?? '')
+                                            .isNotEmpty)
+                                        ? NetworkImage(profile.profilePicture)
+                                        : null,
+                                child:
+                                    ((profile.profilePicture ?? '').isEmpty)
+                                        ? Text(
+                                          (profile.firstName).isNotEmpty
+                                              ? profile.firstName[0]
+                                                  .toUpperCase()
+                                              : "?",
+                                          style: TextStyle(
+                                            fontSize: 24.sp, fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                          ),
+                                        )
+                                        : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: colorScheme.primary,
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 14,
+                                    color: Colors.white,
                                   ),
                                 ),
+                              ),
                               ],
                             ),
                           ),
@@ -486,8 +483,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                         Text(
                           "${profile.firstName} ${profile.lastName}",
                           style: TextStyle(
-                            fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.sp to 15.sp
-                            fontWeight: FontWeight.w600,
+                            fontSize: 17.sp, fontWeight: FontWeight.w600,
                           ),
                         ),
                         if ((profile.headline ?? '').isNotEmpty)
@@ -496,9 +492,8 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                             child: Text(
                               profile.headline ?? '',
                               style: TextStyle(
-                                fontSize: 15.sp, fontWeight: FontWeight.bold,, // Updated from 11.sp to 13.sp
+                                fontSize: 15.sp, fontWeight: FontWeight.w500,
                                 color: colorScheme.primary,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -546,7 +541,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                     if (profile.skills.isEmpty)
                       Text(
                         "No skills added yet. Click edit to add some.",
-                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,),
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                       )
                     else
                       Wrap(
@@ -584,8 +579,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               child: Text(
                                 "Resume uploaded",
                                 style: TextStyle(
-                                  fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 12.sp to 14.sp
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16.sp, fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -640,8 +634,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                       Text(
                         "Danger Zone",
                         style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold,, // Updated from 15.sp to 16.sp
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18.sp, fontWeight: FontWeight.bold,
                           color: Colors.red,
                         ),
                       ),
@@ -649,7 +642,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                       Text(
                         "Permanently delete your account and all associated data.",
                         style: TextStyle(
-                          fontSize: 15.sp, fontWeight: FontWeight.bold,, // Updated from 11.5.sp to 13.sp
+                          fontSize: 15.sp, fontWeight: FontWeight.normal,
                           color: Colors.red.shade700,
                         ),
                       ),
@@ -706,8 +699,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: 17.sp, fontWeight: FontWeight.bold,, // Updated from 14.sp to 15.sp
-                      fontWeight: FontWeight.w600,
+                      fontSize: 17.sp, fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -722,8 +714,8 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 16.sp, fontWeight: FontWeight.bold,, // Updated from 11.5.sp to 14.sp
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                fontSize: 16.sp, fontWeight: FontWeight.normal,
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
               ),
             ),
             SizedBox(height: 2.h),
@@ -741,7 +733,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
         children: [
           Icon(icon, size: 18, color: Colors.grey),
           SizedBox(width: 3.w),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold,))),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold))),
         ],
       ),
     );
