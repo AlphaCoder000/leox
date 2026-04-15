@@ -54,7 +54,7 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    //final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final authController = context.watch<McProviderAuthController>();
 
     return Scaffold(
@@ -79,7 +79,7 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(6.w),
             child: Card(
-              color: theme.cardTheme.color?.withValues(alpha: 0.8) ?? Colors.black87,
+              color: theme.cardTheme.color ?? (isDark ? Colors.black87 : Colors.white),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.3)),
@@ -111,21 +111,21 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                         "Log in to manage your maintenance contracts.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.grey[400],
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
                           fontSize: 12.sp,
                         ),
                       ),
                       SizedBox(height: 4.h),
                       TextFormField(
                         controller: _emailController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: "Email",
-                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
                           prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF0EA5E9)),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[800]!),
+                            borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -139,15 +139,15 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: "Password",
-                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
                           prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0EA5E9)),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                              color: Colors.grey[500],
+                              color: isDark ? Colors.grey[400] : Colors.grey[700],
                             ),
                             onPressed: () {
                               setState(() {
@@ -157,7 +157,7 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[800]!),
+                            borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),

@@ -30,6 +30,8 @@ import 'maintenance_contracts/controllers/mc_provider_auth_controller.dart';
 import 'maintenance_contracts/controllers/mc_seeker_auth_controller.dart';
 import 'maintenance_contracts/controllers/mc_provider_dashboard_controller.dart';
 import 'maintenance_contracts/controllers/mc_seeker_dashboard_controller.dart';
+import 'maintenance_contracts/views/provider/mc_provider_dashboard_view.dart';
+import 'maintenance_contracts/views/seeker/mc_seeker_dashboard_view.dart';
 
 // Backend Services imports
 import 'services/firebase_service.dart';
@@ -222,6 +224,12 @@ class _MainAppContent extends StatelessWidget {
             } else if (role == 'employee') {
               debugPrint('[Main] User is employee, showing EmployeeDashboardView');
               return const EmployeeDashboardView();
+            } else if (role == 'mc_provider') {
+              debugPrint('[Main] User is mc_provider, showing McProviderDashboardView');
+              return const McProviderDashboardView();
+            } else if (role == 'mc_seeker') {
+              debugPrint('[Main] User is mc_seeker, showing McSeekerDashboardView');
+              return const McSeekerDashboardView();
             }
 
             // Fallback for unknown role
@@ -293,6 +301,22 @@ class _MainAppContent extends StatelessWidget {
         if (employeeDoc.exists) {
           debugPrint('[Main] Found via employee collection fallback');
           return 'employee';
+        }
+
+        // 4. Fallback: Check 'mc_providers'
+        final mcProviderDoc = await FirebaseFirestore.instance.collection('mc_providers').doc(uid).get();
+        debugPrint('[Main] Fallback Check (mc_providers/$uid): exists=${mcProviderDoc.exists}');
+        if (mcProviderDoc.exists) {
+          debugPrint('[Main] Found via mc_providers collection fallback');
+          return 'mc_provider';
+        }
+
+        // 5. Fallback: Check 'mc_seekers'
+        final mcSeekerDoc = await FirebaseFirestore.instance.collection('mc_seekers').doc(uid).get();
+        debugPrint('[Main] Fallback Check (mc_seekers/$uid): exists=${mcSeekerDoc.exists}');
+        if (mcSeekerDoc.exists) {
+          debugPrint('[Main] Found via mc_seekers collection fallback');
+          return 'mc_seeker';
         }
 
         // If not found yet, wait and retry

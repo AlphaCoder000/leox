@@ -98,6 +98,27 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
+    // --- MAINTENANCE CONTRACTS COLLECTIONS ---
+    match /mc_providers/{userId} {
+      allow read: if isAuthenticated(); // Needed by main router and seekers
+      allow write: if isOwner(userId);
+    }
+    
+    match /mc_seekers/{userId} {
+      allow read: if isAuthenticated(); // Needed by main router
+      allow write: if isOwner(userId);
+    }
+    
+    match /mc_services/{serviceId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated(); // Allow providers to manage their services
+    }
+    
+    match /mc_requests/{requestId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated(); // Allow seekers to book, providers to update status
+    }
+
     // --- STORAGE RULES (If applicable here, though this is firestore.rules) ---
     // Note: Storage rules are separate.
   }

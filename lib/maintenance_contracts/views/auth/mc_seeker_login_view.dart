@@ -51,6 +51,7 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final authController = context.watch<McSeekerAuthController>();
 
     return Scaffold(
@@ -72,7 +73,7 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(6.w),
             child: Card(
-              color: theme.cardTheme.color?.withValues(alpha: 0.8) ?? Colors.black87,
+              color: theme.cardTheme.color ?? (isDark ? Colors.black87 : Colors.white),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.3)),
@@ -89,24 +90,24 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                       SizedBox(height: 2.h),
                       Text(
                         "Seeker Portal",
-                        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                       ),
                       SizedBox(height: 1.h),
                       Text(
                         "Find experts for repair and maintenance.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12.sp),
+                        style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700], fontSize: 12.sp),
                       ),
                       SizedBox(height: 4.h),
                       
                       TextFormField(
                         controller: _emailController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: "Email",
-                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
                           prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF0EA5E9)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[800]!)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!)),
                           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9))),
                         ),
                         validator: (value) => (value == null || value.isEmpty) ? "Please enter your email" : null,
@@ -116,16 +117,16 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: "Password",
-                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
                           prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0EA5E9)),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey[500]),
+                            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: isDark ? Colors.grey[400] : Colors.grey[700]),
                             onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[800]!)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!)),
                           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9))),
                         ),
                         validator: (value) => (value == null || value.isEmpty) ? "Please enter your password" : null,

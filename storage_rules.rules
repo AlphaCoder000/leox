@@ -50,6 +50,16 @@ service firebase.storage {
       allow write: if isAuthenticated() && fileName.matches(request.auth.uid + '.*');
     }
     
+    // --- MAINTENANCE CONTRACTS ---
+    match /mc_providers/{userId}/{allPaths=**} {
+      allow read: if true; // Public access to provider portfolios, images
+      allow write: if isAuthenticated() && userId == request.auth.uid;
+    }
+    match /mc_seekers/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && userId == request.auth.uid;
+    }
+    
     // --- PUBLIC FILES ---
     match /public/{allPaths=**} {
       allow read: if true;
