@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/views/employee/employee_login_view.dart';
 import 'package:leox/views/general/role_option_view.dart';
+import 'package:leox/utils/email_validator_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -57,9 +58,9 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
     }
   }
 
-  void _clearError() {
-    context.read<EmployeeAuthProvider>().clearError();
-  }
+  // void _clearError() {
+  //   context.read<EmployeeAuthProvider>().clearError();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -289,16 +290,16 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                         onPressed: auth.isLoading ? null : () async {
                           if (!isEmailSelected && !isOtpSent) {
                             setState(() => isOtpSent = true);
-                            // TODO: Firebase send OTP
+                            
                           } else if (!isEmailSelected && isOtpSent) {
-                            // TODO: Firebase verify OTP & register
+                            
                           } else {
                             // Firebase email registration
                             await _registerWithEmail();
                             
                             // Success? main.dart will handle navigation.
                             // We just need to clear the stack if we are on top.
-                            if (auth.isLoggedIn && mounted) {
+                            if (auth.isLoggedIn && context.mounted) {
                               Navigator.of(context).popUntil((route) => route.isFirst);
                             }
                           }
@@ -365,7 +366,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                           final provider = context.read<EmployeeAuthProvider>();
                           await provider.signUpWithGoogle();
                           
-                          if (provider.isLoggedIn && mounted) {
+                          if (provider.isLoggedIn && context.mounted) {
                             Navigator.of(context).popUntil((route) => route.isFirst);
                           }
                         },
@@ -477,10 +478,13 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
       _showError('Please enter your full name');
       return;
     }
-    if (emailController.text.trim().isEmpty) {
-      _showError('Please enter your email');
+    
+    final emailError = EmailValidatorHelper.validateEmployeeEmail(emailController.text.trim());
+    if (emailError != null) {
+      _showError(emailError);
       return;
     }
+
     if (passwordController.text.length < 6) {
       _showError('Password must be at least 6 characters');
       return;

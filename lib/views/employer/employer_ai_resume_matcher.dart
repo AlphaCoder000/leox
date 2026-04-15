@@ -104,9 +104,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                   Container(
                     padding: EdgeInsets.all(2.w),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.15),
+                      color: colorScheme.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(11),
-                      border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+                      border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
                     ),
                     child: Icon(Icons.auto_awesome, color: colorScheme.primary, size: 18.sp),
                   ),
@@ -128,7 +128,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                           "AI-powered intelligence for your hiring pipeline",
                           style: TextStyle(
                             fontSize: 15.sp,
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -212,7 +212,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
         border: Border.all(color: const Color(0xFF1F2937)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -243,16 +243,16 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             onChanged: provider.updateJobDescription,
             decoration: InputDecoration(
               hintText: "Enter the skills and responsibilities you're looking for...",
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
               filled: true,
               fillColor: const Color(0xFF030712),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
             ),
           ),
@@ -272,8 +272,8 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
                   color: provider.selectedResumeFileName != null 
-                    ? colorScheme.primary.withOpacity(0.5) 
-                    : Colors.white.withOpacity(0.1),
+                    ? colorScheme.primary.withValues(alpha: 0.5) 
+                    : Colors.white.withValues(alpha: 0.1),
                   style: provider.selectedResumeFileName != null ? BorderStyle.solid : BorderStyle.none,
                 ),
               ),
@@ -337,7 +337,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white.withOpacity(0.8))),
+                      SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white.withValues(alpha: 0.8))),
                       SizedBox(width: 3.w),
                       const Text("Synthesizing Match Data..."),
                     ],
@@ -352,9 +352,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             Container(
               padding: EdgeInsets.all(3.w),
               decoration: BoxDecoration(
-                color: Colors.redAccent.withOpacity(0.1),
+                color: Colors.redAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.redAccent.withOpacity(0.2)),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -378,22 +378,22 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
         padding: EdgeInsets.all(4.w),
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFF111827).withOpacity(0.5),
+          color: const Color(0xFF111827).withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFF1F2937)),
         ),
         child: Column(
           children: [
-            Icon(Icons.insights, size: 40.sp, color: Colors.white.withOpacity(0.1)),
+            Icon(Icons.insights, size: 40.sp, color: Colors.white.withValues(alpha: 0.1)),
             SizedBox(height: 2.h),
             Text(
               "Analytics Pending",
-              style: TextStyle(color: Colors.white.withOpacity(0.3), fontWeight: FontWeight.bold, fontSize: 18.sp),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontWeight: FontWeight.bold, fontSize: 18.sp),
             ),
             SizedBox(height: 1.h),
             Text(
               "Results will appear here after analysis",
-              style: TextStyle(color: Colors.white.withOpacity(0.2), fontSize: 15.sp),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 15.sp),
             ),
           ],
         ),
@@ -436,7 +436,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                       child: CircularProgressIndicator(
                         value: overallScore / 100,
                         strokeWidth: 10,
-                        backgroundColor: Colors.white.withOpacity(0.05),
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
                         color: scoreColor,
                       ),
                     ),
@@ -462,7 +462,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             Container(
               padding: EdgeInsets.all(4.w),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.03),
+                color: Colors.white.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Text(
@@ -496,9 +496,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         grade,
@@ -524,7 +524,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     return Container(
       padding: EdgeInsets.all(2.w),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -552,7 +552,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Icon(Icons.circle, size: 6, color: color.withOpacity(0.5)),
+                      child: Icon(Icons.circle, size: 6, color: color.withValues(alpha: 0.5)),
                     ),
                     SizedBox(width: 3.w),
                     Expanded(

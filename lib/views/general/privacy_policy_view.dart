@@ -31,7 +31,7 @@ class PrivacyPolicyView extends StatelessWidget {
 
             _sectionTitle("1. Introduction"),
             _bodyText(
-              "LeoRecruit (\"we\", \"our\", or \"us\") is committed to protecting "
+              "LeoOpus (\"we\", \"our\", or \"us\") is committed to protecting "
               "your privacy. This policy explains how we collect, use, and "
               "safeguard your information.",
             ),

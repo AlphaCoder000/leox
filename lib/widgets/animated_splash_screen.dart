@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 
 class AnimatedSplashScreen extends StatefulWidget {
@@ -23,7 +24,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
   late AnimationController _backgroundController;
 
   late Animation<double> _logoScale;
-  late Animation<double> _logoRotation;
   late Animation<double> _logoOpacity;
 
   late Animation<double> _textSlide;
@@ -57,72 +57,45 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     );
 
     // Logo animations
-    _logoScale = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.elasticOut,
-    ));
+    _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
 
-    _logoRotation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.3, 1.0, curve: Curves.easeInOut),
-    ));
-
-    _logoOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _logoController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
-    ));
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
 
     // Text animations
-    _textSlide = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: Curves.easeOutBack,
-    ));
+    _textSlide = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _textController, curve: Curves.easeOutBack),
+    );
 
-    _textFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _textController,
-      curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
-    ));
+    _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _textController,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeIn),
+      ),
+    );
 
     // Particle animations
-    _particleScale = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _particleController,
-      curve: Curves.elasticOut,
-    ));
+    _particleScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _particleController, curve: Curves.elasticOut),
+    );
 
-    _particleOpacity = Tween<double>(
-      begin: 0.0,
-      end: 0.6,
-    ).animate(CurvedAnimation(
-      parent: _particleController,
-      curve: const Interval(0.0, 0.7, curve: Curves.easeIn),
-    ));
+    _particleOpacity = Tween<double>(begin: 0.0, end: 0.6).animate(
+      CurvedAnimation(
+        parent: _particleController,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeIn),
+      ),
+    );
 
     // Background gradient animation
-    _backgroundGradient = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _backgroundController,
-      curve: Curves.easeInOut,
-    ));
+    _backgroundGradient = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _backgroundController, curve: Curves.easeInOut),
+    );
 
     // Start animations
     _startAnimations();
@@ -156,10 +129,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => widget.child,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
         transitionDuration: const Duration(milliseconds: 800),
       ),
@@ -210,7 +180,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
               children: [
                 // Background particles
                 ...List.generate(20, (index) => _buildParticle(index)),
-                
+
                 // Main content
                 Center(
                   child: Column(
@@ -222,35 +192,12 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                         builder: (context, child) {
                           return Transform.scale(
                             scale: _logoScale.value,
-                            child: Transform.rotate(
-                              angle: _logoRotation.value * 0.1,
-                              child: Opacity(
-                                opacity: _logoOpacity.value,
-                                child: Container(
-                                  width: 120.w,
-                                  height: 120.w,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.white.withOpacity(0.9),
-                                        Colors.white.withOpacity(0.7),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(30),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.white.withOpacity(0.3),
-                                        blurRadius: 30,
-                                        spreadRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    Icons.work_rounded,
-                                    size: 60.sp,
-                                    color: const Color(0xFF1976D2),
-                                  ),
-                                ),
+                            child: Opacity(
+                              opacity: _logoOpacity.value,
+                              child: Image.asset(
+                                'assets/icons/leo_Opus_logo.jpeg',
+                                width: 80.w, // Bigger size without white box
+                                fit: BoxFit.contain,
                               ),
                             ),
                           );
@@ -269,18 +216,36 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                               opacity: _textFade.value,
                               child: Column(
                                 children: [
-                                  Text(
-                                    'LeoOpus',
-                                    style: TextStyle(
-                                      fontSize: 28.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      letterSpacing: 1.2,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withOpacity(0.3),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 2),
+                                  RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontSize: 28.sp,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                                        letterSpacing: 1.2,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      children: const [
+                                        TextSpan(
+                                          text: 'LEO',
+                                          style: TextStyle(
+                                            color: Color(0xFF001A66),
+                                          ),
+                                        ),
+                                        TextSpan(text: ' '),
+                                        TextSpan(
+                                          text: 'Opus',
+                                          style: TextStyle(
+                                            color: Color(0xFF3374D9),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -289,9 +254,11 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   Text(
                                     'Smart Hiring Platform',
                                     style: TextStyle(
-                                      fontSize: 14.sp,
+                                      fontSize: 17.sp,
                                       fontWeight: FontWeight.w300,
-                                      color: Colors.white.withOpacity(0.8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       letterSpacing: 0.5,
                                     ),
                                   ),
@@ -316,15 +283,22 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   width: 40.w,
                                   height: 4.h,
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     children: List.generate(3, (index) {
                                       return AnimatedBuilder(
                                         animation: _textController,
                                         builder: (context, child) {
                                           return Transform.scale(
-                                            scale: 1.0 + 
-                                                (index == 0 ? 0.3 : index == 1 ? 0.5 : 0.3) *
-                                                (_textController.value * 0.5),
+                                            scale:
+                                                1.0 +
+                                                (index == 0
+                                                        ? 0.3
+                                                        : index == 1
+                                                        ? 0.5
+                                                        : 0.3) *
+                                                    (_textController.value *
+                                                        0.5),
                                             child: Container(
                                               width: 8.w,
                                               height: 8.w,
@@ -333,7 +307,8 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                                 shape: BoxShape.circle,
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.white.withOpacity(0.5),
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.5),
                                                     blurRadius: 4,
                                                   ),
                                                 ],
@@ -349,8 +324,8 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                 Text(
                                   'Loading amazing experience...',
                                   style: TextStyle(
-                                    fontSize: 11.sp,
-                                    color: Colors.white.withOpacity(0.7),
+                                    fontSize: 16.sp,
+                                    color: Colors.white.withValues(alpha: 0.7),
                                     fontWeight: FontWeight.w300,
                                   ),
                                 ),
@@ -373,7 +348,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
   Widget _buildParticle(int index) {
     final size = (index % 3 + 1) * 10.0;
     final opacity = 0.1 + (index % 5) * 0.1;
-    
+
     return AnimatedBuilder(
       animation: _particleController,
       builder: (context, child) {
@@ -392,7 +367,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       blurRadius: 10,
                     ),
                   ],

@@ -25,6 +25,12 @@ import 'providers/employee_providers/employee_dashboard_provider.dart';
 import 'providers/job_application_provider.dart';
 import 'providers/notification_provider.dart';
 
+// Maintenance Contracts imports
+import 'maintenance_contracts/controllers/mc_provider_auth_controller.dart';
+import 'maintenance_contracts/controllers/mc_seeker_auth_controller.dart';
+import 'maintenance_contracts/controllers/mc_provider_dashboard_controller.dart';
+import 'maintenance_contracts/controllers/mc_seeker_dashboard_controller.dart';
+
 // Backend Services imports
 import 'services/firebase_service.dart';
 import 'services/profile_service.dart';
@@ -91,6 +97,12 @@ void main() async {
         ChangeNotifierProvider(create: (_) => EmployeeJobsProvider()),
         ChangeNotifierProvider(create: (_) => JobApplicationProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        
+        // Maintenance Contract Providers
+        ChangeNotifierProvider(create: (_) => McProviderAuthController()),
+        ChangeNotifierProvider(create: (_) => McSeekerAuthController()),
+        ChangeNotifierProvider(create: (_) => McProviderDashboardController()),
+        ChangeNotifierProvider(create: (_) => McSeekerDashboardController()),
       ],
       child: const MyApp(),
     ),

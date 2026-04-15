@@ -225,7 +225,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
       );
 
       // Set success message for UI feedback
-      _setSuccessMessage('Registration successful! Welcome to LeoRecruit.');
+      _setSuccessMessage('Registration successful! Welcome to LeoOpus.');
       
       // Manually update auth state to trigger immediate login
       _firebaseUser = credential.user;

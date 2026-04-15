@@ -7,9 +7,9 @@ void main() {
   group('AnimatedSplashScreen Widget Tests', () {
     testWidgets('should display splash screen with correct structure', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       const testChild = Scaffold(
         body: Center(child: Text('Main App')),
@@ -54,9 +54,9 @@ void main() {
 
     testWidgets('should have correct logo styling and animations', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       const testChild = Scaffold(
         body: Center(child: Text('Main App')),
@@ -93,7 +93,7 @@ void main() {
       final taglineText = tester.widget<Text>(find.text('Smart Hiring Platform'));
       expect(taglineText.style?.fontSize, equals(14.sp));
       expect(taglineText.style?.fontWeight, equals(FontWeight.w300));
-      expect(taglineText.style?.color, equals(Colors.white.withOpacity(0.8)));
+      expect(taglineText.style?.color, equals(Colors.white.withValues(alpha: 0.8)));
 
       // Wait for completion to avoid timer issues
       await tester.pumpAndSettle(const Duration(milliseconds: 150));
@@ -101,9 +101,9 @@ void main() {
 
     testWidgets('should display background particles', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       const testChild = Scaffold(
         body: Center(child: Text('Main App')),
@@ -138,9 +138,9 @@ void main() {
 
     testWidgets('should navigate to main screen after duration', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       const testChild = Scaffold(
         body: Center(child: Text('Main App')),
@@ -173,9 +173,9 @@ void main() {
 
     testWidgets('should have proper gradient background', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       const testChild = Scaffold(
         body: Center(child: Text('Main App')),
@@ -213,9 +213,9 @@ void main() {
 
     testWidgets('should have correct text content', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       const testChild = Scaffold(
         body: Center(child: Text('Main App')),
@@ -246,7 +246,7 @@ void main() {
       final loadingText = tester.widget<Text>(find.text('Loading amazing experience...'));
       expect(loadingText.style?.fontSize, equals(11.sp));
       expect(loadingText.style?.fontWeight, equals(FontWeight.w300));
-      expect(loadingText.style?.color, equals(Colors.white.withOpacity(0.7)));
+      expect(loadingText.style?.color, equals(Colors.white.withValues(alpha: 0.7)));
 
       // Wait for completion to avoid timer issues
       await tester.pumpAndSettle(const Duration(milliseconds: 150));

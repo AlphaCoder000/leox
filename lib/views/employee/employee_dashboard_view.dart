@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:leox/providers/employee_providers/employee_dashboard_provider.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
@@ -49,7 +50,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    //final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard),
@@ -97,97 +98,67 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
 
           Padding(
             padding: EdgeInsets.only(right: 4.w),
-            child: PopupMenuButton<String>(
-              offset: const Offset(0, 45),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              onSelected: (value) async {
-                final authProvider = context.read<EmployeeAuthProvider>();
-
-                if (value == 'profile') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const EmployeeProfileView(),
-                    ),
-                  );
-                }
-
-                if (value == 'logout') {
-                  _showLogoutDialog(context);
-                }
-              },
-
-              itemBuilder: (_) {
-                final authProvider = context.read<EmployeeAuthProvider>();
-                final email = authProvider.userEmail ?? 'Employee';
-                return [
-                  PopupMenuItem(
-                    enabled: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          email.isEmpty ? "Employee" : email.split('@')[0],
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+            child: Consumer2<EmployeeProfileProvider, EmployeeAuthProvider>(
+              builder: (context, profileProvider, authProvider, child) {
+                final profile = profileProvider.profile;
+                final userEmail = authProvider.userEmail ?? 'Employee';
+                return GestureDetector(
+                  onTap: () {
+                    _showProfileBottomSheet(context, profile, userEmail);
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      if (profile != null && profile.profilePicture.isNotEmpty) {
+                        return CircleAvatar(
+                          backgroundImage: NetworkImage(profile.profilePicture),
+                          backgroundColor: colorScheme.primary,
+                        );
+                      }
+                      return CircleAvatar(
+                        backgroundColor: colorScheme.primary,
+                        child: Text(
+                          (profile?.firstName.isNotEmpty ?? false)
+                              ? profile!.firstName[0].toUpperCase()
+                              : "P",
+                          style: const TextStyle(color: Colors.white),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          email,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'profile',
-                    child: Text("My Profile"),
-                  ),
-                  const PopupMenuItem(value: 'logout', child: Text("Logout")),
-                ];
+                );
               },
-              child: Consumer<EmployeeProfileProvider>(
-                builder: (context, profileProvider, child) {
-                  final profile = profileProvider.profile;
-                  if (profile != null &&
-                      (profile.profilePicture ?? '').isNotEmpty) {
-                    return CircleAvatar(
-                      backgroundImage: NetworkImage(profile.profilePicture),
-                      backgroundColor: colorScheme.primary,
-                    );
-                  }
-                  return CircleAvatar(
-                    backgroundColor: colorScheme.primary,
-                    child: Text(
-                      (profile?.firstName.isNotEmpty ?? false)
-                          ? profile!.firstName[0].toUpperCase()
-                          : "E",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                },
-              ),
             ),
           ),
         ],
       ),
 
-      body: Consumer<EmployeeDashboardProvider>(
-        builder: (context, dashboardProvider, _) {
-          // Show loading spinner
-          if (dashboardProvider.isLoading) {
-            return Center(
-              child: CircularProgressIndicator(color: colorScheme.primary),
-            );
-          }
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/icons/leoOpus_bg_image.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                child: Container(
+                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3)),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: Consumer<EmployeeDashboardProvider>(
+          builder: (context, dashboardProvider, _) {
+            // Show loading spinner
+            if (dashboardProvider.isLoading) {
+              return Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
+              );
+            }
 
           // Show error message with retry option
           if ((dashboardProvider.errorMessage ?? '').isNotEmpty && mounted) {
@@ -220,11 +191,11 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   "Your personal application overview.",
                   style: TextStyle(
                     fontSize: 17.sp, fontWeight: FontWeight.w600,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.51),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.71),
                   ),
                 ),
 
-                SizedBox(height: 3.h),
+                SizedBox(height: 1.h),
 
                 // 🔹 STATS GRID
                 GridView.count(
@@ -250,7 +221,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   ],
                 ),
 
-                SizedBox(height: 4.h),
+              
 
                 // 🔹 PROFILE COMPLETION
                 Card(
@@ -270,26 +241,26 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                             Text(
                               "Profile Completion",
                               style: TextStyle(
-                                fontSize: 20.sp,
+                                fontSize: 18.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             Text(
                               "${dashboard.profileCompletionPercentage.toStringAsFixed(0)}%",
                               style: TextStyle(
-                                fontSize: 19.sp,
+                                fontSize: 18.sp,
                                 fontWeight: FontWeight.w600,
                                 color: colorScheme.primary,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 2.h),
+                        SizedBox(height: 1.h),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
                             value: dashboard.profileCompletionPercentage / 100,
-                            minHeight: 8,
+                            minHeight: 1.h,
                             backgroundColor:
                                 colorScheme.surfaceContainerHighest,
                             valueColor: AlwaysStoppedAnimation<Color>(
@@ -299,7 +270,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                             ),
                           ),
                         ),
-                        SizedBox(height: 2.h),
+                        SizedBox(height: 1.h),
                         Text(
                           dashboard.profileCompletionPercentage >= 80
                               ? "Great! Your profile looks complete."
@@ -315,7 +286,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                   ),
                 ),
 
-                SizedBox(height: 4.h),
+                SizedBox(height: 1.h),
 
                 // 🔹 RECENT APPLICATIONS
                 Card(
@@ -332,11 +303,11 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                         Text(
                           "Recent Applications",
                           style: TextStyle(
-                            fontSize: 20.sp,
+                            fontSize: 19.sp,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 0.8.h),
+                        SizedBox(height: 0.2.h),
                         Text(
                           "Your latest job applications",
                           style: TextStyle(
@@ -346,7 +317,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                           ),
                         ),
 
-                        SizedBox(height: 3.h),
+                        SizedBox(height: 1.h),
 
                         if (dashboard.recentApplications.isEmpty)
                           Center(
@@ -499,6 +470,9 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
           );
         },
       ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -583,6 +557,71 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
               ),
             ],
           ),
+    );
+  }
+
+  void _showProfileBottomSheet(BuildContext parentContext, dynamic profile, String userEmail) {
+    showModalBottomSheet(
+      context: parentContext,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) {
+        final theme = Theme.of(bottomSheetContext);
+        final displayName = userEmail.isEmpty ? "Employee" : userEmail.split('@')[0];
+        
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  child: Icon(Icons.person, color: theme.colorScheme.primary),
+                ),
+                title: Text(
+                  displayName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(userEmail),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.account_circle_outlined),
+                title: const Text("My Profile"),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  Navigator.push(
+                    parentContext,
+                    MaterialPageRoute(
+                      builder: (_) => const EmployeeProfileView(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.redAccent),
+                title: const Text("Logout", style: TextStyle(color: Colors.redAccent)),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _showLogoutDialog(parentContext);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 }

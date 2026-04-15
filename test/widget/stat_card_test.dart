@@ -7,9 +7,10 @@ void main() {
   group('StatCard Widget Tests', () {
     testWidgets('should display all required properties correctly', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       const testTitle = 'Test Title';
       const testValue = 42;
@@ -48,9 +49,10 @@ void main() {
 
     testWidgets('should handle long text with ellipsis', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       const longTitle = 'This is a very long title that should be truncated';
       const longSubtitle = 'This is a very long subtitle that should also be truncated with ellipsis';
@@ -81,9 +83,10 @@ void main() {
 
     testWidgets('should display zero value correctly', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
         Sizer(
@@ -109,9 +112,10 @@ void main() {
 
     testWidgets('should handle negative values', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
         Sizer(
@@ -135,9 +139,10 @@ void main() {
 
     testWidgets('should have correct card styling', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
         Sizer(
@@ -166,9 +171,10 @@ void main() {
 
     testWidgets('should have fixed height container', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
         Sizer(
@@ -198,9 +204,10 @@ void main() {
 
     testWidgets('should use correct text styles', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
         Sizer(
@@ -244,8 +251,8 @@ void main() {
 
       for (final icon in icons) {
         // Initialize Sizer for testing
-        tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-        tester.binding.window.devicePixelRatioTestValue = 1.0;
+        tester.view.physicalSize = const Size(411, 823);
+        tester.view.devicePixelRatio = 1.0;
 
         await tester.pumpWidget(
           Sizer(
@@ -266,15 +273,17 @@ void main() {
 
         expect(find.byIcon(icon), findsOneWidget);
         await tester.pumpWidget(Container()); // Clean up
-        addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
       }
     });
 
     testWidgets('should be responsive to theme changes', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(
         Sizer(

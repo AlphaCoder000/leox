@@ -211,7 +211,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                   label: Text(isEditing ? "Save Changes" : "Post Job"),
                   style: ElevatedButton.styleFrom(
                     elevation: 4,
-                    shadowColor: Theme.of(context).primaryColor.withOpacity(0.4),
+                    shadowColor: Theme.of(context).primaryColor.withValues(alpha: 0.4),
                   ),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
@@ -238,7 +238,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                           await jobsProvider.addJob(newJob);
                         }
 
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Row(
@@ -267,7 +267,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                           );
                         }
                       } catch (e) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Row(

@@ -263,7 +263,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
 
                                 // No manual navigation needed. main.dart reacts to login.
                                 // Just clear any pushed login/register screens to return to root.
-                                if (provider.isLoggedIn && mounted) {
+                                if (provider.isLoggedIn && context.mounted) {
                                   Navigator.of(context).popUntil((route) => route.isFirst);
                                 }
                               },
@@ -311,7 +311,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                           final provider = context.read<EmployeeAuthProvider>();
                           await provider.signInWithGoogle();
                           
-                          if (provider.isLoggedIn && mounted) {
+                          if (provider.isLoggedIn && context.mounted) {
                             Navigator.of(context).popUntil((route) => route.isFirst);
                           }
                         },

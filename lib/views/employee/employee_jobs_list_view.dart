@@ -34,9 +34,9 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
 
     return Scaffold(
       drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard),
-      appBar: AppBar(title: const Text("Jobs")),
+      appBar: AppBar(title: const Text("Jobs", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
       body: Padding(
-        padding: EdgeInsets.all(4.w),
+        padding: EdgeInsets.all(2.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,13 +53,14 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
               ),
             ),
 
-            SizedBox(height: 2.h),
+            SizedBox(height: 1.h),
 
             // SEARCH
             TextField(
               onChanged: (v) => setState(() => query = v),
               decoration: InputDecoration(
                 hintText: "Search jobs by title or department...",
+                hintStyle: TextStyle(fontSize: 15.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -67,7 +68,7 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
               ),
             ),
 
-            SizedBox(height: 2.h),
+            SizedBox(height: 1.h),
 
             // JOB LIST
             Expanded(

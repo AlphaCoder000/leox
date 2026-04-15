@@ -121,7 +121,7 @@ class SessionService {
   }
 
   /// Clear entire session (legacy method, kept for compatibility)
-  @deprecated
+  @Deprecated('Use clearAuth instead')
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

@@ -6,7 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../../providers/notification_provider.dart';
 import '../../models/notification_model.dart';
 import '../../providers/employer_auth_provider.dart';
-import '../../providers/employee_providers/employee_auth_provider.dart';
+//import '../../providers/employee_providers/employee_auth_provider.dart';
 import '../../widgets/employer_drawer.dart';
 import '../../widgets/employee_drawer.dart';
 import '../../constants/employer_drawer_item.dart';
@@ -18,7 +18,7 @@ class NotificationsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final notificationProvider = context.watch<NotificationProvider>();
     final employerAuth = context.watch<EmployerAuthProvider>();
-    final employeeAuth = context.watch<EmployeeAuthProvider>();
+   // final employeeAuth = context.watch<EmployeeAuthProvider>();
     
     final bool isEmployer = employerAuth.isLoggedIn;
 
@@ -82,7 +82,7 @@ class NotificationsView extends StatelessWidget {
                 Icon(
                   Icons.notifications_none_outlined,
                   size: 40.w,
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                 ),
                 SizedBox(height: 2.h),
                 Text(
@@ -144,13 +144,13 @@ class NotificationsView extends StatelessWidget {
         padding: EdgeInsets.all(4.w),
         decoration: BoxDecoration(
           color: isUnread 
-            ? theme.colorScheme.primary.withOpacity(0.05) 
+            ? theme.colorScheme.primary.withValues(alpha: 0.05) 
             : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isUnread 
-              ? theme.colorScheme.primary.withOpacity(0.2) 
-              : theme.dividerColor.withOpacity(0.05),
+              ? theme.colorScheme.primary.withValues(alpha: 0.2) 
+              : theme.dividerColor.withValues(alpha: 0.05),
           ),
         ),
         child: Row(
@@ -159,7 +159,7 @@ class NotificationsView extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(2.w),
               decoration: BoxDecoration(
-                color: _getTypeColor(notification.type).withOpacity(0.1),
+                color: _getTypeColor(notification.type).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -210,7 +210,7 @@ class NotificationsView extends StatelessWidget {
                     notification.message,
                     style: TextStyle(
                       fontSize: 15.sp,
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                     ),
                   ),
                 ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
 import 'package:leox/views/employee/employee_ai_resume_matcher.dart';
@@ -21,7 +22,7 @@ class EmployeeDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    //final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
       width: 70.w,
@@ -37,25 +38,35 @@ class EmployeeDrawer extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(2.5.w),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.work_outline,
-                    color: colorScheme.primary,
-                    size: 22.sp,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/icons/leo_Opus_logo.jpeg',
+                    width: 12.w,
+                    height: 12.w,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 SizedBox(width: 3.w),
-                Text(
-                  "LeoRecruit",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                      letterSpacing: 0.5,
+                    ),
+                    children: const [
+                      TextSpan(
+                        text: 'LEO',
+                        style: TextStyle(color: Color(0xFF001A66)),
+                      ),
+                      TextSpan(text: ' '),
+                      TextSpan(
+                        text: 'Opus',
+                        style: TextStyle(color: Color(0xFF3374D9)),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -138,7 +149,7 @@ class EmployeeDrawer extends StatelessWidget {
               "v1.0.0",
               style: TextStyle(
                 fontSize: 10.sp,
-                color: Colors.white.withOpacity(0.45),
+                color: Colors.white.withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -162,14 +173,14 @@ class EmployeeDrawer extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 0.6.h),
       child: Material(
         elevation: isSelected ? 6 : 0,
-        shadowColor: colorScheme.primary.withOpacity(0.4),
+        shadowColor: colorScheme.primary.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: colorScheme.primary.withOpacity(0.15),
-          highlightColor: colorScheme.primary.withOpacity(0.08),
+          splashColor: colorScheme.primary.withValues(alpha: 0.15),
+          highlightColor: colorScheme.primary.withValues(alpha: 0.08),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
             decoration: BoxDecoration(
@@ -180,19 +191,19 @@ class EmployeeDrawer extends StatelessWidget {
               children: [
                 Icon(
                   isSelected ? activeIcon : icon,
-                  size: 18.sp,
-                  color: Colors.white.withOpacity(0.65),
+                  size: 20.sp,
+                  color: Colors.white.withValues(alpha: 0.65),
                 ),
                 SizedBox(width: 4.w),
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15.sp,
+                    fontSize: 18.sp,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color:
                         isSelected
                             ? Colors.white
-                            : Colors.white.withOpacity(0.85),
+                            : Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -214,12 +225,12 @@ class EmployeeDrawer extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.6.h),
           child: Row(
             children: [
-              Icon(Icons.logout_rounded, size: 18.sp, color: Colors.redAccent),
+              Icon(Icons.logout_rounded, size: 21.sp, color: Colors.redAccent),
               SizedBox(width: 4.w),
               Text(
                 "Logout",
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.redAccent,
                 ),
@@ -236,79 +247,83 @@ class EmployeeDrawer extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: _drawerBg,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: _divider),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.logout_rounded, color: Colors.redAccent),
-            SizedBox(width: 3.w),
-            Text(
-              "Logout",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-              ),
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: _drawerBg,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: _divider),
             ),
-          ],
-        ),
-        content: Text(
-          "Are you sure you want to sign out of your employee account? You'll need to login again to see your applications and saved jobs.",
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 12.sp,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 11.sp,
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 2.w),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            title: Row(
+              children: [
+                const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                SizedBox(width: 3.w),
+                Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ],
+            ),
+            content: Text(
+              "Are you sure you want to sign out of your employee account? You'll need to login again to see your applications and saved jobs.",
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 12.sp,
               ),
-              onPressed: () async {
-                // 1. Close dialog using its builder context
-                Navigator.of(dialogContext).pop();
-                
-                // 2. Perform logout and reset profile
-                final auth = context.read<EmployeeAuthProvider>();
-                final profile = context.read<EmployeeProfileProvider>();
-                
-                await auth.logout();
-                profile.reset();
-              },
-              child: Text(
-                "Yes, Logout",
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.bold,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 11.sp,
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: EdgeInsets.only(left: 2.w),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 5.w,
+                      vertical: 1.2.h,
+                    ),
+                  ),
+                  onPressed: () async {
+                    // 1. Close dialog using its builder context
+                    Navigator.of(dialogContext).pop();
+
+                    // 2. Perform logout and reset profile
+                    final auth = context.read<EmployeeAuthProvider>();
+                    final profile = context.read<EmployeeProfileProvider>();
+
+                    await auth.logout();
+                    profile.reset();
+                  },
+                  child: Text(
+                    "Yes, Logout",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 

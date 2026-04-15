@@ -202,7 +202,7 @@ class EmployeeApiService {
     required String filePath,
   }) async {
     try {
-      // TODO: Implement multipart form data upload
+      
       // For now, this is a placeholder
       throw ApiException(message: 'Profile picture upload not yet implemented');
     } catch (e) {

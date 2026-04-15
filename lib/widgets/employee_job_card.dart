@@ -45,25 +45,30 @@ class EmployeeJobCard extends StatelessWidget {
               job.department,
               style: TextStyle(
                 fontSize: 16.sp,
-                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
               ),
             ),
 
             SizedBox(height: 1.2.h),
 
-            Text(
-              "Posted on ${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
-              style: TextStyle(fontSize: 11.sp),
-            ),
-
-            SizedBox(height: 1.6.h),
-
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton(
-                onPressed: onView,
-                child: const Text("View"),
-              ),
+            Row(
+              spacing: 15.w,
+              children: [
+                Text(
+                  "Posted on ${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
+                  style: TextStyle(fontSize: 13.sp),
+                ),
+                
+                SizedBox(height: 1.6.h),
+                
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton(
+                    onPressed: onView,
+                    child: const Text("View"),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -77,7 +82,7 @@ class EmployeeJobCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.4.h),
       decoration: BoxDecoration(
-        color: isOpen ? Theme.of(context).colorScheme.primary.withOpacity(0.15) : Colors.grey.shade300,
+        color: isOpen ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15) : Colors.grey.shade300,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

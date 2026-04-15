@@ -49,7 +49,7 @@ class _CandidatesViewState extends State<CandidatesView>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    //final isDark = theme.brightness == Brightness.dark;
     final applicationProvider = context.watch<JobApplicationProvider>();
 
     // Get unique job titles for filtering
@@ -84,8 +84,8 @@ class _CandidatesViewState extends State<CandidatesView>
                     end: Alignment.bottomRight,
                     colors: [
                       colorScheme.primary,
-                      colorScheme.primary.withOpacity(0.8),
-                      colorScheme.secondary.withOpacity(0.9),
+                      colorScheme.primary.withValues(alpha: 0.8),
+                      colorScheme.secondary.withValues(alpha: 0.9),
                     ],
                   ),
                 ),
@@ -109,7 +109,7 @@ class _CandidatesViewState extends State<CandidatesView>
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -138,7 +138,7 @@ class _CandidatesViewState extends State<CandidatesView>
                       // Filter Button
                       Container(
                         decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.15),
+                          color: colorScheme.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: PopupMenuButton<String?>(
@@ -174,7 +174,7 @@ class _CandidatesViewState extends State<CandidatesView>
                           label: Text('Job: $_selectedJobTitle'),
                           onDeleted:
                               () => setState(() => _selectedJobTitle = null),
-                          backgroundColor: colorScheme.primary.withOpacity(0.1),
+                          backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                           labelStyle: TextStyle(
                             color: colorScheme.primary,
                             fontSize: 16.sp,
@@ -306,7 +306,7 @@ class _CandidatesViewState extends State<CandidatesView>
           Container(
             padding: EdgeInsets.all(6.w),
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -347,13 +347,13 @@ class _CandidatesViewState extends State<CandidatesView>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
         ],
         border: Border.all(
-          color: theme.dividerColor.withOpacity(0.1),
+          color: theme.dividerColor.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -381,7 +381,7 @@ class _CandidatesViewState extends State<CandidatesView>
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-                  color: _getStatusColor(candidate.status).withOpacity(0.1),
+                  color: _getStatusColor(candidate.status).withValues(alpha: 0.1),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -413,14 +413,14 @@ class _CandidatesViewState extends State<CandidatesView>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: colorScheme.primary.withOpacity(0.3),
+                                color: colorScheme.primary.withValues(alpha: 0.3),
                                 width: 2,
                               ),
                             ),
                             child: CircleAvatar(
                               radius: 5.w,
-                              backgroundColor: colorScheme.primary.withOpacity(
-                                0.1,
+                              backgroundColor: colorScheme.primary.withValues(
+                                alpha: 0.1,
                               ),
                               backgroundImage:
                                   candidate.avatarUrl.isNotEmpty
@@ -497,10 +497,10 @@ class _CandidatesViewState extends State<CandidatesView>
                       Container(
                         padding: EdgeInsets.all(2.w),
                         decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.05),
+                          color: colorScheme.primary.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: colorScheme.primary.withOpacity(0.1),
+                            color: colorScheme.primary.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -559,7 +559,7 @@ class _CandidatesViewState extends State<CandidatesView>
                                         vertical: 0.6.h,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.1),
+                                        color: Colors.grey.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
@@ -622,7 +622,7 @@ class _CandidatesViewState extends State<CandidatesView>
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.2.h),
         decoration: BoxDecoration(
-          border: Border.all(color: color.withOpacity(0.5)),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -656,13 +656,13 @@ class _CandidatesViewState extends State<CandidatesView>
             gradient: LinearGradient(
               colors: [
                 colorScheme.primary,
-                colorScheme.primary.withOpacity(0.8),
+                colorScheme.primary.withValues(alpha: 0.8),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.primary.withOpacity(0.3),
+                color: colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -796,8 +796,9 @@ class _CandidatesViewState extends State<CandidatesView>
         }
       }
     } else {
-      if (mounted)
+      if (mounted) {
         ErrorHandlerUI.showErrorSnackbar(context, 'No resume available');
+      }
     }
   }
 

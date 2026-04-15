@@ -216,7 +216,7 @@ index e99d281..33852ae 100644
 +      await _createEmployeeProfile(credential.user!, name: name);
  
        // Set success message for UI feedback
-       _setSuccessMessage('Registration successful! Welcome to LeoRecruit.');
+       _setSuccessMessage('Registration successful! Welcome to LeoOpus.');
 @@ -472,7 +473,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
    }
  
@@ -332,7 +332,7 @@ index bc9ab39..bb9f0ee 100644
 +      );
  
        // Set success message for UI feedback
-       _setSuccessMessage('Registration successful! Welcome to LeoRecruit.');
+       _setSuccessMessage('Registration successful! Welcome to LeoOpus.');
 @@ -340,7 +350,13 @@ Future<void> _checkRoleWithRetry(String uid) async {
    }
  
@@ -4683,7 +4683,7 @@ index 05f82ab..0000000
 -
 -            _sectionTitle("1. Introduction"),
 -            _bodyText(
--              "LeoRecruit (\"we\", \"our\", or \"us\") is committed to protecting "
+-              "LeoOpus (\"we\", \"our\", or \"us\") is committed to protecting "
 -              "your privacy. This policy explains how we collect, use, and "
 -              "safeguard your information.",
 -            ),

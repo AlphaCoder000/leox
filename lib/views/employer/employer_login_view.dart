@@ -248,7 +248,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                     Center(
                       child: TextButton(
                         onPressed: () async {
-                          // TODO: Implement OTP functionality for employer
+                        
                           ErrorHandlerUI.showErrorSnackbar(
                             context,
                             'OTP login not implemented for employers',
@@ -286,7 +286,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
 
                                   // No manual navigation needed. main.dart reacts to login.
                                   // Just clear any pushed login/register screens to return to root.
-                                  if (provider.isLoggedIn && mounted) {
+                                  if (provider.isLoggedIn && context.mounted) {
                                     Navigator.of(context).popUntil((route) => route.isFirst);
                                   }
                                 },
@@ -333,7 +333,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                           final provider = context.read<EmployerAuthProvider>();
                           await provider.signInWithGoogle();
                           
-                          if (provider.isLoggedIn && mounted) {
+                          if (provider.isLoggedIn && context.mounted) {
                             Navigator.of(context).popUntil((route) => route.isFirst);
                           }
                         },
@@ -423,7 +423,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
               selected
                   ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 4,
                     ),
                   ]

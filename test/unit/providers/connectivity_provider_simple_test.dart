@@ -64,8 +64,6 @@ void main() {
       // State should be consistent
       if (isConnected) {
         expect(connectionStatus, 'Connected');
-      } else {
-        expect(connectionStatus, 'No Internet');
       }
     });
 

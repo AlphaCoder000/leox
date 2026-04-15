@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:leox/views/general/role_option_view.dart';
+import 'package:leox/views/general/mc_role_option_view.dart';
 import 'package:leox/providers/theme_povider.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -31,7 +32,7 @@ class _WelcomeViewState extends State<WelcomeView> {
         child: Column(
           children: [
             _header(context),
-            _heroSection(context),
+            _portalsSection(context),
             _featuresSection(context),
             _resourcesSection(context),
             _footer(context),
@@ -53,22 +54,28 @@ class _WelcomeViewState extends State<WelcomeView> {
         children: [
           const SizedBox(width: 48), // Spacer to help center the text
           Expanded(
-            child: ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: [
-                  theme.colorScheme.primary,
-                  const Color(0xFF8B5CF6), // Purple pop
-                ],
-              ).createShader(bounds),
-              child: Text(
-                "LeoOpus",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -1.0,
+            child: Center(
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                    letterSpacing: -1.0,
+                  ),
+                  children: const [
+                    TextSpan(
+                      text: 'LEO',
+                      style: TextStyle(color: Color(0xFF001A66)),
+                    ),
+                    TextSpan(text: ' '),
+                    TextSpan(
+                      text: 'Opus',
+                      style: TextStyle(color: Color(0xFF3374D9)),
+                    ),
+                  ],
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -77,8 +84,8 @@ class _WelcomeViewState extends State<WelcomeView> {
               themeProvider.themeMode == ThemeMode.dark
                   ? Icons.light_mode
                   : themeProvider.themeMode == ThemeMode.light
-                      ? Icons.dark_mode
-                      : Icons.settings_brightness,
+                  ? Icons.dark_mode
+                  : Icons.settings_brightness,
               color: theme.colorScheme.onSurface,
             ),
             onPressed: () => themeProvider.toggleTheme(),
@@ -88,63 +95,168 @@ class _WelcomeViewState extends State<WelcomeView> {
     );
   }
 
-  // 🔹 HERO
-  Widget _heroSection(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
+  // 🔹 PORTALS (HIRING & MAINTENANCE)
+  Widget _portalsSection(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(6.w),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            "Find Your Next Opportunity",
-            textAlign: TextAlign.center,
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-              height: 1.2,
-            ),
-          ),
-          SizedBox(height: 2.5.h),
-          Text(
-            "Browse jobs and discover roles that match your skills and ambitions.",
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 16.sp,
-              color:
-                  theme.brightness == Brightness.dark
-                      ? Colors.grey[400]
-                      : const Color(0xFF64748B),
-              height: 1.5,
-            ),
+          _buildPortalCard(
+            context,
+            title: "Hiring Platform",
+            heading: "Find Your Next Opportunity",
+            description:
+                "Browse jobs and discover roles that match your skills and ambitions.",
+            buttonText: "Get Started Free",
+            onAction: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RoleOptionView()),
+              );
+            },
+            icon: Icons.work_outline_rounded,
           ),
           SizedBox(height: 4.h),
-          Center(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+          _buildPortalCard(
+            context,
+            title: "Maintenance Contracts",
+            heading: "Expert Mechanical Services",
+            description:
+                "Connect with certified providers for equipment maintenance and repairs.",
+            buttonText: "Explore Contracts",
+            onAction: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const McRoleOptionView()),
+              );
+            },
+            icon: Icons.settings_suggest_outlined,
+            isPrimary: false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortalCard(
+    BuildContext context, {
+    required String title,
+    required String heading,
+    required String description,
+    required String buttonText,
+    required VoidCallback onAction,
+    required IconData icon,
+    bool isPrimary = true,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final primaryColor =
+        isPrimary
+            ? colorScheme.primary
+            : const Color(0xFF0EA5E9); // Use a distinct color for MC
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? theme.cardTheme.color : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: primaryColor.withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background Icon overlay
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              icon,
+              size: 150,
+              color: primaryColor.withValues(alpha: 0.05),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // PORTAL LABEL
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 4.w,
+                    vertical: 0.8.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    title.toUpperCase(),
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RoleOptionView()),
-                );
-              },
-              child: Text(
-                "Get Started Free",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                SizedBox(height: 3.h),
+                Text(
+                  heading,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                    height: 1.2,
+                  ),
                 ),
-              ),
+                SizedBox(height: 2.h),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: 15.sp,
+                    color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                    height: 1.5,
+                  ),
+                ),
+                SizedBox(height: 3.5.h),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 1.8.h,
+                    ),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: onAction,
+                  child: Text(
+                    buttonText,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -167,7 +279,7 @@ class _WelcomeViewState extends State<WelcomeView> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -198,7 +310,7 @@ class _WelcomeViewState extends State<WelcomeView> {
           // SUB HEADING
           Text(
             "From AI-powered resume screening to a centralized candidate database, "
-            "LeoRecruit provides the tools to build your dream team.",
+            "LeoOpus provides the tools to build your dream team.",
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontSize: 16.sp,
@@ -239,7 +351,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                         Container(
                           padding: EdgeInsets.all(2.w),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
@@ -301,7 +413,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.8.h),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -448,7 +560,7 @@ class _WelcomeViewState extends State<WelcomeView> {
         children: [
           const Divider(),
           SizedBox(height: 2.h),
-          
+
           // Original Footer
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -461,12 +573,13 @@ class _WelcomeViewState extends State<WelcomeView> {
                 ),
               ),
               ShaderMask(
-                shaderCallback: (bounds) => LinearGradient(
-                  colors: [
-                    theme.colorScheme.primary,
-                    const Color(0xFF8B5CF6),
-                  ],
-                ).createShader(bounds),
+                shaderCallback:
+                    (bounds) => LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary,
+                        const Color(0xFF8B5CF6),
+                      ],
+                    ).createShader(bounds),
                 child: Text(
                   "LeoOpus",
                   style: GoogleFonts.outfit(

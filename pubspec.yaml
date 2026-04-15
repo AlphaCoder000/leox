@@ -28,6 +28,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   syncfusion_flutter_pdf: ^31.1.19
 
+  http: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -36,6 +37,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   mockito: ^5.4.4
   build_runner: ^2.4.9
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -43,3 +45,7 @@ flutter:
   assets:
     - assets/icons/
     - .env
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/leo_Opus_app_icon.jpeg"

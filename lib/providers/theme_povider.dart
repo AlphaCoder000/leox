@@ -12,7 +12,7 @@ class ThemeProvider extends ChangeNotifier {
       case ThemeMode.light:
         return false;
       case ThemeMode.system:
-        return WidgetsBinding.instance.window.platformBrightness == Brightness.dark;
+        return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
     }
   }
 

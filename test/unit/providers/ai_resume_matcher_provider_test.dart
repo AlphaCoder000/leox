@@ -3,16 +3,12 @@ import 'package:mockito/annotations.dart';
 import 'package:leox/providers/ai_resume_matcher_provider.dart';
 import 'package:leox/backend/ai_workflows.dart';
 
-import 'ai_resume_matcher_provider_test.mocks.dart';
-
 @GenerateMocks([AIWorkflows])
 void main() {
   group('AIResumeMatcherProvider Tests', () {
-    late MockAIWorkflows mockAIWorkflows;
     late AIResumeMatcherProvider provider;
 
     setUp(() {
-      mockAIWorkflows = MockAIWorkflows();
       provider = AIResumeMatcherProvider();
     });
 

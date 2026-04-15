@@ -130,9 +130,9 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -153,7 +153,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                 Text(
                   _getStatusDescription(_currentStatus),
                   style: TextStyle(
-                    color: statusColor.withOpacity(0.8),
+                    color: statusColor.withValues(alpha: 0.8),
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500
                   ),
@@ -190,7 +190,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                       onPressed: () => _launchURL(widget.application.linkedIn),
                       avatar: const Icon(Icons.link, size: 16),
                       label: Text('LinkedIn', style: TextStyle(fontSize: 9.sp)),
-                      backgroundColor: Colors.blue.withOpacity(0.1),
+                      backgroundColor: Colors.blue.withValues(alpha: 0.1),
                     ),
                   ),
                 if (widget.application.portfolio.isNotEmpty)
@@ -198,7 +198,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
                     onPressed: () => _launchURL(widget.application.portfolio),
                     avatar: const Icon(Icons.web, size: 16),
                     label: Text('Portfolio', style: TextStyle(fontSize: 9.sp)),
-                    backgroundColor: Colors.green.withOpacity(0.1),
+                    backgroundColor: Colors.green.withValues(alpha: 0.1),
                   ),
               ],
             ),
@@ -266,7 +266,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
         style: TextStyle(
           fontSize: 12.sp,
           height: 1.5,
-          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
         ),
       ),
     );
@@ -283,7 +283,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
             children: [
               CircularProgressIndicator(
                 value: widget.application.matchScore / 100,
-                backgroundColor: Colors.grey.withOpacity(0.2),
+                backgroundColor: Colors.grey.withValues(alpha: 0.2),
                 color: _getScoreColor(widget.application.matchScore),
                 strokeWidth: 8,
               ),
@@ -318,7 +318,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
             style: TextStyle(
               fontSize: 11.sp,
               fontStyle: FontStyle.italic,
-              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -335,7 +335,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -391,7 +391,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -4)),
         ],
       ),
       child: Row(
@@ -411,7 +411,7 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
           SizedBox(width: 4.w),
           Container(
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(

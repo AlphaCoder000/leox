@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_login_view.dart';
 import 'package:leox/views/general/role_option_view.dart';
+import 'package:leox/utils/email_validator_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -45,13 +46,20 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
     final auth = context.read<EmployerAuthProvider>();
     
     if (_companyController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty ||
         _contactNumberController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty ||
         _confirmPasswordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    final emailError = EmailValidatorHelper.validateEmployerEmail(_emailController.text.trim());
+    if (emailError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(emailError)),
       );
       return;
     }
@@ -72,13 +80,15 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
         address: _addressController.text.trim(),
         linkedin: _linkedinController.text.trim(),
       );
+      if (!mounted) return;
       
       // Success? main.dart handles navigation.
       // We just need to clear the stack if we are on top.
-      if (auth.isLoggedIn && mounted) {
+      if (auth.isLoggedIn) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
+      if (!mounted) return;
       // Error is already handled/set in the provider, but we can show a snackbar too
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Registration failed: $e')),
@@ -238,7 +248,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           final provider = context.read<EmployerAuthProvider>();
                           await provider.signUpWithGoogle();
                           
-                          if (provider.isLoggedIn && mounted) {
+                          if (provider.isLoggedIn && context.mounted) {
                             Navigator.of(context).popUntil((route) => route.isFirst);
                           }
                         },

@@ -187,7 +187,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
   }
 
   Widget _buildInputCard(BuildContext context, AIResumeMatcherProvider provider) {
-    final colorScheme = Theme.of(context).colorScheme;
+    //final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: EdgeInsets.all(5.w),

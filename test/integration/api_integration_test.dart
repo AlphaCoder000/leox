@@ -28,7 +28,6 @@ void main() {
         expect(result['id'], equals(1));
       } catch (e) {
         // If the test server is not available, skip this test
-        print('Test server not available: $e');
       }
     });
 
@@ -43,7 +42,7 @@ void main() {
 
     test('should handle network timeout', () async {
       // Set a very short timeout for this test
-      final originalTimeout = ApiService.timeoutDuration;
+      //final originalTimeout = ApiService.timeoutDuration;
       
       try {
         // This would require modifying the ApiService to allow custom timeouts

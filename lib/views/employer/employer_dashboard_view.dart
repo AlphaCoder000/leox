@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/providers/employer_profile_provider.dart';
@@ -38,13 +39,15 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
     final dashboard = context.watch<EmployerDashboardProvider>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       drawer: const EmployerDrawer(selectedItem: EmployerDrawerItem.dashboard),
 
       appBar: AppBar(
-        title: const Text("Dashboard", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
+        title: const Text(
+          "Dashboard",
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+        ),
         actions: [
           Consumer<ThemeProvider>(
             builder:
@@ -85,52 +88,10 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
 
           Padding(
             padding: EdgeInsets.only(right: 4.w),
-            child: PopupMenuButton<String>(
-              offset: const Offset(0, 45),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              onSelected: (value) async {
-                if (value == 'profile') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const EmployerProfileView(),
-                    ),
-                  );
-                } else if (value == 'logout') {
-                  _showLogoutDialog(context);
-                }
-              },
-              itemBuilder: (_) {
+            child: GestureDetector(
+              onTap: () {
                 final profile = context.read<EmployerProfileProvider>().profile;
-                return [
-                  PopupMenuItem(
-                    enabled: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          profile.name.isNotEmpty ? profile.name : "Employer",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          profile.email,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'profile',
-                    child: Text("My Profile"),
-                  ),
-                  const PopupMenuItem(value: 'logout', child: Text("Logout")),
-                ];
+                _showProfileBottomSheet(context, profile);
               },
               child: Consumer<EmployerProfileProvider>(
                 builder: (context, profileProvider, child) {
@@ -160,134 +121,167 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
         ],
       ),
 
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(3.w), // Reduced from 4.w to 3.w for more space
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Overview",
-              style: TextStyle(
-                fontSize: 21.sp,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/icons/leoOpus_bg_image.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              "Here is your recruitment summary.",
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-              ),
-            ),
-
-            SizedBox(height: 2.h),
-
-            // 🔹 STATS GRID
-            GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 3.w, // Reduced from 4.w to make cards wider
-              mainAxisSpacing: 2.h, // Keep the same vertical spacing
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              childAspectRatio: 1.4, // Reduced from 1.8 to make cards wider (more square)
-              children: [
-                StatCard(
-                  title: "Total Jobs",
-                  value: dashboard.totalJobs,
-                  subtitle: "Active posts",
-                  icon: Icons.work_outline_rounded,
-                ),
-                StatCard(
-                  title: "Candidates",
-                  value: dashboard.totalCandidates,
-                  subtitle: "Total applications",
-                  icon: Icons.people_alt_outlined,
-                ),
-                StatCard(
-                  title: "Shortlisted",
-                  value: dashboard.shortlisted,
-                  subtitle: "Passed screening",
-                  icon: Icons.check_circle_outline_rounded,
-                ),
-                StatCard(
-                  title: "Hired",
-                  value: dashboard.hired,
-                  subtitle: "Offer accepted",
-                  icon: Icons.verified_outlined,
-                ),
-              ],
-            ),
-
-            SizedBox(height: 4.h),
-
-            Text(
-              "Candidate Pipeline",
-              style: TextStyle(
-                fontSize: 19.sp,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-
-            // ... keep pipeline ...
-            SizedBox(height: 2.h),
-
-            Container(
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
                   ),
-                ],
+                ),
               ),
-              padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 4.w),
+            ),
+          ),
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(
+                3.w,
+              ), // Reduced from 4.w to 3.w for more space
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _pipelineItem(
-                    context,
-                    "Applied",
-                    dashboard.pending,
-                    Colors.blue,
+                  Text(
+                    "Overview",
+                    style: TextStyle(
+                      fontSize: 21.sp,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                  _pipelineItem(
-                    context,
-                    "Reviewed",
-                    dashboard.reviewed,
-                    Colors.purple,
+                  SizedBox(height: 1.h),
+                  Text(
+                    "Here is your recruitment summary.",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(
+                        alpha: 0.7,
+                      ),
+                    ),
                   ),
-                  _pipelineItem(
-                    context,
-                    "Shortlisted",
-                    dashboard.shortlisted,
-                    Colors.orange,
+
+                  SizedBox(height: 1.h),
+
+                  // 🔹 STATS GRID
+                  GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing:
+                        3.w, // Reduced from 4.w to make cards wider
+                    mainAxisSpacing: 2.h, // Keep the same vertical spacing
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio:
+                        1.4, // Reduced from 1.8 to make cards wider (more square)
+                    children: [
+                      StatCard(
+                        title: "Total Jobs",
+                        value: dashboard.totalJobs,
+                        subtitle: "Active posts",
+                        icon: Icons.work_outline_rounded,
+                      ),
+                      StatCard(
+                        title: "Candidates",
+                        value: dashboard.totalCandidates,
+                        subtitle: "Total applications",
+                        icon: Icons.people_alt_outlined,
+                      ),
+                      StatCard(
+                        title: "Shortlisted",
+                        value: dashboard.shortlisted,
+                        subtitle: "Passed screening",
+                        icon: Icons.check_circle_outline_rounded,
+                      ),
+                      StatCard(
+                        title: "Hired",
+                        value: dashboard.hired,
+                        subtitle: "Offer accepted",
+                        icon: Icons.verified_outlined,
+                      ),
+                    ],
                   ),
-                  _pipelineItem(
-                    context,
-                    "Hired",
-                    dashboard.hired,
-                    Colors.green,
+
+                  SizedBox(height: 1.h),
+
+                  Text(
+                    "Candidate Pipeline",
+                    style: TextStyle(
+                      fontSize: 19.sp,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                  _pipelineItem(
-                    context,
-                    "Rejected",
-                    dashboard.rejected,
-                    Colors.red,
-                    isLast: true,
+
+                  // ... keep pipeline ...
+                  SizedBox(height: 1.h),
+
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 2.h,
+                      horizontal: 4.w,
+                    ),
+                    child: Column(
+                      children: [
+                        _pipelineItem(
+                          context,
+                          "Applied",
+                          dashboard.pending,
+                          Colors.blue,
+                        ),
+                        _pipelineItem(
+                          context,
+                          "Reviewed",
+                          dashboard.reviewed,
+                          Colors.purple,
+                        ),
+                        _pipelineItem(
+                          context,
+                          "Shortlisted",
+                          dashboard.shortlisted,
+                          Colors.orange,
+                        ),
+                        _pipelineItem(
+                          context,
+                          "Hired",
+                          dashboard.hired,
+                          Colors.green,
+                        ),
+                        _pipelineItem(
+                          context,
+                          "Rejected",
+                          dashboard.rejected,
+                          Colors.red,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
                   ),
+
+                  SizedBox(height: 4.h), // Bottom padding
                 ],
               ),
             ),
-
-            SizedBox(height: 4.h), // Bottom padding
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -311,7 +305,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               : BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: theme.dividerColor.withOpacity(0.5),
+                    color: theme.dividerColor.withValues(alpha: 0.5),
                     //alpha: 0.5,
                   ),
                 ),
@@ -340,7 +334,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 2.5.w, vertical: 0.5.h),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -386,7 +380,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
             content: Text(
               "Are you sure you want to sign out of your employer account?",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 12.sp,
               ),
             ),
@@ -396,7 +390,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 child: Text(
                   "Cancel",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 11.sp,
                   ),
                 ),
@@ -434,6 +428,75 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               ),
             ],
           ),
+    );
+  }
+
+  void _showProfileBottomSheet(BuildContext parentContext, dynamic profile) {
+    showModalBottomSheet(
+      context: parentContext,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) {
+        final theme = Theme.of(bottomSheetContext);
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: theme.colorScheme.primary.withValues(
+                    alpha: 0.1,
+                  ),
+                  child: Icon(Icons.person, color: theme.colorScheme.primary),
+                ),
+                title: Text(
+                  profile.name.isNotEmpty ? profile.name : "Employer",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(profile.email),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.account_circle_outlined),
+                title: const Text("My Profile"),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  Navigator.push(
+                    parentContext,
+                    MaterialPageRoute(
+                      builder: (_) => const EmployerProfileView(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.redAccent),
+                title: const Text(
+                  "Logout",
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _showLogoutDialog(parentContext);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 }

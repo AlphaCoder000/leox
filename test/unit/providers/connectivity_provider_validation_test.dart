@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leox/providers/connectivity_provider.dart';
 
 void main() {
   group('ConnectivityProvider Validation Tests', () {

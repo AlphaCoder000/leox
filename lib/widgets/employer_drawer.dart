@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/views/common/notifications_view.dart';
@@ -20,7 +21,7 @@ class EmployerDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    //final colorScheme = Theme.of(context).colorScheme;
 
     return Drawer(
       width: 70.w,
@@ -37,25 +38,35 @@ class EmployerDrawer extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(2.5.w),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.work_rounded,
-                    size: 24.sp,
-                    color: colorScheme.primary,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    "assets/icons/leo_Opus_logo.jpeg",
+                    width: 12.w,
+                    height: 12.w,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 SizedBox(width: 3.w),
-                Text(
-                  "LeoRecruit",
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: GoogleFonts.playfairDisplay().fontFamily,
+                      letterSpacing: 0.5,
+                    ),
+                    children: const [
+                      TextSpan(
+                        text: 'LEO',
+                        style: TextStyle(color: Color(0xFF001A66)),
+                      ),
+                      TextSpan(text: ' '),
+                      TextSpan(
+                        text: 'Opus',
+                        style: TextStyle(color: Color(0xFF3374D9)),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -94,8 +105,7 @@ class EmployerDrawer extends StatelessWidget {
                   activeIcon: Icons.people_rounded,
                   title: "Candidates",
                   isSelected: selectedItem == EmployerDrawerItem.candidates,
-                  onTap:
-                      () => _navigate(context, const CandidatesView()),
+                  onTap: () => _navigate(context, const CandidatesView()),
                 ),
 
                 _drawerItem(
@@ -145,7 +155,7 @@ class EmployerDrawer extends StatelessWidget {
               "v1.0.0",
               style: TextStyle(
                 fontSize: 10.sp,
-                color: Colors.white.withOpacity(0.45),
+                color: Colors.white.withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -187,9 +197,7 @@ class EmployerDrawer extends StatelessWidget {
                   isSelected ? activeIcon : icon,
                   size: 22.sp,
                   color:
-                      isSelected
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.65),
+                      isSelected ? Colors.white : Colors.white.withAlpha(165),
                 ),
                 SizedBox(width: 4.w),
                 Text(
@@ -198,9 +206,7 @@ class EmployerDrawer extends StatelessWidget {
                     fontSize: 17.sp,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color:
-                        isSelected
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.85),
+                        isSelected ? Colors.white : Colors.white.withAlpha(215),
                   ),
                 ),
               ],
@@ -241,82 +247,86 @@ class EmployerDrawer extends StatelessWidget {
 
   // ================= LOGOUT DIALOG =================
   void _confirmLogout(BuildContext context) {
-    final theme = Theme.of(context);
-    
+    //final theme = Theme.of(context);
+
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: _drawerBg,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: _drawerDivider),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.logout_rounded, color: Colors.redAccent),
-            SizedBox(width: 3.w),
-            Text(
-              "Logout",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-              ),
+      builder:
+          (dialogContext) => AlertDialog(
+            backgroundColor: _drawerBg,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: _drawerDivider),
             ),
-          ],
-        ),
-        content: Text(
-          "Are you sure you want to sign out of your employer account? You'll need to login again to manage your job listings.",
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 12.sp,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 11.sp,
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 2.w),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            title: Row(
+              children: [
+                const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                SizedBox(width: 3.w),
+                Text(
+                  "Logout",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+              ],
+            ),
+            content: Text(
+              "Are you sure you want to sign out of your employer account? You'll need to login again to manage your job listings.",
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 12.sp,
               ),
-              onPressed: () async {
-                // 1. Close the dialog safely using its own context
-                Navigator.of(dialogContext).pop();
-                
-                // 2. Perform background logout
-                // Note: main.dart listener will detect authStateChanges and handle navigation
-                final auth = context.read<EmployerAuthProvider>();
-                await auth.logout();
-              },
-              child: Text(
-                "Yes, Logout",
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.bold,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 11.sp,
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: EdgeInsets.only(left: 2.w),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 5.w,
+                      vertical: 1.2.h,
+                    ),
+                  ),
+                  onPressed: () async {
+                    // 1. Close the dialog safely using its own context
+                    Navigator.of(dialogContext).pop();
+
+                    // 2. Perform background logout
+                    // Note: main.dart listener will detect authStateChanges and handle navigation
+                    final auth = context.read<EmployerAuthProvider>();
+                    await auth.logout();
+                  },
+                  child: Text(
+                    "Yes, Logout",
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 

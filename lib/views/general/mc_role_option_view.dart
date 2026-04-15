@@ -1,0 +1,247 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:leox/views/general/privacy_policy_view.dart';
+import 'package:leox/views/general/terms_of_service_view.dart';
+import 'package:leox/views/general/welcome_view.dart';
+import 'package:sizer/sizer.dart';
+import '../../maintenance_contracts/views/auth/mc_provider_login_view.dart';
+import '../../maintenance_contracts/views/auth/mc_seeker_login_view.dart';
+
+class McRoleOptionView extends StatelessWidget {
+  const McRoleOptionView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+          onPressed: () => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeView()),
+            (route) => false,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 6.w),
+        child: Column(
+          children: [
+            SizedBox(height: 2.h),
+            Text(
+              "Maintenance Contracts",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: 23.sp,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 5.h),
+            Text(
+              "Choose your role",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 17.sp,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[400] : const Color.fromRGBO(0, 0, 0, 0.6),
+              ),
+            ),
+            SizedBox(height: 4.h),
+
+            // Provider Card
+            _roleCard(
+              context,
+              title: "I'm a Service Provider",
+              subtitle: "Offer mechanical and maintenance services",
+              icon: Icons.engineering_outlined,
+              points: const [
+                "List your services",
+                "Receive booking requests",
+                "Manage contracts",
+                "Grow your business",
+              ],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const McProviderLoginView()),
+                );
+              },
+            ),
+
+            SizedBox(height: 3.h),
+
+            // Seeker Card
+            _roleCard(
+              context,
+              title: "I'm a Service Seeker",
+              subtitle: "Find experts for repair and maintenance",
+              icon: Icons.search_outlined,
+              points: const [
+                "Browse certified providers",
+                "Request specific services",
+                "Track job progress",
+                "Ensure quality maintenance",
+              ],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const McSeekerLoginView()),
+                );
+              },
+            ),
+
+            SizedBox(height: 4.h),
+            _termsAndPrivacy(context),
+            SizedBox(height: 3.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _roleCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required List<String> points,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Card(
+        color: theme.cardTheme.color,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: theme.dividerColor),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(5.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.black.withAlpha(5),
+                  child: Icon(icon, size: 30, color: const Color(0xFF0EA5E9)),
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Center(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 21.sp,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              SizedBox(height: 1.h),
+              Center(
+                child: Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: isDark ? Colors.grey[400] : const Color.fromRGBO(0, 0, 0, 0.6),
+                  ),
+                ),
+              ),
+              SizedBox(height: 2.5.h),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: points.map(
+                  (p) => Padding(
+                    padding: EdgeInsets.only(bottom: 1.h),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 18,
+                          color: const Color(0xFF0EA5E9),
+                        ),
+                        SizedBox(width: 3.w),
+                        Text(
+                          p,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _termsAndPrivacy(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: 13.sp,
+          color: isDark ? Colors.grey[500] : const Color.fromRGBO(0, 0, 0, 0.6),
+        ),
+        children: [
+          const TextSpan(text: "By continuing, you agree to our "),
+          TextSpan(
+            text: "Terms of Service",
+            style: TextStyle(
+              decoration: TextDecoration.underline,
+              color: const Color(0xFF0EA5E9),
+              fontWeight: FontWeight.w500,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TermsOfServiceView()),
+                );
+              },
+          ),
+          const TextSpan(text: " and "),
+          TextSpan(
+            text: "Privacy Policy",
+            style: TextStyle(
+              decoration: TextDecoration.underline,
+              color: const Color(0xFF0EA5E9),
+              fontWeight: FontWeight.w500,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrivacyPolicyView()),
+                );
+              },
+          ),
+        ],
+      ),
+    );
+  }
+}

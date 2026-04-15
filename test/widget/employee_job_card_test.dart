@@ -30,9 +30,9 @@ void main() {
 
     testWidgets('should display job information correctly', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(
@@ -69,9 +69,9 @@ void main() {
 
     testWidgets('should display status chip correctly', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(
@@ -112,9 +112,9 @@ void main() {
       );
 
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(
@@ -143,9 +143,9 @@ void main() {
       }
 
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(
@@ -172,9 +172,9 @@ void main() {
 
     testWidgets('should have correct card styling', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(
@@ -219,9 +219,9 @@ void main() {
       );
 
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(
@@ -264,9 +264,9 @@ void main() {
       );
 
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         Sizer(

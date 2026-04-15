@@ -42,9 +42,9 @@ void main() {
 
     testWidgets('should display drawer with correct structure', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(createTestWidget());
 
@@ -58,7 +58,7 @@ void main() {
       expect(find.byType(EmployeeDrawer), findsOneWidget);
 
       // Check if header is displayed
-      expect(find.text('LeoRecruit'), findsOneWidget);
+      expect(find.text('LeoOpus'), findsOneWidget);
       expect(find.byIcon(Icons.work_outline), findsOneWidget);
 
       // Check if menu items are displayed
@@ -75,9 +75,9 @@ void main() {
 
     testWidgets('should highlight selected item correctly', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(createTestWidget(selectedItem: EmployeeDrawerItem.jobs));
 
@@ -97,9 +97,9 @@ void main() {
 
     testWidgets('should navigate when menu item is tapped', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(createTestWidget());
 
@@ -118,9 +118,9 @@ void main() {
 
     testWidgets('should show logout dialog when logout is tapped', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(createTestWidget());
 
@@ -143,9 +143,9 @@ void main() {
 
     testWidgets('should close dialog when cancel is tapped', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(createTestWidget());
 
@@ -169,9 +169,9 @@ void main() {
 
     testWidgets('should perform logout when confirmed', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       // Mock the logout methods
       when(mockAuth.logout()).thenAnswer((_) async {});
@@ -202,9 +202,9 @@ void main() {
 
     testWidgets('should have correct styling and colors', (WidgetTester tester) async {
       // Initialize Sizer for testing
-      tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
-      addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      tester.view.physicalSize = const Size(411, 823);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(createTestWidget());
 
@@ -237,8 +237,8 @@ void main() {
 
       for (final item in items) {
         // Initialize Sizer for testing
-        tester.binding.window.physicalSizeTestValue = const Size(411, 823);
-        tester.binding.window.devicePixelRatioTestValue = 1.0;
+        tester.view.physicalSize = const Size(411, 823);
+        tester.view.devicePixelRatio = 1.0;
 
         await tester.pumpWidget(createTestWidget(selectedItem: item));
 
@@ -252,7 +252,7 @@ void main() {
 
         // Clean up for next iteration
         await tester.pumpWidget(Container());
-        addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+        addTearDown(tester.view.resetPhysicalSize);
       }
     });
   });

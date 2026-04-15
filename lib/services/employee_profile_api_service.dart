@@ -1,4 +1,4 @@
-import 'api_service.dart';
+﻿import 'api_service.dart';
 import '../models/employee_profile_model.dart';
 
 /// Employee Profile API Service
@@ -133,7 +133,7 @@ class EmployeeProfileApiService {
     required String filePath,
   }) async {
     try {
-      // TODO: Implement multipart form data upload when file handling is added
+      
       // For now, throw error with implementation note
       throw ApiException(
         message:
@@ -189,7 +189,7 @@ class EmployeeProfileApiService {
     required String filePath,
   }) async {
     try {
-      // TODO: Implement multipart form data upload when file handling is added
+      
       throw ApiException(
         message:
             'Resume upload not yet implemented. File upload feature coming soon.',

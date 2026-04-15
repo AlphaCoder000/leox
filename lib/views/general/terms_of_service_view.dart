@@ -31,7 +31,7 @@ class TermsOfServiceView extends StatelessWidget {
 
             _sectionTitle("1. Acceptance of Terms"),
             _bodyText(
-              "By accessing or using the LeoRecruit platform (\"Service\"), "
+              "By accessing or using the LeoOpus platform (\"Service\"), "
               "you agree to be bound by these Terms of Service (\"Terms\"). "
               "If you do not agree, please do not use this Service.",
             ),
@@ -40,7 +40,7 @@ class TermsOfServiceView extends StatelessWidget {
 
             _sectionTitle("2. Description of Service"),
             _bodyText(
-              "LeoRecruit is an internal hiring platform designed to streamline "
+              "LeoOpus is an internal hiring platform designed to streamline "
               "recruitment processes including job posting, candidate management, "
               "and AI-based resume matching.",
             ),

@@ -251,7 +251,7 @@ void main() {
         final extremelyLongEmail = 'a' * 1000 + '@example.com';
         expect(extremelyLongEmail.length, greaterThan(1000));
         
-        final extremelyLongPhone = '+' + '1' * 50;
+        final extremelyLongPhone = '+${'1' * 50}';
         expect(extremelyLongPhone.length, greaterThan(50));
       });
 

@@ -84,6 +84,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
     // Show confirmation dialog
     final confirmed = await _showConfirmationDialog();
     if (!confirmed) return;
+    if (!mounted) return;
 
     // Submit application with optional resume
     final success = await context.read<JobApplicationProvider>().submitApplication(
@@ -101,21 +102,17 @@ class _JobApplicationViewState extends State<JobApplicationView> {
 
     if (mounted) {
       if (success) {
-        if (context.mounted) {
-          Navigator.pop(context);
-          ErrorHandlerUI.showSuccessSnackbar(
-            context,
-            'Application submitted successfully!',
-          );
-        }
+        Navigator.pop(context);
+        ErrorHandlerUI.showSuccessSnackbar(
+          context,
+          'Application submitted successfully!',
+        );
       } else {
-        if (context.mounted) {
-          ErrorHandlerUI.showErrorSnackbar(
-            context,
-            context.read<JobApplicationProvider>().errorMessage ??
-                'Failed to submit application',
-          );
-        }
+        ErrorHandlerUI.showErrorSnackbar(
+          context,
+          context.read<JobApplicationProvider>().errorMessage ??
+              'Failed to submit application',
+        );
       }
     }
   }

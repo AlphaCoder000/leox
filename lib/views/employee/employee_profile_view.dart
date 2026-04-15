@@ -207,7 +207,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                           await provider.updateProfile(updatedProfile);
                                         }
 
-                                        if (mounted) {
+                                        if (scaffoldContext.mounted) {
                                           if (provider.errorMessage == null) {
                                             Navigator.pop(scaffoldContext);
                                             ErrorHandlerUI.showSuccessSnackbar(
@@ -218,8 +218,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                             ErrorHandlerUI.showErrorSnackbar(
                                               scaffoldContext,
                                               provider.errorMessage ??
-                                                  'Unknown error' ??
-                                                  'Update failed',
+                                                  'Unknown error',
                                               onRetry: () async {
                                                 final context = scaffoldContext;
                                                 if (!context.mounted) return;
@@ -386,8 +385,8 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard),
-      appBar: AppBar(title: const Text("My Profile")),
+      drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard, ),
+      appBar: AppBar(title: const Text("My Profile", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
       body: Consumer<EmployeeProfileProvider>(
         builder: (context, profileProvider, _) {
           // Show loading spinner
@@ -410,20 +409,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "My Profile",
-                  style: TextStyle(
-                    fontSize: 21.sp, fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 0.5.h),
-                Text(
-                  "View and manage your personal information.",
-                  style: TextStyle(
-                    fontSize: 16.sp, fontWeight: FontWeight.normal,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                  ),
-                ),
+                
 
                 SizedBox(height: 3.h),
 
@@ -443,14 +429,14 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                             children: [
                               CircleAvatar(
                                 radius: 36,
-                                backgroundColor: colorScheme.primary.withOpacity(0.1),
+                                backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                                 backgroundImage:
-                                    ((profile.profilePicture ?? '')
+                                    (profile.profilePicture
                                             .isNotEmpty)
                                         ? NetworkImage(profile.profilePicture)
                                         : null,
                                 child:
-                                    ((profile.profilePicture ?? '').isEmpty)
+                                    (profile.profilePicture.isEmpty)
                                         ? Text(
                                           (profile.firstName).isNotEmpty
                                               ? profile.firstName[0]
@@ -479,18 +465,18 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               ],
                             ),
                           ),
-                        SizedBox(height: 1.5.h),
+                        SizedBox(height: 0.5.h),
                         Text(
                           "${profile.firstName} ${profile.lastName}",
                           style: TextStyle(
                             fontSize: 17.sp, fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if ((profile.headline ?? '').isNotEmpty)
+                        if (profile.headline.isNotEmpty)
                           Padding(
                             padding: EdgeInsets.only(top: 0.5.h),
                             child: Text(
-                              profile.headline ?? '',
+                              profile.headline,
                               style: TextStyle(
                                 fontSize: 15.sp, fontWeight: FontWeight.w500,
                                 color: colorScheme.primary,
@@ -502,7 +488,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                   ),
                 ),
 
-                SizedBox(height: 3.h),
+                SizedBox(height: 1.h),
 
                 // ================= PERSONAL INFO =================
                 _infoCard(
@@ -523,8 +509,8 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                           ? "Not provided"
                           : profile.phone ?? '',
                     ),
-                    if ((profile.bio ?? '').isNotEmpty)
-                      _infoRow(Icons.article_outlined, profile.bio ?? ''),
+                    if (profile.bio.isNotEmpty)
+                      _infoRow(Icons.article_outlined, profile.bio),
                   ],
                 ),
 
@@ -552,7 +538,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                               return Chip(
                                 label: Text(skill),
                                 backgroundColor: colorScheme.primary
-                                    .withOpacity(0.1),
+                                    .withValues(alpha: 0.1),
                                 onDeleted: () {
                                   profileProvider.removeSkill(skill);
                                 },
@@ -570,7 +556,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                     title: "My Resume",
                     subtitle: "Upload a resume to auto-fill your profile information.",
                     children: [
-                      if ((profile.resumeUrl ?? '').isNotEmpty) ...[
+                      if (profile.resumeUrl.isNotEmpty) ...[
                         Row(
                           children: [
                             Icon(Icons.description, color: colorScheme.primary),
@@ -611,7 +597,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                         onPressed: _pickResume,
                         icon: const Icon(Icons.upload_file_outlined),
                         label: Text(
-                          (profile.resumeUrl ?? '').isEmpty
+                          profile.resumeUrl.isEmpty
                               ? "Upload Resume"
                               : "Update Resume",
                         ),
@@ -816,4 +802,5 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
     );
   }
 }
+
 
