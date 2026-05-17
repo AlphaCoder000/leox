@@ -10,8 +10,8 @@ void main() {
       themeProvider = ThemeProvider();
     });
 
-    test('should initialize with system theme mode', () {
-      expect(themeProvider.themeMode, ThemeMode.system);
+    test('should initialize with light theme mode', () {
+      expect(themeProvider.themeMode, ThemeMode.light);
     });
 
     test('should set light theme mode', () {
@@ -26,14 +26,9 @@ void main() {
       expect(themeProvider.isDark, true);
     });
 
-    test('should set system theme mode', () {
-      themeProvider.setSystem();
-      expect(themeProvider.themeMode, ThemeMode.system);
-    });
-
     test('should toggle theme correctly', () {
-      // Start with system
-      expect(themeProvider.themeMode, ThemeMode.system);
+      // Start with light
+      expect(themeProvider.themeMode, ThemeMode.light);
       
       // Toggle to dark
       themeProvider.toggleTheme();
@@ -44,10 +39,6 @@ void main() {
       themeProvider.toggleTheme();
       expect(themeProvider.themeMode, ThemeMode.light);
       expect(themeProvider.isDark, false);
-      
-      // Toggle back to system
-      themeProvider.toggleTheme();
-      expect(themeProvider.themeMode, ThemeMode.system);
     });
 
     test('should set theme mode directly', () {
@@ -57,8 +48,9 @@ void main() {
       themeProvider.setThemeMode(ThemeMode.light);
       expect(themeProvider.themeMode, ThemeMode.light);
       
+      // Setting to system should fallback to light
       themeProvider.setThemeMode(ThemeMode.system);
-      expect(themeProvider.themeMode, ThemeMode.system);
+      expect(themeProvider.themeMode, ThemeMode.light);
     });
 
     test('should notify listeners when theme changes', () {
@@ -67,7 +59,7 @@ void main() {
         notified = true;
       });
 
-      themeProvider.setLight();
+      themeProvider.setDark();
       expect(notified, true);
     });
 
@@ -77,10 +69,6 @@ void main() {
       
       themeProvider.setDark();
       expect(themeProvider.isDark, true);
-      
-      themeProvider.setSystem();
-      // System theme depends on platform, so we just check it doesn't crash
-      expect(themeProvider.themeMode, ThemeMode.system);
     });
   });
 }

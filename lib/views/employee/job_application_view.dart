@@ -579,7 +579,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
-                prefixIcon: Icon(Icons.attach_money, color: Colors.grey[600]),
+                prefixIcon: Icon(Icons.currency_rupee, color: Colors.grey[600]),
               ),
             ),
 

@@ -66,7 +66,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                   children: const [
                     TextSpan(
                       text: 'LEO',
-                      style: TextStyle(color: Color(0xFF001A66)),
+                      style: TextStyle(color: Color.fromARGB(255, 37, 78, 200)),
                     ),
                     TextSpan(text: ' '),
                     TextSpan(
@@ -103,7 +103,7 @@ class _WelcomeViewState extends State<WelcomeView> {
         children: [
           _buildPortalCard(
             context,
-            title: "Hiring Platform",
+            title: "Hiring Platform", 
             heading: "Find Your Next Opportunity",
             description:
                 "Browse jobs and discover roles that match your skills and ambitions.",
@@ -206,7 +206,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                     title.toUpperCase(),
                     style: TextStyle(
                       color: primaryColor,
-                      fontSize: 12.sp,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.2,
                     ),

@@ -61,17 +61,33 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final provider = context.watch<AIResumeMatcherProvider>();
     final appsProvider = context.watch<JobApplicationProvider>();
 
+    // Premium adaptive colors
+    final scaffoldBg = isDark ? const Color(0xFF030712) : theme.scaffoldBackgroundColor;
+    final bgGradientColors = isDark 
+        ? [const Color(0xFF030712), const Color(0xFF0F172A)]
+        : [theme.scaffoldBackgroundColor, theme.scaffoldBackgroundColor];
+        
+    final appBarTitleColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final appBarIconColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+    
+    final cardBg = isDark ? const Color(0xFF1E293B) : theme.cardTheme.color ?? Colors.white;
+    final borderCol = isDark ? Colors.white.withValues(alpha: 0.05) : theme.dividerColor;
+    final dropdownBg = isDark ? const Color(0xFF1E293B) : theme.cardTheme.color ?? Colors.white;
+    
+    final primaryTextColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF030712),
+      backgroundColor: scaffoldBg,
       drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.aiMatcher),
       appBar: AppBar(
-        title: const Text("Career Intelligence"),
+        title: Text("Career Intelligence", style: TextStyle(color: appBarTitleColor, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: appBarIconColor),
         actions: [
           IconButton(
             onPressed: () {
@@ -80,16 +96,16 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
               _resumeTextController.clear();
               setState(() => _selectedApplication = null);
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: appBarIconColor),
           ),
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF030712), Color(0xFF0F172A)],
+            colors: bgGradientColors,
           ),
         ),
         child: SingleChildScrollView(
@@ -99,7 +115,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ================= PAGE HEADER =================
-              _buildHeader(colorScheme),
+              _buildHeader(context),
 
               SizedBox(height: 4.h),
 
@@ -110,20 +126,28 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 4.w),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    border: Border.all(color: borderCol),
+                    boxShadow: !isDark ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ] : [],
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<JobApplicationModel>(
                       value: _selectedApplication,
-                      hint: const Text("Choose an application", style: TextStyle(color: Colors.grey)),
+                      hint: Text("Choose an application", style: TextStyle(color: isDark ? Colors.grey : theme.hintColor)),
                       isExpanded: true,
-                      dropdownColor: const Color(0xFF1E293B),
+                      dropdownColor: dropdownBg,
+                      iconEnabledColor: primaryTextColor,
                       items: appsProvider.applications.map((app) {
                         return DropdownMenuItem(
                           value: app,
-                          child: Text(app.jobTitle, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                          child: Text(app.jobTitle, style: TextStyle(color: primaryTextColor, fontSize: 14)),
                         );
                       }).toList(),
                       onChanged: (app) => _onApplicationSelected(app, provider),
@@ -134,7 +158,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
               ],
 
               // ================= QUICK TARGET ROLES =================
-              _buildPopularTargetRoles(provider),
+              _buildPopularTargetRoles(context, provider),
 
               SizedBox(height: 3.h),
 
@@ -154,7 +178,10 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     );
   }
 
-  Widget _buildHeader(ColorScheme colorScheme) {
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Row(
       children: [
         Container(
@@ -173,11 +200,19 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             children: [
               Text(
                 "Optimize Your Fit",
-                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 20.sp, 
+                  fontWeight: FontWeight.bold, 
+                  color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                ),
               ),
               Text(
                 "Let AI review your resume against any role",
-                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold, color: Colors.white54),
+                style: TextStyle(
+                  fontSize: 13.sp, 
+                  fontWeight: FontWeight.w600, 
+                  color: isDark ? Colors.white54 : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
               ),
             ],
           ),
@@ -187,14 +222,34 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
   }
 
   Widget _buildInputCard(BuildContext context, AIResumeMatcherProvider provider) {
-    //final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final cardBg = isDark ? const Color(0xFF1E293B) : theme.cardTheme.color ?? Colors.white;
+    final borderCol = isDark ? Colors.white.withValues(alpha: 0.05) : theme.dividerColor;
+    
+    final primaryTextColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final resumeBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+    final resumeTextColor = provider.selectedResumeFileName != null 
+        ? primaryTextColor 
+        : (isDark ? Colors.white38 : theme.colorScheme.onSurface.withValues(alpha: 0.45));
+    final iconColor = provider.selectedResumeFileName != null 
+        ? Colors.indigoAccent 
+        : (isDark ? Colors.white24 : theme.colorScheme.onSurface.withValues(alpha: 0.3));
 
     return Container(
       padding: EdgeInsets.all(5.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: borderCol),
+        boxShadow: !isDark ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
+        ] : [],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +258,10 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             children: [
               const Icon(Icons.edit_note_rounded, color: Colors.indigoAccent),
               SizedBox(width: 2.w),
-              Text("Analysis Scope", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(
+                "Analysis Scope", 
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: primaryTextColor),
+              ),
             ],
           ),
           SizedBox(height: 3.h),
@@ -213,9 +271,9 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
           TextField(
             controller: _jobDescController,
             maxLines: 4,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: TextStyle(color: primaryTextColor, fontSize: 13),
             onChanged: provider.updateJobDescription,
-            decoration: _inputDecoration("Paste the requirements of the job you want..."),
+            decoration: _inputDecoration(context, "Paste the requirements of the job you want..."),
           ),
 
           SizedBox(height: 3.h),
@@ -228,25 +286,25 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: resumeBg,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
                   color: provider.selectedResumeFileName != null ? Colors.indigoAccent : Colors.transparent,
                 ),
               ),
               child: provider.isUploading
-                ? LinearProgressIndicator(value: provider.uploadProgress, backgroundColor: Colors.white10)
+                ? LinearProgressIndicator(value: provider.uploadProgress, backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.1))
                 : Row(
                     children: [
                       Icon(
                         provider.selectedResumeFileName != null ? Icons.file_present_rounded : Icons.upload_rounded,
-                        color: provider.selectedResumeFileName != null ? Colors.indigoAccent : Colors.white24,
+                        color: iconColor,
                       ),
                       SizedBox(width: 4.w),
                       Expanded(
                         child: Text(
                           provider.selectedResumeFileName ?? "Upload PDF or Text Resume",
-                          style: TextStyle(color: provider.selectedResumeFileName != null ? Colors.white : Colors.white38),
+                          style: TextStyle(color: resumeTextColor),
                         ),
                       ),
                     ],
@@ -290,17 +348,32 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
   }
 
   Widget _buildAnalysisResult(BuildContext context, AIResumeMatcherProvider provider) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final cardBg = isDark ? const Color(0xFF1E293B) : theme.cardTheme.color ?? Colors.white;
+    final borderCol = isDark ? Colors.white.withValues(alpha: 0.05) : theme.dividerColor;
+    final primaryTextColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final secondaryTextColor = isDark ? Colors.white70 : theme.colorScheme.onSurface.withValues(alpha: 0.7);
+
     if (provider.matchResults.isEmpty) {
       return Container(
         height: 20.h,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.02),
+          color: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.grey[100],
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          border: Border.all(color: borderCol),
         ),
         child: Center(
-          child: Text("AI results will appear here", style: TextStyle(color: Colors.white24, fontSize: 13.sp, fontWeight: FontWeight.bold,)),
+          child: Text(
+            "AI results will appear here", 
+            style: TextStyle(
+              color: isDark ? Colors.white24 : theme.colorScheme.onSurface.withValues(alpha: 0.35), 
+              fontSize: 13.sp, 
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       );
     }
@@ -312,9 +385,16 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     return Container(
       padding: EdgeInsets.all(6.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: borderCol),
+        boxShadow: !isDark ? [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
+        ] : [],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,36 +402,39 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Match report", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text("Match report", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: primaryTextColor)),
               _buildGradeBadge(provider.getScoreGrade(overallScore), scoreColor),
             ],
           ),
           SizedBox(height: 4.h),
 
-          _buildMatchCircle(overallScore, scoreColor),
+          _buildMatchCircle(context, overallScore, scoreColor),
 
           SizedBox(height: 4.h),
 
           if (results['analysis'] != null) ...[
-            Text("SUMMARY", style: _sectionTitleStyle),
+            Text("SUMMARY", style: _sectionTitleStyle(context)),
             SizedBox(height: 1.h),
-            Text(results['analysis'], style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5)),
+            Text(results['analysis'], style: TextStyle(color: secondaryTextColor, fontSize: 13, height: 1.5)),
             SizedBox(height: 3.h),
           ],
 
-          _buildBreakdown(results),
+          _buildBreakdown(context, results),
 
           SizedBox(height: 4.h),
 
-          if (results['strengths'] != null) _buildPointList("STRENGTHS", results['strengths'], Colors.greenAccent),
-          if (results['gaps'] != null) _buildPointList("GAPS", results['gaps'], Colors.orangeAccent),
-          if (results['recommendations'] != null) _buildPointList("RECOMMENDATIONS", results['recommendations'], Colors.indigoAccent),
+          if (results['strengths'] != null) _buildPointList(context, "STRENGTHS", results['strengths'], isDark ? Colors.greenAccent : const Color(0xFF059669)),
+          if (results['gaps'] != null) _buildPointList(context, "GAPS", results['gaps'], isDark ? Colors.orangeAccent : const Color(0xFFD97706)),
+          if (results['recommendations'] != null) _buildPointList(context, "RECOMMENDATIONS", results['recommendations'], isDark ? Colors.indigoAccent : const Color(0xFF4F46E5)),
         ],
       ),
     );
   }
 
-  Widget _buildMatchCircle(double score, Color color) {
+  Widget _buildMatchCircle(BuildContext context, double score, Color color) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Center(
       child: Stack(
         alignment: Alignment.center,
@@ -362,42 +445,75 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             child: CircularProgressIndicator(
               value: score / 100,
               strokeWidth: 8,
-              backgroundColor: Colors.white10,
+              backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08),
               color: color,
             ),
           ),
-          Text("${score.toInt()}%", style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text(
+            "${score.toInt()}%", 
+            style: TextStyle(
+              fontSize: 22.sp, 
+              fontWeight: FontWeight.bold, 
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBreakdown(Map<String, dynamic> results) {
+  Widget _buildBreakdown(BuildContext context, Map<String, dynamic> results) {
     return Row(
       children: [
-        Expanded(child: _miniStep("Skills", results['skillsMatch'])),
-        Expanded(child: _miniStep("Exp", results['experienceMatch'])),
-        Expanded(child: _miniStep("Edu", results['educationMatch'])),
+        Expanded(child: _miniStep(context, "Skills", results['skillsMatch'])),
+        Expanded(child: _miniStep(context, "Exp", results['experienceMatch'])),
+        Expanded(child: _miniStep(context, "Edu", results['educationMatch'])),
       ],
     );
   }
 
-  Widget _miniStep(String label, dynamic score) {
+  Widget _miniStep(BuildContext context, String label, dynamic score) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final s = (score as num?)?.toDouble() ?? 0.0;
+    
     return Column(
       children: [
-        Text("${s.toInt()}%", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+        Text(
+          "${s.toInt()}%", 
+          style: TextStyle(
+            color: isDark ? Colors.white : theme.colorScheme.onSurface, 
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label, 
+          style: TextStyle(
+            color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withValues(alpha: 0.45), 
+            fontSize: 10,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildPointList(String title, dynamic items, Color color) {
+  Widget _buildPointList(BuildContext context, String title, dynamic items, Color color) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final list = items as List;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        Text(
+          title, 
+          style: TextStyle(
+            color: color, 
+            fontSize: 12.sp, 
+            fontWeight: FontWeight.bold, 
+            letterSpacing: 1,
+          ),
+        ),
         SizedBox(height: 1.5.h),
         ...list.map((item) => Padding(
           padding: EdgeInsets.only(bottom: 0.8.h),
@@ -406,7 +522,15 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
             children: [
               Icon(Icons.circle, size: 4, color: color.withValues(alpha: 0.5)),
               SizedBox(width: 3.w),
-              Expanded(child: Text(item, style: const TextStyle(color: Colors.white60, fontSize: 12))),
+              Expanded(
+                child: Text(
+                  item, 
+                  style: TextStyle(
+                    color: isDark ? Colors.white60 : theme.colorScheme.onSurface.withValues(alpha: 0.75), 
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             ],
           ),
         )),
@@ -427,7 +551,10 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     );
   }
 
-  Widget _buildPopularTargetRoles(AIResumeMatcherProvider provider) {
+  Widget _buildPopularTargetRoles(BuildContext context, AIResumeMatcherProvider provider) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     final roles = [
       {'title': 'Data Science', 'desc': 'Focus on data analysis, machine learning models, and statistical insights using Python, R, and SQL.'},
       {'title': 'Full Stack', 'desc': 'Develop both front-end and back-end web solutions using modern frameworks like React and Node.js.'},
@@ -453,10 +580,18 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
                 child: ChoiceChip(
                   label: Text(role['title']!),
                   selected: isSelected,
-                  selectedColor: Theme.of(context).primaryColor,
-                  backgroundColor: const Color(0xFF1E293B),
+                  selectedColor: theme.colorScheme.primary,
+                  backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.grey[200],
+                  checkmarkColor: Colors.white,
+                  side: BorderSide(
+                    color: isSelected 
+                        ? theme.colorScheme.primary 
+                        : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05))
+                  ),
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white60,
+                    color: isSelected 
+                        ? Colors.white 
+                        : (isDark ? Colors.white60 : theme.colorScheme.onSurface.withValues(alpha: 0.8)),
                     fontSize: 11.sp,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
@@ -477,20 +612,49 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     );
   }
 
-  InputDecoration _inputDecoration(String hint) {
+  InputDecoration _inputDecoration(BuildContext context, String hint) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white24, fontSize: 12),
+      hintStyle: TextStyle(
+        color: isDark ? Colors.white24 : theme.colorScheme.onSurface.withValues(alpha: 0.35), 
+        fontSize: 12,
+      ),
       filled: true,
-      fillColor: const Color(0xFF0F172A),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+      fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15), 
+        borderSide: BorderSide.none,
+      ),
     );
   }
 
   Widget _buildLabel(BuildContext context, String text) {
-    return Text(text.toUpperCase(), style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: Colors.white24, letterSpacing: 1.2));
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Text(
+      text.toUpperCase(), 
+      style: TextStyle(
+        fontSize: 11.sp, 
+        fontWeight: FontWeight.bold, 
+        color: isDark ? Colors.white24 : theme.colorScheme.onSurface.withValues(alpha: 0.45), 
+        letterSpacing: 1.2,
+      ),
+    );
   }
 
-  TextStyle get _sectionTitleStyle => TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.white38, letterSpacing: 1);
+  TextStyle _sectionTitleStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return TextStyle(
+      fontSize: 12.sp, 
+      fontWeight: FontWeight.bold, 
+      color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withValues(alpha: 0.5), 
+      letterSpacing: 1,
+    );
+  }
 }
-

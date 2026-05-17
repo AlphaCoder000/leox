@@ -5,6 +5,7 @@ import 'package:leox/views/employee/employee_register_view.dart';
 import 'package:leox/views/general/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class EmployeeLoginView extends StatefulWidget {
   const EmployeeLoginView({super.key});
@@ -246,8 +247,11 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                   // Phone Login Logic
                                   if (!isOtpSent) {
                                     if (phoneController.text.trim().isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Please enter phone number')),
+                                      CustomPopup.show(
+                                        context,
+                                        type: CustomPopupType.warning,
+                                        title: 'Required Field',
+                                        message: 'Please enter your phone number.',
                                       );
                                       return;
                                     }
@@ -255,16 +259,38 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                     await provider.sendOtp(phone); 
                                     if (provider.errorMessage == null) {
                                       setState(() => isOtpSent = true);
+                                      if (context.mounted) {
+                                        CustomPopup.show(
+                                          context,
+                                          type: CustomPopupType.info,
+                                          title: 'OTP Sent',
+                                          message: 'Verification code has been sent to your phone number.',
+                                        );
+                                      }
                                     }
                                   } else {
                                     await provider.verifyOtp(otpController.text);
                                   }
                                 }
 
-                                // No manual navigation needed. main.dart reacts to login.
-                                // Just clear any pushed login/register screens to return to root.
-                                if (provider.isLoggedIn && context.mounted) {
-                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                if (provider.errorMessage != null && context.mounted) {
+                                  CustomPopup.show(
+                                    context,
+                                    type: CustomPopupType.error,
+                                    title: 'Login Failed',
+                                    message: provider.errorMessage!,
+                                  );
+                                } else if (provider.isLoggedIn && context.mounted) {
+                                  await CustomPopup.show(
+                                    context,
+                                    type: CustomPopupType.success,
+                                    title: 'Welcome Back!',
+                                    message: 'You have logged in successfully.',
+                                    buttonLabel: 'Go to Dashboard',
+                                  );
+                                  if (context.mounted) {
+                                    Navigator.of(context).popUntil((route) => route.isFirst);
+                                  }
                                 }
                               },
                         style: ElevatedButton.styleFrom(
@@ -311,8 +337,24 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                           final provider = context.read<EmployeeAuthProvider>();
                           await provider.signInWithGoogle();
                           
-                          if (provider.isLoggedIn && context.mounted) {
-                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          if (provider.errorMessage != null && context.mounted) {
+                            CustomPopup.show(
+                              context,
+                              type: CustomPopupType.error,
+                              title: 'Google Sign-In Failed',
+                              message: provider.errorMessage!,
+                            );
+                          } else if (provider.isLoggedIn && context.mounted) {
+                            await CustomPopup.show(
+                              context,
+                              type: CustomPopupType.success,
+                              title: 'Welcome Back!',
+                              message: 'You have logged in successfully with Google.',
+                              buttonLabel: 'Go to Dashboard',
+                            );
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            }
                           }
                         },
                         icon: auth.isLoading 

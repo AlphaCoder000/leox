@@ -7,6 +7,7 @@ import 'mc_provider_home_view.dart';
 import 'mc_provider_profile_view.dart';
 import 'mc_service_management_view.dart';
 import 'mc_request_management_view.dart';
+import '../../../providers/theme_povider.dart';
 
 class McProviderDashboardView extends StatefulWidget {
   const McProviderDashboardView({super.key});
@@ -17,16 +18,9 @@ class McProviderDashboardView extends StatefulWidget {
 
 class _McProviderDashboardViewState extends State<McProviderDashboardView> {
   int _currentIndex = 0;
-  late final List<Widget> _pages;
-
   @override
   void initState() {
     super.initState();
-    _pages = [
-      const McProviderHomeView(),
-      const McServiceManagementView(),
-      const McRequestManagementView(),
-    ];
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authCtrl = context.read<McProviderAuthController>();
       String? providerId = authCtrl.currentProvider?.id;
@@ -42,26 +36,68 @@ class _McProviderDashboardViewState extends State<McProviderDashboardView> {
       if (providerId != null) {
         context.read<McProviderDashboardController>().fetchMyServices(providerId);
         context.read<McProviderDashboardController>().fetchIncomingRequests(providerId);
+        context.read<McProviderDashboardController>().fetchProviderReviews(providerId);
       }
     });
   }
 
-
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Provider Portal"),
+        title: const Text("Provider Portal", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle, size: 28),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const McProviderProfileView())),
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) => IconButton(
+              icon: Icon(
+                themeProvider.themeMode == ThemeMode.light
+                    ? Icons.dark_mode_outlined
+                    : Icons.light_mode_outlined,
+              ),
+              onPressed: () {
+                themeProvider.toggleTheme();
+              },
+            ),
+          ),
+          Consumer<McProviderAuthController>(
+            builder: (context, authController, _) {
+              final provider = authController.currentProvider;
+              return IconButton(
+                icon: provider?.profilePicture != null && provider!.profilePicture.isNotEmpty
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(provider.profilePicture),
+                        backgroundColor: const Color(0xFF0EA5E9),
+                        radius: 14,
+                      )
+                    : const Icon(Icons.account_circle, size: 28),
+                onPressed: () {
+                  final pId = authController.currentProvider?.id;
+                  if (pId != null) {
+                    context.read<McProviderDashboardController>().fetchProviderReviews(pId);
+                  }
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const McProviderProfileView()));
+                },
+              );
+            },
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          McProviderHomeView(
+            onNavigate: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          ),
+          const McServiceManagementView(),
+          const McRequestManagementView(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),

@@ -6,6 +6,7 @@ import '../../controllers/mc_seeker_dashboard_controller.dart';
 import 'mc_seeker_catalog_view.dart';
 import 'mc_seeker_profile_view.dart';
 import 'mc_seeker_bookings_view.dart';
+import '../../../../providers/theme_povider.dart';
 
 class McSeekerDashboardView extends StatefulWidget {
   const McSeekerDashboardView({super.key});
@@ -40,21 +41,49 @@ class _McSeekerDashboardViewState extends State<McSeekerDashboardView> {
       if (seekerId != null) {
         context.read<McSeekerDashboardController>().fetchAllServices();
         context.read<McSeekerDashboardController>().fetchMyRequests(seekerId);
+        context.read<McSeekerDashboardController>().fetchMyReviews(seekerId);
       }
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Seeker Hub"),
+        title: const Text("Seeker Hub", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle, size: 28),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const McSeekerProfileView())),
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, _) => IconButton(
+              icon: Icon(
+                themeProvider.themeMode == ThemeMode.light
+                    ? Icons.dark_mode_outlined
+                    : Icons.light_mode_outlined,
+              ),
+              onPressed: () {
+                themeProvider.toggleTheme();
+              },
+            ),
+          ),
+          Consumer<McSeekerAuthController>(
+            builder: (context, authController, _) {
+              final seeker = authController.currentSeeker;
+              return IconButton(
+                icon: seeker?.profilePicture != null && seeker!.profilePicture.isNotEmpty
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(seeker.profilePicture),
+                        backgroundColor: const Color(0xFF0EA5E9),
+                        radius: 16,
+                      )
+                    : const Icon(Icons.account_circle, size: 28),
+                onPressed: () {
+                  final sId = authController.currentSeeker?.id;
+                  if (sId != null) {
+                    context.read<McSeekerDashboardController>().fetchMyReviews(sId);
+                  }
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const McSeekerProfileView()));
+                },
+              );
+            },
           ),
           const SizedBox(width: 8),
         ],

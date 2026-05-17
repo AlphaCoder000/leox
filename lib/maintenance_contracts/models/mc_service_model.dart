@@ -5,6 +5,7 @@ class McServiceModel {
   final String category;
   final double price;
   final String providerId;
+  final String status; // 'active', 'inactive', 'completed'
 
   McServiceModel({
     required this.id,
@@ -13,6 +14,7 @@ class McServiceModel {
     required this.category,
     required this.price,
     required this.providerId,
+    this.status = 'active',
   });
 
   factory McServiceModel.fromJson(Map<String, dynamic> json, String documentId) {
@@ -23,6 +25,7 @@ class McServiceModel {
       category: json['category'] ?? '',
       price: (json['price'] ?? 0.0).toDouble(),
       providerId: json['providerId'] ?? '',
+      status: json['status'] ?? 'active',
     );
   }
 
@@ -33,6 +36,7 @@ class McServiceModel {
       'category': category,
       'price': price,
       'providerId': providerId,
+      'status': status,
     };
   }
 }

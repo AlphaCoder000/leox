@@ -59,7 +59,7 @@ class EmployerDrawer extends StatelessWidget {
                     children: const [
                       TextSpan(
                         text: 'LEO',
-                        style: TextStyle(color: Color(0xFF001A66)),
+                        style: TextStyle(color: Color.fromARGB(255, 24, 70, 210)),
                       ),
                       TextSpan(text: ' '),
                       TextSpan(
@@ -268,7 +268,7 @@ class EmployerDrawer extends StatelessWidget {
                   "Logout",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -278,7 +278,7 @@ class EmployerDrawer extends StatelessWidget {
               "Are you sure you want to sign out of your employer account? You'll need to login again to manage your job listings.",
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12.sp,
+                fontSize: 14.sp,
               ),
             ),
             actions: [

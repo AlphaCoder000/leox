@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_seeker_auth_controller.dart';
 import 'mc_seeker_register_view.dart';
 import '../seeker/mc_seeker_dashboard_view.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class McSeekerLoginView extends StatefulWidget {
   const McSeekerLoginView({super.key});
@@ -36,15 +37,57 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
       if (!mounted) return;
 
       if (error == null) {
+        await CustomPopup.show(
+          context,
+          type: CustomPopupType.success,
+          title: 'Welcome Back!',
+          message: 'You have logged in successfully as a Service Seeker.',
+          buttonLabel: 'Go to Dashboard',
+        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
+          );
+        }
+      } else {
+        CustomPopup.show(
+          context,
+          type: CustomPopupType.error,
+          title: 'Login Failed',
+          message: error,
+        );
+      }
+    }
+  }
+
+  void _loginWithGoogle() async {
+    final authController = context.read<McSeekerAuthController>();
+    final error = await authController.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (error == null) {
+      await CustomPopup.show(
+        context,
+        type: CustomPopupType.success,
+        title: 'Welcome Back!',
+        message: 'You have logged in successfully as a Service Seeker.',
+        buttonLabel: 'Go to Dashboard',
+      );
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-        );
       }
+    } else if (error != "Sign-In cancelled by user") {
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.error,
+        title: 'Google Sign-In Failed',
+        message: error,
+      );
     }
   }
 
@@ -86,17 +129,17 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.search_outlined, size: 40.sp, color: const Color(0xFF0EA5E9)),
+                      Icon(Icons.search_outlined, size: 42.sp, color: const Color(0xFF0EA5E9)),
                       SizedBox(height: 2.h),
                       Text(
                         "Seeker Portal",
-                        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                        style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                       ),
                       SizedBox(height: 1.h),
                       Text(
                         "Find experts for repair and maintenance.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700], fontSize: 12.sp),
+                        style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700], fontSize: 17.sp),
                       ),
                       SizedBox(height: 4.h),
                       
@@ -144,13 +187,47 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                           onPressed: authController.isLoading ? null : _login,
                           child: authController.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : Text("Login", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                              : Text("Login", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: authController.isLoading ? null : _loginWithGoogle,
+                          icon: authController.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0EA5E9)),
+                                )
+                              : Image.asset(
+                                  'assets/icons/google_logo.png',
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.g_mobiledata, size: 24, color: Color(0xFF0EA5E9)),
+                                ),
+                          label: Text(
+                            authController.isLoading ? "Signing in..." : "Sign In with Google",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 18,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 2.h),
+                            side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.5)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
                       SizedBox(height: 2.h),
                       TextButton(
                         onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const McSeekerRegisterView())),
-                        child: Text("Need services? Register here", style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 13.sp)),
+                        child: Text("Need services? Register here", style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 18.sp)),
                       ),
                     ],
                   ),

@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import 'mc_provider_register_view.dart';
 import '../provider/mc_provider_dashboard_view.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class McProviderLoginView extends StatefulWidget {
   const McProviderLoginView({super.key});
@@ -36,18 +37,57 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
       if (!mounted) return;
 
       if (error == null) {
-        Navigator.pushReplacement(
+        await CustomPopup.show(
           context,
-          MaterialPageRoute(builder: (_) => const McProviderDashboardView()), // We will build this in Step 4
+          type: CustomPopupType.success,
+          title: 'Welcome Back!',
+          message: 'You have logged in successfully as a Service Provider.',
+          buttonLabel: 'Go to Dashboard',
         );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const McProviderDashboardView()),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: Colors.redAccent,
-          ),
+        CustomPopup.show(
+          context,
+          type: CustomPopupType.error,
+          title: 'Login Failed',
+          message: error,
         );
       }
+    }
+  }
+
+  void _loginWithGoogle() async {
+    final authController = context.read<McProviderAuthController>();
+    final error = await authController.signInWithGoogle();
+
+    if (!mounted) return;
+
+    if (error == null) {
+      await CustomPopup.show(
+        context,
+        type: CustomPopupType.success,
+        title: 'Welcome Back!',
+        message: 'You have logged in successfully as a Service Provider.',
+        buttonLabel: 'Go to Dashboard',
+      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const McProviderDashboardView()),
+        );
+      }
+    } else if (error != "Sign-In cancelled by user") {
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.error,
+        title: 'Google Sign-In Failed',
+        message: error,
+      );
     }
   }
 
@@ -94,14 +134,14 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                     children: [
                       Icon(
                         Icons.engineering_outlined,
-                        size: 40.sp,
+                        size: 42.sp,
                         color: const Color(0xFF0EA5E9),
                       ),
                       SizedBox(height: 2.h),
                       Text(
                         "Service Provider Login",
                         style: TextStyle(
-                          fontSize: 20.sp,
+                          fontSize: 22.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -112,7 +152,7 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: isDark ? Colors.grey[400] : Colors.grey[700],
-                          fontSize: 12.sp,
+                          fontSize: 17.sp,
                         ),
                       ),
                       SizedBox(height: 4.h),
@@ -184,11 +224,45 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                               : Text(
                                   "Login",
                                   style: TextStyle(
-                                    fontSize: 16.sp,
+                                    fontSize: 18.sp,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                                 ),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: authController.isLoading ? null : _loginWithGoogle,
+                          icon: authController.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0EA5E9)),
+                                )
+                              : Image.asset(
+                                  'assets/icons/google_logo.png',
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.g_mobiledata, size: 24, color: Color(0xFF0EA5E9)),
+                                ),
+                          label: Text(
+                            authController.isLoading ? "Signing in..." : "Sign In with Google",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 18,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 2.h),
+                            side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.5)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
                       SizedBox(height: 2.h),
@@ -203,7 +277,7 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                         },
                         child: Text(
                           "Don't have an account? Register",
-                          style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 13.sp),
+                          style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 18.sp),
                         ),
                       ),
                     ],

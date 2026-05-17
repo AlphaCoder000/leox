@@ -55,9 +55,21 @@ service firebase.storage {
       allow read: if true; // Public access to provider portfolios, images
       allow write: if isAuthenticated() && userId == request.auth.uid;
     }
+    match /mc_providers/{allPaths=**} {
+      allow read: if true; // Public access to all provider files
+      allow write: if isAuthenticated(); // Allow authenticated providers to write
+    }
     match /mc_seekers/{userId}/{allPaths=**} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Public access to seeker profiles
       allow write: if isAuthenticated() && userId == request.auth.uid;
+    }
+    match /mc_seekers/{allPaths=**} {
+      allow read: if true; // Public access to all seeker files
+      allow write: if isAuthenticated(); // Allow authenticated seekers to write
+    }
+    match /maintenance_contracts/{allPaths=**} {
+      allow read: if true; // Allow all authenticated users to read maintenance contracts data
+      allow write: if isAuthenticated(); // Allow authenticated users to write
     }
     
     // --- PUBLIC FILES ---

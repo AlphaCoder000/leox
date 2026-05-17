@@ -176,7 +176,15 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
           _buildInfoRow(Icons.email_outlined, 'Email', widget.application.email),
           _buildInfoRow(Icons.phone_outlined, 'Phone', widget.application.phone.isNotEmpty ? widget.application.phone : 'Not provided'),
           _buildInfoRow(Icons.history_outlined, 'Experience', widget.application.experience.isNotEmpty ? widget.application.experience : 'Not provided'),
-          _buildInfoRow(Icons.attach_money_outlined, 'Exp. Salary', widget.application.expectedSalary.isNotEmpty ? widget.application.expectedSalary : 'Not provided'),
+          _buildInfoRow(
+            Icons.currency_rupee, 
+            'Exp. Salary', 
+            widget.application.expectedSalary.isNotEmpty 
+                ? (widget.application.expectedSalary.contains('₹') || widget.application.expectedSalary.contains('Rs')
+                    ? widget.application.expectedSalary 
+                    : '₹${widget.application.expectedSalary}') 
+                : 'Not provided'
+          ),
           _buildInfoRow(Icons.schedule_outlined, 'Availability', widget.application.availability.isNotEmpty ? widget.application.availability : 'Not provided'),
           
           if (widget.application.linkedIn.isNotEmpty || widget.application.portfolio.isNotEmpty) ...[

@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_seeker_auth_controller.dart';
 import 'mc_seeker_login_view.dart';
 import '../seeker/mc_seeker_dashboard_view.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class McSeekerRegisterView extends StatefulWidget {
   const McSeekerRegisterView({super.key});
@@ -18,9 +19,11 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -29,6 +32,7 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
     _phoneController.dispose();
     _addressController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -46,15 +50,57 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
       if (!mounted) return;
 
       if (error == null) {
+        await CustomPopup.show(
+          context,
+          type: CustomPopupType.success,
+          title: 'Registration Successful!',
+          message: 'Welcome! Your service seeker account has been created successfully.',
+          buttonLabel: 'Go to Dashboard',
+        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
+          );
+        }
+      } else {
+        CustomPopup.show(
+          context,
+          type: CustomPopupType.error,
+          title: 'Registration Failed',
+          message: error,
+        );
+      }
+    }
+  }
+
+  void _registerWithGoogle() async {
+    final authController = context.read<McSeekerAuthController>();
+    final error = await authController.signUpWithGoogle();
+
+    if (!mounted) return;
+
+    if (error == null) {
+      await CustomPopup.show(
+        context,
+        type: CustomPopupType.success,
+        title: 'Registration Successful!',
+        message: 'Welcome! Your service seeker account has been created successfully.',
+        buttonLabel: 'Go to Dashboard',
+      );
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
-        );
       }
+    } else if (error != "Sign-In cancelled by user") {
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.error,
+        title: 'Google Sign-Up Failed',
+        message: error,
+      );
     }
   }
 
@@ -96,11 +142,11 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.person_add_alt_1_outlined, size: 40.sp, color: const Color(0xFF0EA5E9)),
+                      Icon(Icons.person_add_alt_1_outlined, size: 42.sp, color: const Color(0xFF0EA5E9)),
                       SizedBox(height: 2.h),
                       Text(
                         "Join as a Seeker",
-                        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                        style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                       ),
                       SizedBox(height: 3.h),
                       
@@ -131,6 +177,34 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                         validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
                       ),
                       
+                      SizedBox(height: 2.h),
+                      
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        decoration: InputDecoration(
+                          labelText: "Confirm Password",
+                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
+                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0EA5E9)),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility, color: isDark ? Colors.grey[400] : Colors.grey[700]),
+                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                          ),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9))),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return "Required";
+                          }
+                          if (v != _passwordController.text) {
+                            return "Passwords do not match";
+                          }
+                          return null;
+                        },
+                      ),
+                      
                       SizedBox(height: 4.h),
                       SizedBox(
                         width: double.infinity,
@@ -143,13 +217,47 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                           onPressed: authController.isLoading ? null : _register,
                           child: authController.isLoading
                               ? const CircularProgressIndicator(color: Colors.white)
-                              : Text("Create Account", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                              : Text("Create Account", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: authController.isLoading ? null : _registerWithGoogle,
+                          icon: authController.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0EA5E9)),
+                                )
+                              : Image.asset(
+                                  'assets/icons/google_logo.png',
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.g_mobiledata, size: 24, color: Color(0xFF0EA5E9)),
+                                ),
+                          label: Text(
+                            authController.isLoading ? "Registering..." : "Sign Up with Google",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 18,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 2.h),
+                            side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.5)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                       ),
                       SizedBox(height: 2.h),
                       TextButton(
                         onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const McSeekerLoginView())),
-                        child: Text("Already have an account? Login", style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 13.sp)),
+                        child: Text("Already have an account? Login", style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 18.sp)),
                       ),
                     ],
                   ),

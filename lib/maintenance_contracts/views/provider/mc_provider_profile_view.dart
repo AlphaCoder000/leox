@@ -1,13 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:leox/maintenance_contracts/controllers/mc_provider_dashboard_controller.dart';
+import 'package:leox/maintenance_contracts/models/mc_review_model.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../providers/theme_povider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../controllers/mc_provider_auth_controller.dart';
 import '../../models/mc_provider_model.dart';
 
 class McProviderProfileView extends StatelessWidget {
   const McProviderProfileView({super.key});
+
+  Future<void> _pickImage(BuildContext context) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null && context.mounted) {
+      final authController = context.read<McProviderAuthController>();
+      final providerId = authController.currentProvider?.id ?? '';
+      
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (c) => const Center(child: CircularProgressIndicator()),
+      );
+
+      try {
+        // Upload to Firebase Storage
+        final storageRef = FirebaseStorage.instance.ref().child('maintenance_contracts/profiles/$providerId');
+        final file = File(pickedFile.path);
+        final uploadTask = storageRef.putFile(file);
+        
+        final snapshot = await uploadTask.whenComplete(() => null);
+        final downloadUrl = await snapshot.ref.getDownloadURL();
+        
+        // Update Firestore with the new image URL
+        await FirebaseFirestore.instance
+            .collection('mc_providers')
+            .doc(providerId)
+            .update({'profilePicture': downloadUrl});
+        
+        // Refresh provider data to sync with dashboard
+        await authController.fetchProviderProfile(providerId);
+        
+        if (context.mounted) {
+          Navigator.pop(context); // Close loading dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile picture updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.pop(context); // Close loading dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update profile picture: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   void _confirmLogout(BuildContext context) {
     showDialog(
@@ -17,10 +76,10 @@ class McProviderProfileView extends StatelessWidget {
           children: [
             const Icon(Icons.logout_rounded, color: Colors.redAccent),
             SizedBox(width: 3.w),
-            Text("Logout", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text("Logout", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
           ],
         ),
-        content: Text("Are you sure you want to sign out?", style: TextStyle(fontSize: 14.sp)),
+        content: Text("Are you sure you want to sign out?", style: TextStyle(fontSize: 16.sp)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -43,27 +102,42 @@ class McProviderProfileView extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
-    String confirmationText = '';
+    String password = '';
+    bool obscurePassword = true;
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (dialogContext, setState) {
           return AlertDialog(
-            title: Text("Delete Account", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.red)),
+            title: Text("Delete Account Permanently", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.red)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("This action cannot be undone. All your details and services will be permanently deleted.", style: TextStyle(fontSize: 14.sp)),
-                SizedBox(height: 1.5.h),
-                Text('Please type "delete" to confirm:', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                Text(
+                  "This action is irreversible. All your services, requests, reviews, profile data, and credentials will be permanently deleted.",
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  "Please enter your password to confirm:",
+                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                ),
                 SizedBox(height: 1.h),
                 TextField(
-                  onChanged: (val) => setState(() => confirmationText = val),
-                  decoration: const InputDecoration(
-                    hintText: "delete",
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  obscureText: obscurePassword,
+                  onChanged: (val) => setState(() => password = val),
+                  decoration: InputDecoration(
+                    hintText: "Enter password",
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                    ),
                   ),
                 ),
               ],
@@ -75,26 +149,44 @@ class McProviderProfileView extends StatelessWidget {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                onPressed: confirmationText.trim().toLowerCase() == 'delete'
+                onPressed: password.trim().isNotEmpty
                     ? () async {
                         Navigator.pop(dialogContext);
+                        
+                        if (!context.mounted) return;
+                        
                         showDialog(
                           context: context,
                           barrierDismissible: false,
                           builder: (c) => const Center(child: CircularProgressIndicator()),
                         );
                         
-                        final providerRef = FirebaseFirestore.instance.collection('mc_providers').doc(context.read<McProviderAuthController>().currentProvider!.id);
-                        await providerRef.delete();
+                        final authController = context.read<McProviderAuthController>();
+                        final error = await authController.deleteAccount(password.trim());
                         
-                        await context.read<McProviderAuthController>().logout();
-                        
-                        if (!context.mounted) return;
-                        Navigator.of(context).pushNamedAndRemoveUntil('/role-option', (route) => false);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Account successfully deleted.")));
+                        if (context.mounted) {
+                          Navigator.pop(context); // Dismiss loading dialog
+                          
+                          if (error != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(error),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          } else {
+                            Navigator.of(context).pushNamedAndRemoveUntil('/role-option', (route) => false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Account and all associated records successfully deleted permanently."),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        }
                       }
                     : null,
-                child: const Text("Delete"),
+                child: const Text("Permanently Delete Account"),
               ),
             ],
           );
@@ -107,10 +199,18 @@ class McProviderProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final provider = context.watch<McProviderAuthController>().currentProvider;
-    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text("My Profile")),
+      appBar: AppBar(
+        title: const Text("My Profile"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.camera_alt_outlined),
+            onPressed: () => _pickImage(context),
+            tooltip: 'Upload Profile Picture',
+          ),
+        ],
+      ),
       body: provider == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -118,59 +218,162 @@ class McProviderProfileView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProfileCard(theme, provider),
+                  _buildProfileCard(context, theme, provider),
                   SizedBox(height: 3.h),
-                  _buildThemeSelector(themeProvider, theme),
+                  _buildReviewsSection(context, theme),
                   SizedBox(height: 3.h),
-                  _buildDangerZone(context, theme),
+                  _buildLogoutSection(context, theme),
+                  SizedBox(height: 3.h),
+                  _buildDeleteAccountSection(context, theme),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildProfileCard(ThemeData theme, McProviderModel provider) {
+  Widget _buildProfileCard(BuildContext context, ThemeData theme, McProviderModel? provider) {
     return Card(
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(5.w),
+        padding: EdgeInsets.all(4.w),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: const Color(0xFF0EA5E9).withValues(alpha: 0.2),
-              child: Text(
-                provider.companyName.isNotEmpty ? provider.companyName.substring(0, 1).toUpperCase() : "?",
-                style: TextStyle(fontSize: 26.sp, fontWeight: FontWeight.bold, color: const Color(0xFF0EA5E9)),
-              ),
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _pickImage(context),
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+                    backgroundImage: provider?.profilePicture != null && provider!.profilePicture.isNotEmpty
+                        ? NetworkImage(provider.profilePicture)
+                        : null,
+                    child: provider?.companyName != null && provider!.companyName.isNotEmpty
+                        ? Text(
+                            provider.companyName[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : const Icon(Icons.person, color: Colors.white),
+                  ),
+                ),
+                SizedBox(width: 3.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        provider?.companyName ?? 'Provider',
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      SizedBox(height: 0.5.h),
+                      Text(
+                        provider?.email ?? '',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      SizedBox(height: 1.h),
+                      Text(
+                        provider?.phone ?? '',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      SizedBox(height: 1.h),
+                      Text(
+                        provider?.location ?? '',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        'Rating: ${provider?.rating ?? 0.0}',
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0EA5E9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 2.h),
-            Text(provider.companyName, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-            SizedBox(height: 0.5.h),
-            Text(provider.email, style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
-            SizedBox(height: 2.h),
-            const Divider(),
-            SizedBox(height: 1.h),
-            _infoRow(Icons.phone_outlined, provider.phone),
-            SizedBox(height: 1.h),
-            _infoRow(Icons.location_on_outlined, provider.location),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        SizedBox(width: 3.w),
-        Expanded(child: Text(text, style: TextStyle(fontSize: 15.sp))),
-      ],
+  Widget _buildReviewsSection(BuildContext context, ThemeData theme) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(4.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.reviews_outlined, size: 22.sp, color: Color(0xFF0EA5E9)),
+                SizedBox(width: 2.w),
+                Text(
+                  "Customer Reviews",
+                  style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Consumer<McProviderDashboardController>(
+              builder: (context, dashboardController, _) {
+                final reviews = dashboardController.providerReviews;
+                
+                if (reviews.isEmpty) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.rate_review_outlined, size: 42.sp, color: Colors.grey[400]),
+                        SizedBox(height: 1.h),
+                        Text(
+                          "Reviews will appear here after service completion",
+                          style: TextStyle(fontSize: 18.sp, color: Colors.grey[600]),
+                        ),
+                        SizedBox(height: 1.h),
+                        Text(
+                          "Customers can rate your services",
+                          style: TextStyle(fontSize: 16.sp, color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: reviews.map((review) => _buildReviewItem(context, review, theme)).toList(),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildThemeSelector(ThemeProvider themeProvider, ThemeData theme) {
+  Widget _buildLogoutSection(BuildContext context, ThemeData theme) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -178,25 +381,24 @@ class McProviderProfileView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("App Appearance", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                SizedBox(width: 2.w),
+                Text("Session", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+              ],
+            ),
             SizedBox(height: 2.h),
-            RadioListTile<ThemeMode>(
-              title: Text("Light Mode", style: TextStyle(fontSize: 14.sp)),
-              value: ThemeMode.light,
-              groupValue: themeProvider.themeMode,
-              onChanged: (v) => themeProvider.setLight(),
-            ),
-            RadioListTile<ThemeMode>(
-              title: Text("Dark Mode", style: TextStyle(fontSize: 14.sp)),
-              value: ThemeMode.dark,
-              groupValue: themeProvider.themeMode,
-              onChanged: (v) => themeProvider.setDark(),
-            ),
-            RadioListTile<ThemeMode>(
-              title: Text("System Default", style: TextStyle(fontSize: 14.sp)),
-              value: ThemeMode.system,
-              groupValue: themeProvider.themeMode,
-              onChanged: (v) => themeProvider.setSystem(),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                side: const BorderSide(color: Colors.redAccent),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                foregroundColor: Colors.redAccent,
+              ),
+              icon: const Icon(Icons.logout),
+              label: Text("Logout", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+              onPressed: () => _confirmLogout(context),
             ),
           ],
         ),
@@ -204,7 +406,7 @@ class McProviderProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildDangerZone(BuildContext context, ThemeData theme) {
+  Widget _buildDeleteAccountSection(BuildContext context, ThemeData theme) {
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
@@ -213,28 +415,21 @@ class McProviderProfileView extends StatelessWidget {
         color: Colors.red.withValues(alpha: 0.05),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               const Icon(Icons.warning_amber_rounded, color: Colors.red),
               SizedBox(width: 2.w),
-              Text("Account Options", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.red)),
+              Text("Danger Zone", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.red)),
             ],
           ),
           SizedBox(height: 2.h),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 1.5.h),
-              side: const BorderSide(color: Colors.redAccent),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              foregroundColor: Colors.redAccent,
-            ),
-            icon: const Icon(Icons.logout),
-            label: Text("Logout", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
-            onPressed: () => _confirmLogout(context),
+          Text(
+            "Permanently delete your account and all associated data. This action cannot be undone.",
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
           ),
-          SizedBox(height: 1.5.h),
+          SizedBox(height: 2.h),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -243,10 +438,107 @@ class McProviderProfileView extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.delete_forever),
-            label: Text("Delete Account", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+            label: Text("Delete Account", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             onPressed: () => _confirmDelete(context),
           ),
         ],
+      ),
+    );
+}
+
+  Widget _buildReviewItem(BuildContext context, McReviewModel review, ThemeData theme) {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("${review.serviceTitle} by ${review.seekerName}"),
+            content: SingleChildScrollView(
+              child: Text(review.comment, style: TextStyle(fontSize: 16.sp)),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Close")),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 1.h),
+        padding: EdgeInsets.all(3.w),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        review.serviceTitle,
+                        style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                      ),
+                      SizedBox(height: 0.5.h),
+                      Row(
+                        children: [
+                          ...List.generate(5, (index) => Icon(
+                            Icons.star,
+                            color: index < review.rating ? const Color(0xFFFFD700) : Colors.grey[300],
+                            size: 18.sp,
+                          )),
+                        
+                        SizedBox(width: 1.w),
+                        Text(
+                          review.rating.toStringAsFixed(1),
+                          style: TextStyle(fontSize: 17.sp, color: theme.textTheme.bodyMedium?.color),
+                        ),
+                        SizedBox(width: 1.w),
+                        Text(
+                          review.dateTime.toString().split(' ')[0],
+                          style: TextStyle(fontSize: 17.sp, color: Colors.grey[600]),
+                        ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 1.h),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(2.w),
+              decoration: BoxDecoration(
+                color: theme.brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (review.seekerName.isNotEmpty) ...[
+                    Text(
+                      "Review by: ${review.seekerName}",
+                      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: const Color(0xFF0EA5E9)),
+                    ),
+                    SizedBox(height: 0.5.h),
+                  ],
+                  Text(
+                    review.comment,
+                    style: TextStyle(fontSize: 17.sp, color: theme.textTheme.bodyMedium?.color, height: 1.4),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

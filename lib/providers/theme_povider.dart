@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.light;
 
   ThemeMode get themeMode => _themeMode;
 
-  bool get isDark {
-    switch (_themeMode) {
-      case ThemeMode.dark:
-        return true;
-      case ThemeMode.light:
-        return false;
-      case ThemeMode.system:
-        return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
-    }
-  }
+  bool get isDark => _themeMode == ThemeMode.dark;
 
   void setLight() {
     _themeMode = ThemeMode.light;
@@ -26,27 +17,21 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSystem() {
-    _themeMode = ThemeMode.system;
-    notifyListeners();
-  }
-
   void toggleTheme() {
-    switch (_themeMode) {
-      case ThemeMode.system:
-        setDark();
-        break;
-      case ThemeMode.dark:
-        setLight();
-        break;
-      case ThemeMode.light:
-        setSystem();
-        break;
+    if (_themeMode == ThemeMode.light) {
+      setDark();
+    } else {
+      setLight();
     }
   }
 
   void setThemeMode(ThemeMode mode) {
-    _themeMode = mode;
+    if (mode == ThemeMode.system) {
+      // Fallback to light if system is passed accidentally
+      _themeMode = ThemeMode.light;
+    } else {
+      _themeMode = mode;
+    }
     notifyListeners();
   }
 }

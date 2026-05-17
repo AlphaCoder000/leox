@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
+import '../../models/mc_request_model.dart';
 
 class McSeekerBookingsView extends StatelessWidget {
   const McSeekerBookingsView({super.key});
@@ -14,39 +15,367 @@ class McSeekerBookingsView extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final requests = dashboardController.myRequests;
+    final requests = List<McRequestModel>.from(dashboardController.myRequests)
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-    return requests.isEmpty
-        ? Center(child: Text("No bookings yet.", style: TextStyle(color: Colors.grey, fontSize: 14.sp)))
-        : ListView.builder(
+    return Scaffold(
+      body: requests.isEmpty
+          ? _buildEmptyState(context)
+          : _buildBookingsList(requests, context),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
             padding: EdgeInsets.all(4.w),
-            itemCount: requests.length,
-            itemBuilder: (context, index) {
-              final request = requests[index];
-              return Card(
-                margin: EdgeInsets.only(bottom: 2.h),
-                color: Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  contentPadding: EdgeInsets.all(4.w),
-                  title: Text("Service ID: ${request.serviceId}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                  subtitle: Text("Booked on: ${request.dateTime.toLocal().toString().split(' ')[0]}", style: TextStyle(color: Colors.grey[400])),
-                  trailing: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.event_note_outlined,
+              size: 50.sp,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            "No Bookings Yet",
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          SizedBox(height: 1.h),
+          Text(
+            "Your service bookings will appear here.",
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingsList(List requests, BuildContext context) {
+    final theme = Theme.of(context);
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(4.w),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final request = requests[index];
+                return _buildBookingCard(request, theme, context);
+              },
+              childCount: requests.length,
+            ),
+          ),
+        ),
+        SliverPadding(padding: EdgeInsets.only(bottom: 5.h)),
+      ],
+    );
+  }
+
+  Widget _buildBookingCard(McRequestModel request, ThemeData theme, BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showBookingDetailSheet(context, request),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 2.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: theme.cardColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: _getStatusColor(request.status).withValues(alpha: 0.3),
+            width: 2,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(4.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(2.w),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(request.status).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getStatusIcon(request.status),
+                      color: _getStatusColor(request.status),
+                      size: 22.sp,
+                    ),
+                  ),
+                  SizedBox(width: 3.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Company Booking",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        SizedBox(height: 0.5.h),
+                        Text(
+                          "Service Request",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.8.h),
                     decoration: BoxDecoration(
                       color: _getStatusColor(request.status).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _getStatusColor(request.status)),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       request.status.toUpperCase(),
-                      style: TextStyle(color: _getStatusColor(request.status), fontWeight: FontWeight.bold, fontSize: 10.sp),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: _getStatusColor(request.status),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 1.5.h),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today_outlined, size: 18.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                  SizedBox(width: 1.w),
+                  Text(
+                    "Booked on: ${request.dateTime.toLocal().toString().split(' ')[0]}",
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+              if (request.message.isNotEmpty) ...[
+                SizedBox(height: 1.h),
+                Text(
+                  "Your Message",
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                  ),
+                ),
+                SizedBox(height: 0.5.h),
+                Text(
+                  request.message,
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Icons.pending;
+      case 'accepted':
+        return Icons.check_circle;
+      case 'completed':
+        return Icons.task_alt;
+      case 'rejected':
+        return Icons.cancel;
+      default:
+        return Icons.help;
+    }
+  }
+
+  void _showBookingDetailSheet(BuildContext context, McRequestModel request) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (_, scrollController) => Container(
+          padding: EdgeInsets.all(4.w),
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    margin: EdgeInsets.only(bottom: 2.h),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor,
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
-              );
-            },
-          );
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(2.w),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(request.status).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getStatusIcon(request.status),
+                        color: _getStatusColor(request.status),
+                        size: 26.sp,
+                      ),
+                    ),
+                    SizedBox(width: 2.w),
+                    Expanded(
+                      child: Text(
+                        "Booking Details",
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 2.h),
+                _buildDetailRow("Company", request.seekerName.isNotEmpty ? request.seekerName : "Unknown", theme),
+                
+                _buildDetailRow("Status", request.status.toUpperCase(), theme, _getStatusColor(request.status)),
+                _buildDetailRow("Booking Date", request.dateTime.toLocal().toString().split(' ')[0], theme),
+                if (request.message.isNotEmpty) ...[
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Your Message",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  Container(
+                    padding: EdgeInsets.all(3.w),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      request.message,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+                SizedBox(height: 3.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0EA5E9),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(sheetContext),
+                    child: Text(
+                      "Close",
+                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, ThemeData theme, [Color? valueColor]) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 1.5.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 25.w,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   }
 
   Color _getStatusColor(String status) {
@@ -55,4 +384,3 @@ class McSeekerBookingsView extends StatelessWidget {
     if (status == 'completed') return Colors.greenAccent;
     return Colors.redAccent;
   }
-}

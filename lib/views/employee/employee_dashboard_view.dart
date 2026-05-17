@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:leox/providers/employee_providers/employee_dashboard_provider.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
@@ -63,10 +62,8 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                 (context, themeProvider, _) => IconButton(
                   icon: Icon(
                     themeProvider.themeMode == ThemeMode.light
-                        ? Icons.light_mode_outlined
-                        : themeProvider.themeMode == ThemeMode.dark
                         ? Icons.dark_mode_outlined
-                        : Icons.settings_system_daydream_outlined,
+                        : Icons.light_mode_outlined,
                   ),
                   onPressed: () {
                     themeProvider.toggleTheme();
@@ -134,22 +131,6 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
 
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/icons/leoOpus_bg_image.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                child: Container(
-                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3)),
-                ),
-              ),
-            ),
-          ),
           Positioned.fill(
             child: Consumer<EmployeeDashboardProvider>(
           builder: (context, dashboardProvider, _) {

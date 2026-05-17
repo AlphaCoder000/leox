@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/mc_service_model.dart';
 import '../models/mc_request_model.dart';
+import '../models/mc_review_model.dart';
 
 class McProviderDashboardController extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -11,6 +12,9 @@ class McProviderDashboardController extends ChangeNotifier {
 
   List<McRequestModel> _requests = [];
   List<McRequestModel> get requests => _requests;
+
+  List<McReviewModel> _providerReviews = [];
+  List<McReviewModel> get providerReviews => _providerReviews;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -55,6 +59,26 @@ class McProviderDashboardController extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchProviderReviews(String providerId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('mc_reviews')
+          .where('providerId', isEqualTo: providerId)
+          .get();
+      
+      _providerReviews = snapshot.docs
+          .map((doc) => McReviewModel.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+    } catch (e) {
+      debugPrint("Error fetching provider reviews: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> addService(McServiceModel service) async {
     try {
       await _firestore.collection('mc_services').add(service.toJson());
@@ -79,6 +103,15 @@ class McProviderDashboardController extends ChangeNotifier {
       await fetchIncomingRequests(providerId);
     } catch (e) {
       debugPrint("Error updating request status: $e");
+    }
+  }
+
+  Future<void> updateServiceStatus(String serviceId, String newStatus, String providerId) async {
+    try {
+      await _firestore.collection('mc_services').doc(serviceId).update({'status': newStatus});
+      await fetchMyServices(providerId);
+    } catch (e) {
+      debugPrint("Error updating service status: $e");
     }
   }
 }

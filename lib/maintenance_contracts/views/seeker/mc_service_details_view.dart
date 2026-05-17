@@ -5,6 +5,7 @@ import '../../controllers/mc_seeker_dashboard_controller.dart';
 import '../../controllers/mc_seeker_auth_controller.dart';
 import '../../models/mc_service_model.dart';
 import '../../models/mc_request_model.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class McServiceDetailsView extends StatelessWidget {
   final McServiceModel service;
@@ -13,6 +14,16 @@ class McServiceDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final titleColor = isDark ? Colors.white : const Color.fromARGB(255, 27, 26, 26);
+    final categoryColor = const Color(0xFF0EA5E9);
+    final headingColor = isDark ? const Color.fromARGB(255, 255, 138, 138) : const Color.fromARGB(255, 83, 26, 26);
+    final descTextColor = isDark ? Colors.grey[300] : const Color.fromARGB(255, 40, 39, 39);
+    final priceHeadingColor = isDark ? const Color.fromARGB(255, 255, 138, 138) : const Color.fromARGB(255, 80, 34, 34);
+    final priceTextColor = isDark ? const Color.fromARGB(255, 208, 169, 237) : const Color.fromARGB(255, 59, 41, 75);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Service Details")),
       body: Padding(
@@ -23,26 +34,26 @@ class McServiceDetailsView extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(4.w),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFF0EA5E9).withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(service.title, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(service.title, style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: titleColor)),
                   SizedBox(height: 1.h),
-                  Text(service.category, style: TextStyle(fontSize: 14.sp, color: const Color(0xFF0EA5E9))),
+                  Text(service.category, style: TextStyle(fontSize: 18.sp, color: categoryColor)),
                   SizedBox(height: 2.h),
-                  Text("Description", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.grey[300])),
+                  Text("Description", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: headingColor)),
                   SizedBox(height: 1.h),
-                  Text(service.description, style: TextStyle(fontSize: 12.sp, color: Colors.grey[400])),
+                  Text(service.description, style: TextStyle(fontSize: 17.sp, color: descTextColor)),
                   SizedBox(height: 3.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Price", style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.grey[300])),
-                      Text("\$${service.price}", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text("Price", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: priceHeadingColor)),
+                      Text("₹${service.price}", style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: priceTextColor)),
                     ],
                   ),
                 ],
@@ -57,7 +68,7 @@ class McServiceDetailsView extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 2.h),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   final seekerId = context.read<McSeekerAuthController>().currentSeeker?.id;
                   if (seekerId != null) {
                     final newRequest = McRequestModel(
@@ -69,11 +80,21 @@ class McServiceDetailsView extends StatelessWidget {
                       dateTime: DateTime.now(),
                     );
                     context.read<McSeekerDashboardController>().createRequest(newRequest);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Service booked successfully!")));
+                    
+                    await CustomPopup.show(
+                      context,
+                      type: CustomPopupType.success,
+                      title: 'Booking Request Sent!',
+                      message: 'Your request for "${service.title}" has been placed successfully and is pending provider approval.',
+                      buttonLabel: 'View Bookings',
+                    );
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
                   }
                 },
-                child: Text("Book Service", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text("Book Service", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
             SizedBox(height: 2.h),

@@ -5,6 +5,7 @@ import 'package:leox/views/general/role_option_view.dart';
 import 'package:leox/utils/email_validator_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class EmployerRegisterView extends StatefulWidget {
   const EmployerRegisterView({super.key});
@@ -50,23 +51,32 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
         _contactNumberController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty ||
         _confirmPasswordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields')),
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.warning,
+        title: 'Validation Action Required',
+        message: 'Please fill in all the required fields.',
       );
       return;
     }
 
     final emailError = EmailValidatorHelper.validateEmployerEmail(_emailController.text.trim());
     if (emailError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(emailError)),
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.warning,
+        title: 'Validation Action Required',
+        message: emailError,
       );
       return;
     }
 
     if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.warning,
+        title: 'Validation Action Required',
+        message: 'Passwords do not match.',
       );
       return;
     }
@@ -82,16 +92,31 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
       );
       if (!mounted) return;
       
-      // Success? main.dart handles navigation.
-      // We just need to clear the stack if we are on top.
-      if (auth.isLoggedIn) {
+      if (auth.errorMessage != null) {
+        CustomPopup.show(
+          context,
+          type: CustomPopupType.error,
+          title: 'Registration Failed',
+          message: auth.errorMessage!,
+        );
+      } else if (auth.isLoggedIn) {
+        await CustomPopup.show(
+          context,
+          type: CustomPopupType.success,
+          title: 'Registration Successful!',
+          message: 'Welcome to LeoOpus! Your employer account has been created successfully.',
+          buttonLabel: 'Go to Dashboard',
+        );
+        if (!mounted) return;
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (!mounted) return;
-      // Error is already handled/set in the provider, but we can show a snackbar too
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration failed: $e')),
+      CustomPopup.show(
+        context,
+        type: CustomPopupType.error,
+        title: 'Registration Failed',
+        message: e.toString(),
       );
     }
   }
@@ -248,8 +273,24 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           final provider = context.read<EmployerAuthProvider>();
                           await provider.signUpWithGoogle();
                           
-                          if (provider.isLoggedIn && context.mounted) {
-                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          if (provider.errorMessage != null && context.mounted) {
+                            CustomPopup.show(
+                              context,
+                              type: CustomPopupType.error,
+                              title: 'Google Sign-Up Failed',
+                              message: provider.errorMessage!,
+                            );
+                          } else if (provider.isLoggedIn && context.mounted) {
+                            await CustomPopup.show(
+                              context,
+                              type: CustomPopupType.success,
+                              title: 'Registration Successful!',
+                              message: 'Your account was registered successfully with Google.',
+                              buttonLabel: 'Go to Dashboard',
+                            );
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            }
                           }
                         },
                         icon: auth.isLoading 

@@ -151,6 +151,9 @@ class _MyAppState extends State<MyApp> {
                 duration: Duration(seconds: 4),
                 child: _MainAppContent(),
               ),
+              routes: {
+                '/role-option': (context) => const WelcomeView(),
+              },
             );
           },
         );

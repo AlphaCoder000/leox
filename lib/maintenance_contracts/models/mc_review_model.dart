@@ -1,42 +1,39 @@
-class McRequestModel {
+class McReviewModel {
   final String id;
   final String seekerId;
   final String providerId;
   final String serviceId;
-  final String status; // 'pending', 'accepted', 'completed', 'rejected'
+  final double rating; // 1.0 to 5.0
+  final String comment;
   final DateTime dateTime;
   final String seekerName;
-  final String seekerPhone;
-  final String seekerAddress;
-  final String message;
+  final String serviceTitle;
 
-  McRequestModel({
+  McReviewModel({
     required this.id,
     required this.seekerId,
     required this.providerId,
     required this.serviceId,
-    this.status = 'pending',
+    required this.rating,
+    required this.comment,
     required this.dateTime,
-    this.seekerName = '',
-    this.seekerPhone = '',
-    this.seekerAddress = '',
-    this.message = '',
+    required this.seekerName,
+    required this.serviceTitle,
   });
 
-  factory McRequestModel.fromJson(Map<String, dynamic> json, String documentId) {
-    return McRequestModel(
+  factory McReviewModel.fromJson(Map<String, dynamic> json, String documentId) {
+    return McReviewModel(
       id: documentId,
       seekerId: json['seekerId'] ?? '',
       providerId: json['providerId'] ?? '',
       serviceId: json['serviceId'] ?? '',
-      status: json['status'] ?? 'pending',
+      rating: (json['rating'] ?? 0.0).toDouble(),
+      comment: json['comment'] ?? '',
       dateTime: json['dateTime'] != null 
           ? DateTime.parse(json['dateTime']) 
           : DateTime.now(),
       seekerName: json['seekerName'] ?? '',
-      seekerPhone: json['seekerPhone'] ?? '',
-      seekerAddress: json['seekerAddress'] ?? '',
-      message: json['message'] ?? '',
+      serviceTitle: json['serviceTitle'] ?? '',
     );
   }
 
@@ -45,12 +42,11 @@ class McRequestModel {
       'seekerId': seekerId,
       'providerId': providerId,
       'serviceId': serviceId,
-      'status': status,
+      'rating': rating,
+      'comment': comment,
       'dateTime': dateTime.toIso8601String(),
       'seekerName': seekerName,
-      'seekerPhone': seekerPhone,
-      'seekerAddress': seekerAddress,
-      'message': message,
+      'serviceTitle': serviceTitle,
     };
   }
 }

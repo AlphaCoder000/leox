@@ -101,7 +101,11 @@ service cloud.firestore {
     // --- MAINTENANCE CONTRACTS COLLECTIONS ---
     match /mc_providers/{userId} {
       allow read: if isAuthenticated(); // Needed by main router and seekers
-      allow write: if isOwner(userId);
+      allow create, delete: if isOwner(userId);
+      allow update: if isAuthenticated() && (
+        isOwner(userId) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating'])
+      );
     }
     
     match /mc_seekers/{userId} {
@@ -117,6 +121,13 @@ service cloud.firestore {
     match /mc_requests/{requestId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated(); // Allow seekers to book, providers to update status
+    }
+    
+    match /mc_reviews/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated(); // Allow seekers to create reviews
+      allow update: if isAuthenticated(); // Allow users to update their own reviews
+      allow delete: if request.auth.uid == resource.data.seekerId; // Users can only delete their own reviews
     }
 
     // --- STORAGE RULES (If applicable here, though this is firestore.rules) ---

@@ -6,6 +6,7 @@ import 'package:leox/views/general/role_option_view.dart';
 import 'package:leox/utils/error_handler_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class EmployerLoginView extends StatefulWidget {
   const EmployerLoginView({super.key});
@@ -278,16 +279,32 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                     );
                                   } else {
                                     // Phone Login Logic
-                                    ErrorHandlerUI.showErrorSnackbar(
+                                    CustomPopup.show(
                                       context,
-                                      'OTP login not implemented for employers',
+                                      type: CustomPopupType.warning,
+                                      title: 'Not Implemented',
+                                      message: 'OTP login not implemented for employers.',
                                     );
                                   }
 
-                                  // No manual navigation needed. main.dart reacts to login.
-                                  // Just clear any pushed login/register screens to return to root.
-                                  if (provider.isLoggedIn && context.mounted) {
-                                    Navigator.of(context).popUntil((route) => route.isFirst);
+                                  if (provider.errorMessage != null && context.mounted) {
+                                    CustomPopup.show(
+                                      context,
+                                      type: CustomPopupType.error,
+                                      title: 'Login Failed',
+                                      message: provider.errorMessage!,
+                                    );
+                                  } else if (provider.isLoggedIn && context.mounted) {
+                                    await CustomPopup.show(
+                                      context,
+                                      type: CustomPopupType.success,
+                                      title: 'Welcome Back!',
+                                      message: 'You have logged in successfully.',
+                                      buttonLabel: 'Go to Dashboard',
+                                    );
+                                    if (context.mounted) {
+                                      Navigator.of(context).popUntil((route) => route.isFirst);
+                                    }
                                   }
                                 },
                         style: ElevatedButton.styleFrom(
@@ -333,8 +350,24 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                           final provider = context.read<EmployerAuthProvider>();
                           await provider.signInWithGoogle();
                           
-                          if (provider.isLoggedIn && context.mounted) {
-                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          if (provider.errorMessage != null && context.mounted) {
+                            CustomPopup.show(
+                              context,
+                              type: CustomPopupType.error,
+                              title: 'Google Sign-In Failed',
+                              message: provider.errorMessage!,
+                            );
+                          } else if (provider.isLoggedIn && context.mounted) {
+                            await CustomPopup.show(
+                              context,
+                              type: CustomPopupType.success,
+                              title: 'Welcome Back!',
+                              message: 'You have logged in successfully with Google.',
+                              buttonLabel: 'Go to Dashboard',
+                            );
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            }
                           }
                         },
                         icon: auth.isLoading 

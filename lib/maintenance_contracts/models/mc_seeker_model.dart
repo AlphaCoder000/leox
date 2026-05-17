@@ -4,6 +4,7 @@ class McSeekerModel {
   final String email;
   final String phone;
   final String address;
+  final String profilePicture;
 
   McSeekerModel({
     required this.id,
@@ -11,6 +12,7 @@ class McSeekerModel {
     required this.email,
     required this.phone,
     required this.address,
+    this.profilePicture = '',
   });
 
   factory McSeekerModel.fromJson(Map<String, dynamic> json, String documentId) {
@@ -20,6 +22,7 @@ class McSeekerModel {
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
       address: json['address'] ?? '',
+      profilePicture: json['profilePicture'] ?? '',
     );
   }
 
@@ -29,6 +32,7 @@ class McSeekerModel {
       'email': email,
       'phone': phone,
       'address': address,
+      'profilePicture': profilePicture,
     };
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/providers/employer_profile_provider.dart';
@@ -54,10 +53,8 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 (context, themeProvider, _) => IconButton(
                   icon: Icon(
                     themeProvider.themeMode == ThemeMode.light
-                        ? Icons.light_mode_outlined
-                        : themeProvider.themeMode == ThemeMode.dark
                         ? Icons.dark_mode_outlined
-                        : Icons.settings_system_daydream_outlined,
+                        : Icons.light_mode_outlined,
                   ),
                   onPressed: () {
                     themeProvider.toggleTheme();
@@ -123,24 +120,6 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
 
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/icons/leoOpus_bg_image.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.3),
-                  ),
-                ),
-              ),
-            ),
-          ),
           Positioned.fill(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(

@@ -59,7 +59,7 @@ class EmployeeDrawer extends StatelessWidget {
                     children: const [
                       TextSpan(
                         text: 'LEO',
-                        style: TextStyle(color: Color(0xFF001A66)),
+                        style: TextStyle(color: Color.fromARGB(255, 34, 81, 222)),
                       ),
                       TextSpan(text: ' '),
                       TextSpan(
@@ -195,15 +195,19 @@ class EmployeeDrawer extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.65),
                 ),
                 SizedBox(width: 4.w),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18.sp,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color:
-                        isSelected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.85),
+                Expanded(
+                  child: Text(
+                    title,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: title.length > 15 ? 14.sp : 16.sp,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color:
+                          isSelected
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.85),
+                    ),
                   ),
                 ),
               ],
@@ -263,7 +267,7 @@ class EmployeeDrawer extends StatelessWidget {
                   "Logout",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -273,7 +277,7 @@ class EmployeeDrawer extends StatelessWidget {
               "Are you sure you want to sign out of your employee account? You'll need to login again to see your applications and saved jobs.",
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12.sp,
+                fontSize: 15.sp,
               ),
             ),
             actions: [
@@ -283,7 +287,7 @@ class EmployeeDrawer extends StatelessWidget {
                   "Cancel",
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 11.sp,
+                    fontSize: 15.sp,
                   ),
                 ),
               ),
@@ -316,7 +320,7 @@ class EmployeeDrawer extends StatelessWidget {
                   child: Text(
                     "Yes, Logout",
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

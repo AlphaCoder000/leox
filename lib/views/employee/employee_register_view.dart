@@ -6,6 +6,7 @@ import 'package:leox/views/general/role_option_view.dart';
 import 'package:leox/utils/email_validator_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 class EmployeeRegisterView extends StatefulWidget {
   const EmployeeRegisterView({super.key});
@@ -110,11 +111,15 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      "Employee Registration",
-                      style: TextStyle(
-                        fontSize: 23.sp, fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                    Expanded(
+                      child: Text(
+                        "Employee Registration",
+                        style: TextStyle(
+                          fontSize: 20.sp, fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
@@ -294,13 +299,30 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                           } else if (!isEmailSelected && isOtpSent) {
                             
                           } else {
+                            final provider = context.read<EmployeeAuthProvider>();
                             // Firebase email registration
                             await _registerWithEmail();
                             
-                            // Success? main.dart will handle navigation.
-                            // We just need to clear the stack if we are on top.
-                            if (auth.isLoggedIn && context.mounted) {
-                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            if (!context.mounted) return;
+                            
+                            if (provider.errorMessage != null) {
+                              CustomPopup.show(
+                                context,
+                                type: CustomPopupType.error,
+                                title: 'Registration Failed',
+                                message: provider.errorMessage!,
+                              );
+                            } else if (provider.isLoggedIn) {
+                              await CustomPopup.show(
+                                context,
+                                type: CustomPopupType.success,
+                                title: 'Registration Successful!',
+                                message: 'Welcome to LeoOpus! Your employee account has been created successfully.',
+                                buttonLabel: 'Go to Dashboard',
+                              );
+                              if (context.mounted) {
+                                Navigator.of(context).popUntil((route) => route.isFirst);
+                              }
                             }
                           }
                         },
@@ -324,10 +346,10 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                                   ? "Verify & Create Account"
                                   : "Send Verification Code",
                               style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16, // Fixed from 16.0 to 16.sp
-                                color: Colors.white,
-                              ),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16, // Fixed from 16.0 to 16.sp
+                                  color: Colors.white,
+                                ),
                             ),
                       );
                     }
@@ -366,8 +388,24 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                           final provider = context.read<EmployeeAuthProvider>();
                           await provider.signUpWithGoogle();
                           
-                          if (provider.isLoggedIn && context.mounted) {
-                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          if (provider.errorMessage != null && context.mounted) {
+                            CustomPopup.show(
+                              context,
+                              type: CustomPopupType.error,
+                              title: 'Google Sign-Up Failed',
+                              message: provider.errorMessage!,
+                            );
+                          } else if (provider.isLoggedIn && context.mounted) {
+                            await CustomPopup.show(
+                              context,
+                              type: CustomPopupType.success,
+                              title: 'Registration Successful!',
+                              message: 'Your account was registered successfully with Google.',
+                              buttonLabel: 'Go to Dashboard',
+                            );
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            }
                           }
                         },
                         icon: auth.isLoading 
@@ -503,11 +541,11 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+    CustomPopup.show(
+      context,
+      type: CustomPopupType.warning,
+      title: 'Validation Alert',
+      message: message,
     );
   }
 
