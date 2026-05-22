@@ -163,12 +163,15 @@ class McSeekerCatalogView extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "₹${service.price}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.sp,
-                      color: const Color(0xFF0EA5E9),
+                  Expanded(
+                    child: Text(
+                      service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.sp,
+                        color: const Color(0xFF0EA5E9),
+                      ),
                     ),
                   ),
                   Container(

@@ -36,19 +36,19 @@ class RoleOptionView extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 6.w),
         child: Column(
           children: [
-            SizedBox(height: 2.h),
+            //SizedBox(height: 2.h),
 
             Text(
-              "Welcome to LeoOpus",
+              "Hiring Platform",
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontSize: 23.sp,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,
               ),
             ),
 
-            SizedBox(height: 5.h),
+            SizedBox(height: 2.h),
 
             Text(
               "Choose how you'd like to continue",
@@ -63,7 +63,7 @@ class RoleOptionView extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 4.h),
+            SizedBox(height: 1.h),
 
             // 🔹 EMPLOYER CARD (TOP)
             _roleCard(
@@ -85,7 +85,7 @@ class RoleOptionView extends StatelessWidget {
               },
             ),
 
-            SizedBox(height: 3.h),
+            SizedBox(height: 2.h),
 
             // 🔹 EMPLOYEE CARD (BOTTOM)
             _roleCard(
@@ -107,12 +107,12 @@ class RoleOptionView extends StatelessWidget {
               },
             ),
 
-            SizedBox(height: 4.h),
+            SizedBox(height: 2.h),
 
             // 🔹 TERMS & PRIVACY
             _termsAndPrivacy(context),
 
-            SizedBox(height: 3.h),
+            SizedBox(height: 2.h),
           ],
         ),
       ),

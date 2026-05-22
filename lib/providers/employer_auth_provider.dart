@@ -141,18 +141,10 @@ Future<void> _checkRoleWithRetry(String uid) async {
       final user = userCredential.user;
 
       if (user != null) {
-        // Verify role or create profile if missing
-        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        // Verify employer profile exists; if not, automatically create it for Google auth
+        final employerDoc = await _firestore.collection('employers').doc(user.uid).get();
         
-        if (userDoc.exists) {
-          final data = userDoc.data();
-          if (data != null && data['role'] != 'employer') {
-            await _auth.signOut();
-            _setError('This account is registered as an ${data['role']}, not an employer.');
-            return;
-          }
-        } else {
-          // New Google account - default to employer if signed in from this view
+        if (!employerDoc.exists) {
           await _createEmployerProfile(user);
           debugPrint('[EmployerAuthProvider] Created new employer profile for Google user');
         }
@@ -198,9 +190,37 @@ Future<void> _checkRoleWithRetry(String uid) async {
     _setError(null);
 
     try {
-      // Create user with Firebase Auth
-      final UserCredential credential = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential credential;
+      try {
+        // Create user with Firebase Auth
+        credential = await _auth.createUserWithEmailAndPassword(
+            email: email, password: password);
+      } on FirebaseAuthException catch (authEx) {
+        if (authEx.code == 'email-already-in-use') {
+          debugPrint(
+              '[EmployerAuthProvider] Email already in use. Checking if credentials match and role is missing...');
+          // Check if correct password is provided by attempting to sign in
+          credential = await _auth.signInWithEmailAndPassword(
+              email: email, password: password);
+
+          // Signed in successfully, now check if they already have an employer profile
+          final employerDoc = await _firestore
+              .collection('employers')
+              .doc(credential.user!.uid)
+              .get();
+          if (employerDoc.exists) {
+            throw FirebaseAuthException(
+              code: 'email-already-in-use',
+              message:
+                  'An employer account already exists with this email. Please sign in instead.',
+            );
+          }
+          debugPrint(
+              '[EmployerAuthProvider] Existing user authenticated successfully, no employer profile found. Creating employer profile...');
+        } else {
+          rethrow;
+        }
+      }
 
       debugPrint(
         '[EmployerAuthProvider] Firebase Auth registration successful: ${credential.user?.email}',
@@ -226,15 +246,16 @@ Future<void> _checkRoleWithRetry(String uid) async {
 
       // Set success message for UI feedback
       _setSuccessMessage('Registration successful! Welcome to LeoOpus.');
-      
+
       // Manually update auth state to trigger immediate login
       _firebaseUser = credential.user;
       _userId = credential.user!.uid;
       _userEmail = credential.user!.email;
       _isLoggedIn = true;
-      
+
       notifyListeners();
-      debugPrint('[EmployerAuthProvider] Registration successful - user logged in immediately');
+      debugPrint(
+          '[EmployerAuthProvider] Registration successful - user logged in immediately');
 
       // Auth state listener will also update state
     } on FirebaseAuthException catch (e) {
@@ -244,7 +265,8 @@ Future<void> _checkRoleWithRetry(String uid) async {
           errorMessage = 'Password is too weak';
           break;
         case 'email-already-in-use':
-          errorMessage = 'An account already exists with this email';
+          errorMessage =
+              e.message ?? 'An account already exists with this email';
           break;
         case 'invalid-email':
           errorMessage = 'Invalid email address';
@@ -252,6 +274,13 @@ Future<void> _checkRoleWithRetry(String uid) async {
         case 'operation-not-allowed':
           errorMessage = 'Email/password accounts are not enabled';
           break;
+        case 'wrong-password':
+        case 'invalid-credential':
+          errorMessage =
+              'Incorrect password for the existing account registered with this email.';
+          break;
+        default:
+          errorMessage = e.message ?? 'Registration failed';
       }
       _setError(errorMessage);
       debugPrint(
@@ -284,21 +313,15 @@ Future<void> _checkRoleWithRetry(String uid) async {
 
       final user = credential.user;
       if (user != null) {
-        // Verify role or create profile if missing
-        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        // Verify employer profile exists
+        final employerDoc = await _firestore.collection('employers').doc(user.uid).get();
         
-        if (userDoc.exists) {
-          final data = userDoc.data();
-          if (data != null && data['role'] != 'employer') {
-             await _auth.signOut();
-             throw FirebaseAuthException(
-               code: 'invalid-role', 
-               message: 'This account is registered as an ${data['role']}, not an employer.'
-             );
-          }
-        } else {
-           // Profile missing - create it (Recovery)
-           await _createEmployerProfile(user);
+        if (!employerDoc.exists) {
+           await _auth.signOut();
+           throw FirebaseAuthException(
+             code: 'invalid-role', 
+             message: 'This account is not registered as an employer. Please register as an employer first.'
+           );
         }
 
         // Save session with real Firebase user data
@@ -358,19 +381,18 @@ Future<void> _checkRoleWithRetry(String uid) async {
     String? linkedin,
   }) async {
     try {
-      // 1. Create user document for role check (First! to avoid race condition)
-      final userDoc = {
-        'id': user.uid,
-        'email': user.email,
-        'role': 'employer',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(userDoc);
+      // 1. Create user document for role check if it doesn't exist yet
+      final userDocRef = _firestore.collection('users').doc(user.uid);
+      final userDoc = await userDocRef.get();
+      if (!userDoc.exists) {
+        await userDocRef.set({
+          'id': user.uid,
+          'email': user.email,
+          'role': 'employer',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       // 2. Create or update detailed employer profile
       final employerProfile = {
@@ -434,7 +456,9 @@ Future<void> _checkRoleWithRetry(String uid) async {
 
   /// Clear error message (call after showing error to UI)
   void clearError() {
-    _setError(null);
+    if (_errorMessage != null) {
+      _setError(null);
+    }
   }
 
   /// Clear success message (call after showing success to UI)

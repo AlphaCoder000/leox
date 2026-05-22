@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_provider_dashboard_controller.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import '../../models/mc_service_model.dart';
-import 'package:leox/widgets/custom_popup.dart';
+import 'mc_add_service_view.dart';
 
 class McServiceManagementView extends StatelessWidget {
   const McServiceManagementView({super.key});
@@ -19,7 +19,10 @@ class McServiceManagementView extends StatelessWidget {
           ? _buildEmptyState(context)
           : _buildServicesList(context, dashboardController.services, providerId),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddServiceDialog(context, providerId),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => McAddServiceView(providerId: providerId)),
+        ),
         backgroundColor: const Color(0xFF0EA5E9),
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
@@ -70,7 +73,7 @@ class McServiceManagementView extends StatelessWidget {
     );
   }
 
-  Widget _buildServicesList(BuildContext context, List services, String providerId) {
+  Widget _buildServicesList(BuildContext context, List<McServiceModel> services, String providerId) {
     final dashboardController = context.read<McProviderDashboardController>();
     return CustomScrollView(
       slivers: [
@@ -91,16 +94,22 @@ class McServiceManagementView extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(BuildContext context, service, String providerId, McProviderDashboardController dashboardController) {
+  Widget _buildServiceCard(BuildContext context, McServiceModel service, String providerId, McProviderDashboardController dashboardController) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Container(
       margin: EdgeInsets.only(bottom: 2.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: theme.cardColor,
+        border: Border.all(
+          color: isDark ? Colors.grey[850]! : Colors.grey[200]!,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -112,9 +121,10 @@ class McServiceManagementView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: EdgeInsets.all(2.w),
+                  padding: EdgeInsets.all(2.5.w),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -142,7 +152,7 @@ class McServiceManagementView extends StatelessWidget {
                       Text(
                         service.category,
                         style: TextStyle(
-                          fontSize: 16.sp,
+                          fontSize: 15.sp,
                           color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w500,
                         ),
@@ -150,59 +160,111 @@ class McServiceManagementView extends StatelessWidget {
                     ],
                   ),
                 ),
-                Text(
-                  "₹${service.price}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15.sp,
-                    color: const Color(0xFF0EA5E9),
-                  ),
+                SizedBox(width: 2.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                        color: const Color(0xFF0EA5E9),
+                      ),
+                    ),
+                    SizedBox(height: 0.5.h),
+                    Text(
+                      "Est. Range",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            SizedBox(height: 1.5.h),
+            SizedBox(height: 2.h),
+            
+            // Description of service
             if (service.description.isNotEmpty) ...[
-              SizedBox(height: 1.h),
+              Text(
+                "Service Description",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+              SizedBox(height: 0.5.h),
               Text(
                 service.description,
                 style: TextStyle(
                   fontSize: 15.sp,
                   color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                  height: 1.5,
+                  height: 1.4,
                 ),
               ),
-              SizedBox(height: 2.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      _showDeleteConfirmationDialog(context, service, providerId, dashboardController);
-                    },
-                    icon: Icon(Icons.delete_outline, color: Colors.red, size: 22.sp),
-                    label: Text(
-                      "Delete",
-                      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
-                      foregroundColor: Colors.red,
-                      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+              SizedBox(height: 1.5.h),
+            ],
+
+            // Price justification
+            if (service.priceJustification.isNotEmpty) ...[
+              Text(
+                "Price Range Justification",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+              SizedBox(height: 0.5.h),
+              Text(
+                service.priceJustification,
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                  height: 1.4,
+                ),
+              ),
+              SizedBox(height: 1.5.h),
+            ],
+
+            const Divider(),
+            SizedBox(height: 1.h),
+            
+            // Delete action button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _showDeleteConfirmationDialog(context, service, providerId, dashboardController);
+                  },
+                  icon: Icon(Icons.delete_outline, color: Colors.red, size: 18.sp),
+                  label: Text(
+                    "Delete Service",
+                    style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.red.withValues(alpha: 0.3)),
+                    foregroundColor: Colors.red,
+                    padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _showDeleteConfirmationDialog(BuildContext context, service, String providerId, McProviderDashboardController dashboardController) {
+  void _showDeleteConfirmationDialog(BuildContext context, McServiceModel service, String providerId, McProviderDashboardController dashboardController) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -289,113 +351,6 @@ class McServiceManagementView extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showAddServiceDialog(BuildContext context, String providerId) {
-    final titleCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final catCtrl = TextEditingController();
-    final priceCtrl = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: EdgeInsets.zero,
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9,
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(4.w),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleCtrl,
-                    decoration: InputDecoration(
-                      labelText: "Service Title",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      prefixIcon: Icon(Icons.title),
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  TextField(
-                    controller: descCtrl,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: "Description",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      prefixIcon: Icon(Icons.description),
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  TextField(
-                    controller: catCtrl,
-                    decoration: InputDecoration(
-                      labelText: "Category",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      prefixIcon: Icon(Icons.category),
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  TextField(
-                    controller: priceCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: "Price",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      prefixIcon: Icon(Icons.currency_rupee),
-                    ),
-                  ),
-                  SizedBox(height: 3.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: Text("Cancel"),
-                      ),
-                      SizedBox(width: 2.w),
-                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0EA5E9),
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () async {
-                          if (titleCtrl.text.trim().isNotEmpty && 
-                              catCtrl.text.trim().isNotEmpty && 
-                              priceCtrl.text.trim().isNotEmpty) {
-                            final newService = McServiceModel(
-                              id: '',
-                              title: titleCtrl.text.trim(),
-                              description: descCtrl.text.trim(),
-                              category: catCtrl.text.trim(),
-                              price: double.tryParse(priceCtrl.text.trim()) ?? 0.0,
-                              providerId: providerId,
-                            );
-                            context.read<McProviderDashboardController>().addService(newService);
-                            Navigator.pop(ctx);
-                            
-                            await CustomPopup.show(
-                              context,
-                              type: CustomPopupType.success,
-                              title: 'Service Added!',
-                              message: 'Your service "${newService.title}" has been listed successfully.',
-                              buttonLabel: 'Awesome',
-                            );
-                          }
-                        },
-                        child: Text("Add Service"),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

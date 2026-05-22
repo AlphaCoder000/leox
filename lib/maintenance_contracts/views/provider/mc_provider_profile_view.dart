@@ -102,45 +102,38 @@ class McProviderProfileView extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
-    String password = '';
-    bool obscurePassword = true;
+    String confirmationInput = '';
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (dialogContext, setState) {
           return AlertDialog(
             title: Text("Delete Account Permanently", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.red)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "This action is irreversible. All your services, requests, reviews, profile data, and credentials will be permanently deleted.",
-                  style: TextStyle(fontSize: 16.sp),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  "Please enter your password to confirm:",
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 1.h),
-                TextField(
-                  obscureText: obscurePassword,
-                  onChanged: (val) => setState(() => password = val),
-                  decoration: InputDecoration(
-                    hintText: "Enter password",
-                    border: const OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
-                      ),
-                      onPressed: () => setState(() => obscurePassword = !obscurePassword),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "This action is irreversible. All your services, requests, reviews, profile data, and credentials will be permanently deleted.",
+                    style: TextStyle(fontSize: 16.sp),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Please type \"DELETE\" in all capital letters to confirm:",
+                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 1.h),
+                  TextField(
+                    onChanged: (val) => setState(() => confirmationInput = val),
+                    decoration: const InputDecoration(
+                      hintText: "Type DELETE",
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -149,7 +142,7 @@ class McProviderProfileView extends StatelessWidget {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                onPressed: password.trim().isNotEmpty
+                onPressed: confirmationInput == "DELETE"
                     ? () async {
                         Navigator.pop(dialogContext);
                         
@@ -162,7 +155,7 @@ class McProviderProfileView extends StatelessWidget {
                         );
                         
                         final authController = context.read<McProviderAuthController>();
-                        final error = await authController.deleteAccount(password.trim());
+                        final error = await authController.deleteAccount();
                         
                         if (context.mounted) {
                           Navigator.pop(context); // Dismiss loading dialog
@@ -204,30 +197,76 @@ class McProviderProfileView extends StatelessWidget {
       appBar: AppBar(
         title: const Text("My Profile"),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.camera_alt_outlined),
-            onPressed: () => _pickImage(context),
-            tooltip: 'Upload Profile Picture',
-          ),
+          if (provider != null)
+            IconButton(
+              icon: const Icon(Icons.camera_alt_outlined),
+              onPressed: () => _pickImage(context),
+              tooltip: 'Upload Profile Picture',
+            ),
         ],
       ),
-      body: provider == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(4.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileCard(context, theme, provider),
-                  SizedBox(height: 3.h),
-                  _buildReviewsSection(context, theme),
-                  SizedBox(height: 3.h),
-                  _buildLogoutSection(context, theme),
-                  SizedBox(height: 3.h),
-                  _buildDeleteAccountSection(context, theme),
-                ],
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(4.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (provider == null) ...[
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: EdgeInsets.all(5.w),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+                            child: const Icon(Icons.person, color: Colors.white, size: 40),
+                          ),
+                          SizedBox(width: 3.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "No Provider Profile",
+                                  style: TextStyle(
+                                    fontSize: 22.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                                SizedBox(height: 0.5.h),
+                                Text(
+                                  "You are signed in but do not have an active Provider profile.",
+                                  style: TextStyle(
+                                    fontSize: 15.sp,
+                                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ] else ...[
+              _buildProfileCard(context, theme, provider),
+              SizedBox(height: 3.h),
+              _buildReviewsSection(context, theme),
+            ],
+            SizedBox(height: 3.h),
+            _buildLogoutSection(context, theme),
+            SizedBox(height: 3.h),
+            _buildDeleteAccountSection(context, theme),
+          ],
+        ),
+      ),
     );
   }
 

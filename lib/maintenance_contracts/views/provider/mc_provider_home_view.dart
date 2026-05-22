@@ -324,12 +324,16 @@ class McProviderHomeView extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
-              "₹${service.price}",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18.sp,
-                color: const Color(0xFF0EA5E9),
+            Expanded(
+              child: Text(
+                service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18.sp,
+                  color: const Color(0xFF0EA5E9),
+                ),
               ),
             ),
           ],
@@ -502,7 +506,7 @@ class McProviderHomeView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Price",
+                      "Estimated Price Range",
                       style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -510,7 +514,7 @@ class McProviderHomeView extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      "₹${service.price}",
+                      service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
                       style: TextStyle(
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
@@ -519,6 +523,26 @@ class McProviderHomeView extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (service.priceJustification.isNotEmpty) ...[
+                  SizedBox(height: 2.h),
+                  Text(
+                    "Price Justification",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                  Text(
+                    service.priceJustification,
+                    style: TextStyle(
+                      fontSize: 17.sp,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                      height: 1.5,
+                    ),
+                  ),
+                ],
                 SizedBox(height: 3.h),
                 SizedBox(
                   width: double.infinity,

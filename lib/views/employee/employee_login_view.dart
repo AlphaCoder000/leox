@@ -76,348 +76,370 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: SizedBox.expand(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.scaffoldBackgroundColor,
+              isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+            padding: EdgeInsets.all(6.w),
+            child: Card(
+              color: theme.cardTheme.color ?? (isDark ? Colors.black87 : Colors.white),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
+              ),
+              elevation: 8,
+              child: Padding(
+                padding: EdgeInsets.all(6.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
-                      child: Icon(
-                        Icons.business_center_outlined,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      "Employee Login",
-                      style: TextStyle(
-                        fontSize: 23.sp,// Updated from 20.0 to 21.sp
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "Sign in to apply for jobs.",
-                  style: TextStyle(
-                    fontSize: 17.sp,  // Updated from 14.0 to 15.sp
-                    color: isDark ? Colors.grey[400] : Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: theme.scaffoldBackgroundColor,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: theme.dividerColor),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _tabButton(
-                          context,
-                          "Email",
-                          selected: isEmailSelected,
-                          onTap: () => setState(() {
-                            isEmailSelected = true;
-                            isOtpSent = false;
-                          }),
-                        ),
-                      ),
-                      Expanded(
-                        child: _tabButton(
-                          context,
-                          "Phone",
-                          selected: !isEmailSelected,
-                          onTap: () => setState(() {
-                            isEmailSelected = false;
-                            isOtpSent = false;
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                if (isEmailSelected) ...[
-                  _label(context, "Email"),
-                  const SizedBox(height: 8),
-                  _inputField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress),
-                  const SizedBox(height: 20),
-                  _label(context, "Password"),
-                  const SizedBox(height: 8),
-                  _inputField(
-                      controller: passwordController,
-                      isPassword: true,
-                      obscureText: _obscurePassword,
-                      onToggleVisibility: () {
-                        setState(() { _obscurePassword = !_obscurePassword; });
-                      }),
-                ] else ...[
-                  if (!isOtpSent) ...[
-                    _label(context, "Phone Number"),
-                    const SizedBox(height: 8),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: theme.dividerColor),
-                            borderRadius: BorderRadius.circular(12),
-                            color: theme.inputDecorationTheme.fillColor,
-                          ),
-                          child: DropdownButton<String>(
-                            value: selectedCountryCode,
-                            dropdownColor: theme.cardTheme.color,
-                            underline: const SizedBox(),
-                            items: const [
-                              DropdownMenuItem(value: "+91", child: Text("+91")),
-                              DropdownMenuItem(value: "+1", child: Text("+1")),
-                              DropdownMenuItem(value: "+44", child: Text("+44")),
-                            ],
-                            onChanged: (v) => setState(() => selectedCountryCode = v!),
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: colorScheme.primary.withValues(alpha: 0.12),
+                          child: Icon(
+                            Icons.business_center_outlined,
+                            color: colorScheme.primary,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: _inputField(
-                            controller: phoneController,
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(10),
-                            ],
+                        Text(
+                          "Employee Login",
+                          style: TextStyle(
+                            fontSize: 23.sp,// Updated from 20.0 to 21.sp
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
                           ),
                         ),
-                      ],
-                    ),
-                  ] else ...[
-                    _label(context, "Verification Code"),
-                    const SizedBox(height: 8),
-                    _inputField(
-                      controller: otpController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(6),
                       ],
                     ),
                     const SizedBox(height: 12),
+                    Text(
+                      "Sign in to apply for jobs.",
+                      style: TextStyle(
+                        fontSize: 17.sp,  // Updated from 14.0 to 15.sp
+                        color: isDark ? Colors.grey[400] : Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: theme.scaffoldBackgroundColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: theme.dividerColor),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _tabButton(
+                              context,
+                              "Email",
+                              selected: isEmailSelected,
+                              onTap: () => setState(() {
+                                isEmailSelected = true;
+                                isOtpSent = false;
+                              }),
+                            ),
+                          ),
+                          Expanded(
+                            child: _tabButton(
+                              context,
+                              "Phone",
+                              selected: !isEmailSelected,
+                              onTap: () => setState(() {
+                                isEmailSelected = false;
+                                isOtpSent = false;
+                              }),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    if (isEmailSelected) ...[
+                      _label(context, "Email"),
+                      const SizedBox(height: 8),
+                      _inputField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress),
+                      const SizedBox(height: 20),
+                      _label(context, "Password"),
+                      const SizedBox(height: 8),
+                      _inputField(
+                          controller: passwordController,
+                          isPassword: true,
+                          obscureText: _obscurePassword,
+                          onToggleVisibility: () {
+                            setState(() { _obscurePassword = !_obscurePassword; });
+                          }),
+                    ] else ...[
+                      if (!isOtpSent) ...[
+                        _label(context, "Phone Number"),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: theme.dividerColor),
+                                borderRadius: BorderRadius.circular(12),
+                                color: theme.inputDecorationTheme.fillColor,
+                              ),
+                              child: DropdownButton<String>(
+                                value: selectedCountryCode,
+                                dropdownColor: theme.cardTheme.color,
+                                underline: const SizedBox(),
+                                items: const [
+                                  DropdownMenuItem(value: "+91", child: Text("+91")),
+                                  DropdownMenuItem(value: "+1", child: Text("+1")),
+                                  DropdownMenuItem(value: "+44", child: Text("+44")),
+                                ],
+                                onChanged: (v) => setState(() => selectedCountryCode = v!),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _inputField(
+                                controller: phoneController,
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        _label(context, "Verification Code"),
+                        const SizedBox(height: 8),
+                        _inputField(
+                          controller: otpController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(6),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: TextButton(
+                            onPressed: () => setState(() => isOtpSent = false),
+                            child: const Text("Back"),
+                          ),
+                        ),
+                      ],
+                    ],
+
+                    const SizedBox(height: 32),
+
+                    Consumer<EmployeeAuthProvider>(
+                      builder: (context, auth, _) {
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: auth.isLoading
+                                ? null
+                                : () async {
+                                    final provider = context.read<EmployeeAuthProvider>();
+
+                                    if (isEmailSelected) {
+                                      await provider.loginWithEmail(
+                                        emailController.text.trim(),
+                                        passwordController.text,
+                                      );
+                                    } else {
+                                      // Phone Login Logic
+                                      if (!isOtpSent) {
+                                        if (phoneController.text.trim().isEmpty) {
+                                          CustomPopup.show(
+                                            context,
+                                            type: CustomPopupType.warning,
+                                            title: 'Required Field',
+                                            message: 'Please enter your phone number.',
+                                          );
+                                          return;
+                                        }
+                                        final phone = "$selectedCountryCode${phoneController.text.trim()}";
+                                        await provider.sendOtp(phone); 
+                                        if (provider.errorMessage == null) {
+                                          setState(() => isOtpSent = true);
+                                          if (context.mounted) {
+                                            CustomPopup.show(
+                                              context,
+                                              type: CustomPopupType.info,
+                                              title: 'OTP Sent',
+                                              message: 'Verification code has been sent to your phone number.',
+                                            );
+                                          }
+                                        }
+                                      } else {
+                                        await provider.verifyOtp(otpController.text);
+                                      }
+                                    }
+
+                                    if (provider.errorMessage != null && context.mounted) {
+                                      CustomPopup.show(
+                                        context,
+                                        type: CustomPopupType.error,
+                                        title: 'Login Failed',
+                                        message: provider.errorMessage!,
+                                      );
+                                    } else if (provider.isLoggedIn && context.mounted) {
+                                      await CustomPopup.show(
+                                        context,
+                                        type: CustomPopupType.success,
+                                        title: 'Welcome Back!',
+                                        message: 'You have logged in successfully.',
+                                        buttonLabel: 'Go to Dashboard',
+                                      );
+                                      if (context.mounted) {
+                                        Navigator.of(context).popUntil((route) => route.isFirst);
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: auth.isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    isEmailSelected
+                                        ? "Sign In with Email"
+                                        : isOtpSent
+                                            ? "Verify & Sign In"
+                                            : "Send Verification Code",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16, // Updated from 16 to 16.sp
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Consumer<EmployeeAuthProvider>(
+                      builder: (context, auth, _) {
+                        return SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: auth.isLoading ? null : () async {
+                              final provider = context.read<EmployeeAuthProvider>();
+                              await provider.signInWithGoogle();
+                              
+                              if (provider.errorMessage != null && context.mounted) {
+                                CustomPopup.show(
+                                  context,
+                                  type: CustomPopupType.error,
+                                  title: 'Google Sign-In Failed',
+                                  message: provider.errorMessage!,
+                                );
+                              } else if (provider.isLoggedIn && context.mounted) {
+                                await CustomPopup.show(
+                                  context,
+                                  type: CustomPopupType.success,
+                                  title: 'Welcome Back!',
+                                  message: 'You have logged in successfully with Google.',
+                                  buttonLabel: 'Go to Dashboard',
+                                );
+                                if (context.mounted) {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                }
+                              }
+                            },
+                            icon: auth.isLoading 
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Image.asset(
+                                  'assets/icons/google_logo.png',
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.g_mobiledata, size: 24),
+                                ),
+                            label: Text(
+                              auth.isLoading ? "Signing in..." : "Sign In with Google",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: BorderSide(color: theme.dividerColor),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    ),
+
+                    const SizedBox(height: 24),
+
                     Center(
-                      child: TextButton(
-                        onPressed: () => setState(() => isOtpSent = false),
-                        child: const Text("Back"),
+                      child: Column(
+                        children: [
+                          Text(
+                            "Don't have an account?",
+                            style: TextStyle(
+                              fontSize: 17.sp, // Updated from 14.0 to 15.sp
+                              color: isDark ? Colors.grey[400] : Colors.black54,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const EmployeeRegisterView(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Register as Employee",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ],
-
-                const SizedBox(height: 32),
-
-                Consumer<EmployeeAuthProvider>(
-                  builder: (context, auth, _) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () async {
-                                final provider = context.read<EmployeeAuthProvider>();
-
-                                if (isEmailSelected) {
-                                  await provider.loginWithEmail(
-                                    emailController.text.trim(),
-                                    passwordController.text,
-                                  );
-                                } else {
-                                  // Phone Login Logic
-                                  if (!isOtpSent) {
-                                    if (phoneController.text.trim().isEmpty) {
-                                      CustomPopup.show(
-                                        context,
-                                        type: CustomPopupType.warning,
-                                        title: 'Required Field',
-                                        message: 'Please enter your phone number.',
-                                      );
-                                      return;
-                                    }
-                                    final phone = "$selectedCountryCode${phoneController.text.trim()}";
-                                    await provider.sendOtp(phone); 
-                                    if (provider.errorMessage == null) {
-                                      setState(() => isOtpSent = true);
-                                      if (context.mounted) {
-                                        CustomPopup.show(
-                                          context,
-                                          type: CustomPopupType.info,
-                                          title: 'OTP Sent',
-                                          message: 'Verification code has been sent to your phone number.',
-                                        );
-                                      }
-                                    }
-                                  } else {
-                                    await provider.verifyOtp(otpController.text);
-                                  }
-                                }
-
-                                if (provider.errorMessage != null && context.mounted) {
-                                  CustomPopup.show(
-                                    context,
-                                    type: CustomPopupType.error,
-                                    title: 'Login Failed',
-                                    message: provider.errorMessage!,
-                                  );
-                                } else if (provider.isLoggedIn && context.mounted) {
-                                  await CustomPopup.show(
-                                    context,
-                                    type: CustomPopupType.success,
-                                    title: 'Welcome Back!',
-                                    message: 'You have logged in successfully.',
-                                    buttonLabel: 'Go to Dashboard',
-                                  );
-                                  if (context.mounted) {
-                                    Navigator.of(context).popUntil((route) => route.isFirst);
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: auth.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                isEmailSelected
-                                    ? "Sign In with Email"
-                                    : isOtpSent
-                                        ? "Verify & Sign In"
-                                        : "Send Verification Code",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16, // Updated from 16 to 16.sp
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    );
-                  },
                 ),
-
-                const SizedBox(height: 24),
-
-                Consumer<EmployeeAuthProvider>(
-                  builder: (context, auth, _) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: auth.isLoading ? null : () async {
-                          final provider = context.read<EmployeeAuthProvider>();
-                          await provider.signInWithGoogle();
-                          
-                          if (provider.errorMessage != null && context.mounted) {
-                            CustomPopup.show(
-                              context,
-                              type: CustomPopupType.error,
-                              title: 'Google Sign-In Failed',
-                              message: provider.errorMessage!,
-                            );
-                          } else if (provider.isLoggedIn && context.mounted) {
-                            await CustomPopup.show(
-                              context,
-                              type: CustomPopupType.success,
-                              title: 'Welcome Back!',
-                              message: 'You have logged in successfully with Google.',
-                              buttonLabel: 'Go to Dashboard',
-                            );
-                            if (context.mounted) {
-                              Navigator.of(context).popUntil((route) => route.isFirst);
-                            }
-                          }
-                        },
-                        icon: auth.isLoading 
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Image.asset(
-                              'assets/icons/google_logo.png',
-                              height: 24,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.g_mobiledata, size: 24),
-                            ),
-                        label: Text(
-                          auth.isLoading ? "Signing in..." : "Sign In with Google",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: BorderSide(color: theme.dividerColor),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                ),
-
-                const SizedBox(height: 24),
-
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        "Don't have an account?",
-                        style: TextStyle(
-                          fontSize: 17.sp, // Updated from 14.0 to 15.sp
-                          color: isDark ? Colors.grey[400] : Colors.black54,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const EmployeeRegisterView(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Register as Employee",
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),

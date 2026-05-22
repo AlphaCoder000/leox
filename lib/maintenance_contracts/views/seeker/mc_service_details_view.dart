@@ -52,10 +52,24 @@ class McServiceDetailsView extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Price", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: priceHeadingColor)),
-                      Text("₹${service.price}", style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: priceTextColor)),
+                      Text("Estimated Price Range", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: priceHeadingColor)),
+                      SizedBox(width: 2.w),
+                      Expanded(
+                        child: Text(
+                          service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
+                          textAlign: TextAlign.end,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: priceTextColor),
+                        ),
+                      ),
                     ],
                   ),
+                  if (service.priceJustification.isNotEmpty) ...[
+                    SizedBox(height: 3.h),
+                    Text("Price Justification", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: headingColor)),
+                    SizedBox(height: 1.h),
+                    Text(service.priceJustification, style: TextStyle(fontSize: 17.sp, color: descTextColor)),
+                  ],
                 ],
               ),
             ),

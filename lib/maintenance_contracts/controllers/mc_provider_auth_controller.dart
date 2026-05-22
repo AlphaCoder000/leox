@@ -63,6 +63,27 @@ class McProviderAuthController extends ChangeNotifier {
           await _firestore.collection('mc_providers').doc(newProvider.id).set(newProvider.toJson());
           _currentProvider = newProvider;
         }
+
+        // Sync with primary 'users' collection if it doesn't exist yet
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          await _firestore.collection('users').doc(user.uid).set({
+            'id': user.uid,
+            'email': user.email ?? '',
+            'role': 'mc_provider',
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+
+        // Save session in local cache for role tracking
+        final idToken = await user.getIdToken();
+        await SessionService.saveSession(
+          role: "mc_provider",
+          userId: user.uid,
+          email: user.email ?? "",
+          authToken: idToken ?? "",
+        );
       }
 
       _isLoading = false;
@@ -99,7 +120,26 @@ class McProviderAuthController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential;
+      try {
+        userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      } on FirebaseAuthException catch (authEx) {
+        if (authEx.code == 'email-already-in-use') {
+          debugPrint('[McProviderAuthController] Email already in use. Checking credentials and MC provider profile...');
+          userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+          
+          final doc = await _firestore.collection('mc_providers').doc(userCredential.user!.uid).get();
+          if (doc.exists) {
+            throw FirebaseAuthException(
+              code: 'email-already-in-use',
+              message: 'A provider account already exists with this email. Please sign in instead.',
+            );
+          }
+          debugPrint('[McProviderAuthController] Existing user authenticated. Creating provider profile...');
+        } else {
+          rethrow;
+        }
+      }
       
       McProviderModel newProvider = McProviderModel(
         id: userCredential.user!.uid,
@@ -114,12 +154,36 @@ class McProviderAuthController extends ChangeNotifier {
       await _firestore.collection('mc_providers').doc(newProvider.id).set(newProvider.toJson());
       _currentProvider = newProvider;
       
+      // Sync with primary 'users' collection if it doesn't exist yet
+      final userDoc = await _firestore.collection('users').doc(newProvider.id).get();
+      if (!userDoc.exists) {
+        await _firestore.collection('users').doc(newProvider.id).set({
+          'id': newProvider.id,
+          'email': email,
+          'role': 'mc_provider',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Save session in local cache for role tracking
+      final idToken = await userCredential.user?.getIdToken();
+      await SessionService.saveSession(
+        role: "mc_provider",
+        userId: newProvider.id,
+        email: email,
+        authToken: idToken ?? "",
+      );
+
       _isLoading = false;
       notifyListeners();
       return null;
     } on FirebaseAuthException catch (e) {
       _isLoading = false;
       notifyListeners();
+      if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        return 'Incorrect password for the existing account registered with this email.';
+      }
       return e.message;
     } catch (e) {
       _isLoading = false;
@@ -133,8 +197,26 @@ class McProviderAuthController extends ChangeNotifier {
     notifyListeners();
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
-      await fetchProviderProfile(userCredential.user!.uid);
       
+      final doc = await _firestore.collection('mc_providers').doc(userCredential.user!.uid).get();
+      if (!doc.exists) {
+        await _auth.signOut();
+        _isLoading = false;
+        notifyListeners();
+        return 'This account is not registered as a service provider. Please register as a provider first.';
+      }
+      
+      _currentProvider = McProviderModel.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+      
+      // Save session in local cache for role tracking
+      final idToken = await userCredential.user?.getIdToken();
+      await SessionService.saveSession(
+        role: "mc_provider",
+        userId: userCredential.user!.uid,
+        email: email,
+        authToken: idToken ?? "",
+      );
+
       _isLoading = false;
       notifyListeners();
       return null;
@@ -163,7 +245,7 @@ class McProviderAuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> deleteAccount(String password) async {
+  Future<String?> deleteAccount() async {
     _isLoading = true;
     notifyListeners();
     try {
@@ -174,24 +256,6 @@ class McProviderAuthController extends ChangeNotifier {
         return "No user logged in";
       }
       final providerId = user.uid;
-
-      // 1. Re-authenticate user first
-      if (user.email != null) {
-        try {
-          AuthCredential credential = EmailAuthProvider.credential(
-            email: user.email!,
-            password: password,
-          );
-          await user.reauthenticateWithCredential(credential);
-        } on FirebaseAuthException catch (e) {
-          _isLoading = false;
-          notifyListeners();
-          if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-            return "Incorrect password. Please try again.";
-          }
-          return e.message ?? "Authentication failed. Please check your password.";
-        }
-      }
 
       // 2. Delete from Firebase Storage (Profile Picture)
       try {

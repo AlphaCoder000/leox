@@ -39,6 +39,7 @@ import 'services/profile_service.dart';
 import 'services/api_service.dart';
 import 'utils/app_theme.dart';
 import 'widgets/animated_splash_screen.dart';
+import 'package:leox/widgets/custom_popup.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -216,8 +217,22 @@ class _MainAppContent extends StatelessWidget {
             final role = roleSnapshot.data;
 
             if (role == null) {
-              debugPrint('[Main] Role check failed after retries. Signing out.');
+              debugPrint('[Main] Role check failed after retries. Clearing cache & signing out.');
+              SessionService.clearAuth();
               FirebaseAuth.instance.signOut();
+              
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final context = MyApp.navigatorKey.currentContext;
+                if (context != null) {
+                  CustomPopup.show(
+                    context,
+                    type: CustomPopupType.error,
+                    title: 'Account Verification Failed',
+                    message: 'We were unable to verify your account profile from our database. Please ensure you have registered correctly or try signing in again.',
+                  );
+                }
+              });
+
               return const WelcomeView();
             }
 
@@ -236,8 +251,22 @@ class _MainAppContent extends StatelessWidget {
             }
 
             // Fallback for unknown role
-            debugPrint('[Main] Unknown role: $role, signing out.');
+            debugPrint('[Main] Unknown role: $role, clearing cache & signing out.');
+            SessionService.clearAuth();
             FirebaseAuth.instance.signOut();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final context = MyApp.navigatorKey.currentContext;
+              if (context != null) {
+                CustomPopup.show(
+                  context,
+                  type: CustomPopupType.error,
+                  title: 'Access Denied',
+                  message: 'This account possesses an unrecognized role ($role) and cannot access the portal. Please register a valid profile.',
+                );
+              }
+            });
+
             return const WelcomeView();
           },
         );
@@ -295,6 +324,12 @@ class _MainAppContent extends StatelessWidget {
         debugPrint('[Main] Fallback Check (employers/$uid): exists=${employerDoc.exists}');
         if (employerDoc.exists) {
           debugPrint('[Main] Found via employer collection fallback');
+          await SessionService.saveSession(
+            role: 'employer',
+            userId: uid,
+            email: FirebaseAuth.instance.currentUser?.email ?? "",
+            authToken: await FirebaseAuth.instance.currentUser?.getIdToken() ?? "",
+          );
           return 'employer';
         }
 
@@ -303,6 +338,12 @@ class _MainAppContent extends StatelessWidget {
         debugPrint('[Main] Fallback Check (employees/$uid): exists=${employeeDoc.exists}');
         if (employeeDoc.exists) {
           debugPrint('[Main] Found via employee collection fallback');
+          await SessionService.saveSession(
+            role: 'employee',
+            userId: uid,
+            email: FirebaseAuth.instance.currentUser?.email ?? "",
+            authToken: await FirebaseAuth.instance.currentUser?.getIdToken() ?? "",
+          );
           return 'employee';
         }
 
@@ -311,6 +352,12 @@ class _MainAppContent extends StatelessWidget {
         debugPrint('[Main] Fallback Check (mc_providers/$uid): exists=${mcProviderDoc.exists}');
         if (mcProviderDoc.exists) {
           debugPrint('[Main] Found via mc_providers collection fallback');
+          await SessionService.saveSession(
+            role: 'mc_provider',
+            userId: uid,
+            email: FirebaseAuth.instance.currentUser?.email ?? "",
+            authToken: await FirebaseAuth.instance.currentUser?.getIdToken() ?? "",
+          );
           return 'mc_provider';
         }
 
@@ -319,6 +366,12 @@ class _MainAppContent extends StatelessWidget {
         debugPrint('[Main] Fallback Check (mc_seekers/$uid): exists=${mcSeekerDoc.exists}');
         if (mcSeekerDoc.exists) {
           debugPrint('[Main] Found via mc_seekers collection fallback');
+          await SessionService.saveSession(
+            role: 'mc_seeker',
+            userId: uid,
+            email: FirebaseAuth.instance.currentUser?.email ?? "",
+            authToken: await FirebaseAuth.instance.currentUser?.getIdToken() ?? "",
+          );
           return 'mc_seeker';
         }
 

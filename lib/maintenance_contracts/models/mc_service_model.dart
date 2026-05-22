@@ -4,6 +4,8 @@ class McServiceModel {
   final String description;
   final String category;
   final double price;
+  final String priceRange;
+  final String priceJustification;
   final String providerId;
   final String status; // 'active', 'inactive', 'completed'
 
@@ -12,7 +14,9 @@ class McServiceModel {
     required this.title,
     required this.description,
     required this.category,
-    required this.price,
+    this.price = 0.0,
+    required this.priceRange,
+    required this.priceJustification,
     required this.providerId,
     this.status = 'active',
   });
@@ -24,6 +28,8 @@ class McServiceModel {
       description: json['description'] ?? '',
       category: json['category'] ?? '',
       price: (json['price'] ?? 0.0).toDouble(),
+      priceRange: json['priceRange'] ?? '',
+      priceJustification: json['priceJustification'] ?? '',
       providerId: json['providerId'] ?? '',
       status: json['status'] ?? 'active',
     );
@@ -35,6 +41,8 @@ class McServiceModel {
       'description': description,
       'category': category,
       'price': price,
+      'priceRange': priceRange,
+      'priceJustification': priceJustification,
       'providerId': providerId,
       'status': status,
     };

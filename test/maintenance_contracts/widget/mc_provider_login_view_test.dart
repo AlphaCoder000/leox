@@ -51,7 +51,7 @@ class FakeMcProviderAuthController extends ChangeNotifier implements McProviderA
   Future<void> logout() async {}
 
   @override
-  Future<String?> deleteAccount(String password) async {
+  Future<String?> deleteAccount() async {
     return null;
   }
 }
