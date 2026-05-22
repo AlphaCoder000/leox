@@ -15,7 +15,6 @@ class EmployerAiResumeMatcherView extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AIResumeMatcherProvider()),
-        // Ensure EmployerJobsProvider is available if not already provided higher up
       ],
       child: const _EmployerAiResumeMatcherViewBody(),
     );
@@ -47,6 +46,20 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     super.dispose();
   }
 
+  // Reactive Theme Getters
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _scaffoldBg => _isDark ? const Color(0xFF030712) : const Color(0xFFF8FAFC);
+  Color get _cardBg => _isDark ? const Color(0xFF111827) : Colors.white;
+  Color get _innerBg => _isDark ? const Color(0xFF030712) : const Color(0xFFF1F5F9);
+  Color get _borderCol => _isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0);
+  Color get _textPrimary => _isDark ? Colors.white : const Color(0xFF0F172A);
+  Color get _textSecondary => _isDark ? Colors.white.withValues(alpha: 0.6) : const Color(0xFF475569);
+  Color get _textLabel => _isDark ? Colors.white24 : const Color(0xFF94A3B8);
+  List<Color> get _gradientColors => _isDark 
+      ? [const Color(0xFF030712), const Color(0xFF0B1222)] 
+      : [const Color(0xFFF8FAFC), const Color(0xFFEEF2F6)];
+
   void _onJobSelected(JobModel? job, AIResumeMatcherProvider provider) {
     setState(() {
       _selectedJob = job;
@@ -66,12 +79,20 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     final jobsProvider = context.watch<EmployerJobsProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF030712), // Deeper dark background
+      backgroundColor: _scaffoldBg,
       drawer: const EmployerDrawer(selectedItem: EmployerDrawerItem.aiMatcher),
       appBar: AppBar(
-        title: const Text("AI Resume Matcher", style: TextStyle(fontSize: 18),),
+        title: Text(
+          "AI Resume Matcher", 
+          style: TextStyle(
+            fontSize: 18, 
+            color: _textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: _textPrimary),
         actions: [
           IconButton(
             onPressed: () {
@@ -79,17 +100,17 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
               _jobDescController.clear();
               setState(() => _selectedJob = null);
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: _textPrimary),
             tooltip: 'Clear All',
           ),
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF030712), Color(0xFF0B1222)],
+            colors: _gradientColors,
           ),
         ),
         child: SingleChildScrollView(
@@ -120,7 +141,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: _textPrimary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -128,7 +149,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                           "AI-powered intelligence for your hiring pipeline",
                           style: TextStyle(
                             fontSize: 15.sp,
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: _textSecondary,
                           ),
                         ),
                       ],
@@ -176,20 +197,20 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
         Container(
           padding: EdgeInsets.symmetric(horizontal: 4.w),
           decoration: BoxDecoration(
-            color: const Color(0xFF111827),
+            color: _cardBg,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF1F2937)),
+            border: Border.all(color: _borderCol),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<JobModel>(
               value: _selectedJob,
-              hint: const Text("Select a job to analyze against", style: TextStyle(color: Colors.grey)),
+              hint: Text("Select a job to analyze against", style: TextStyle(color: _isDark ? Colors.grey : Colors.grey[600])),
               isExpanded: true,
-              dropdownColor: const Color(0xFF111827),
+              dropdownColor: _cardBg,
               items: jobsProvider.jobs.map((job) {
                 return DropdownMenuItem(
                   value: job,
-                  child: Text(job.title, style: const TextStyle(color: Colors.white)),
+                  child: Text(job.title, style: TextStyle(color: _textPrimary)),
                 );
               }).toList(),
               onChanged: (job) => _onJobSelected(job, provider),
@@ -207,12 +228,12 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     return Container(
       padding: EdgeInsets.all(3.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF111827),
+        color: _cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF1F2937)),
+        border: Border.all(color: _borderCol),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withValues(alpha: _isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -227,7 +248,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
               SizedBox(width: 3.w),
               Text(
                 "Assessment Input",
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: _textPrimary),
               ),
             ],
           ),
@@ -239,20 +260,24 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
           TextField(
             controller: _jobDescController,
             maxLines: 5,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: TextStyle(color: _textPrimary, fontSize: 13),
             onChanged: provider.updateJobDescription,
             decoration: InputDecoration(
               hintText: "Enter the skills and responsibilities you're looking for...",
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+              hintStyle: TextStyle(color: _textSecondary.withValues(alpha: 0.4)),
               filled: true,
-              fillColor: const Color(0xFF030712),
+              fillColor: _innerBg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                borderSide: BorderSide(color: _borderCol),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                borderSide: BorderSide(color: _borderCol),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide(color: colorScheme.primary),
               ),
             ),
           ),
@@ -268,13 +293,13 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
               decoration: BoxDecoration(
-                color: const Color(0xFF030712),
+                color: _innerBg,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
                   color: provider.selectedResumeFileName != null 
                     ? colorScheme.primary.withValues(alpha: 0.5) 
-                    : Colors.white.withValues(alpha: 0.1),
-                  style: provider.selectedResumeFileName != null ? BorderStyle.solid : BorderStyle.none,
+                    : _borderCol,
+                  style: BorderStyle.solid,
                 ),
               ),
               child: provider.isUploading
@@ -282,7 +307,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                       children: [
                         LinearProgressIndicator(
                           value: provider.uploadProgress,
-                          backgroundColor: Colors.white10,
+                          backgroundColor: _isDark ? Colors.white10 : Colors.black12,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         SizedBox(height: 1.h),
@@ -304,14 +329,14 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                             provider.selectedResumeFileName ?? "Tap here to Select Resume Document",
                             style: TextStyle(
                               fontSize: 16.sp, 
-                              color: provider.selectedResumeFileName != null ? Colors.white : Colors.white54
+                              color: provider.selectedResumeFileName != null ? _textPrimary : _textSecondary
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (provider.selectedResumeFileName != null)
-                          const Icon(Icons.edit_outlined, size: 18, color: Colors.white38),
+                          Icon(Icons.edit_outlined, size: 18, color: _textSecondary),
                       ],
                     ),
             ),
@@ -378,22 +403,22 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
         padding: EdgeInsets.all(4.w),
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color(0xFF111827).withValues(alpha: 0.5),
+          color: _cardBg.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF1F2937)),
+          border: Border.all(color: _borderCol),
         ),
         child: Column(
           children: [
-            Icon(Icons.insights, size: 40.sp, color: Colors.white.withValues(alpha: 0.1)),
+            Icon(Icons.insights, size: 40.sp, color: _textLabel),
             SizedBox(height: 2.h),
             Text(
               "Analytics Pending",
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontWeight: FontWeight.bold, fontSize: 18.sp),
+              style: TextStyle(color: _textPrimary.withValues(alpha: 0.3), fontWeight: FontWeight.bold, fontSize: 18.sp),
             ),
             SizedBox(height: 1.h),
             Text(
               "Results will appear here after analysis",
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 15.sp),
+              style: TextStyle(color: _textSecondary.withValues(alpha: 0.4), fontSize: 15.sp),
             ),
           ],
         ),
@@ -407,9 +432,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     return Container(
       padding: EdgeInsets.all(6.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF111827),
+        color: _cardBg,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F2937)),
+        border: Border.all(color: _borderCol),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,7 +442,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Expert Analysis", style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text("Expert Analysis", style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: _textPrimary)),
               _buildGradeBadge(provider.getScoreGrade(overallScore), scoreColor),
             ],
           ),
@@ -436,7 +461,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                       child: CircularProgressIndicator(
                         value: overallScore / 100,
                         strokeWidth: 10,
-                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        backgroundColor: _isDark ? Colors.white10 : Colors.black12,
                         color: scoreColor,
                       ),
                     ),
@@ -444,9 +469,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                       children: [
                         Text(
                           "${overallScore.toInt()}%",
-                          style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold, color: _textPrimary),
                         ),
-                        Text("Match", style: TextStyle(fontSize: 16.sp, color: Colors.white54)),
+                        Text("Match", style: TextStyle(fontSize: 16.sp, color: _textSecondary)),
                       ],
                     ),
                   ],
@@ -462,12 +487,12 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             Container(
               padding: EdgeInsets.all(4.w),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.03),
+                color: _innerBg,
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Text(
                 results['analysis'],
-                style: const TextStyle(color: Colors.white70, height: 1.5, fontSize: 16),
+                style: TextStyle(color: _textSecondary, height: 1.5, fontSize: 16),
               ),
             ),
             SizedBox(height: 3.h),
@@ -480,13 +505,13 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
 
           // Strengths & Gaps
           if (results['strengths'] != null && results['strengths'].isNotEmpty)
-            _buildResultList("Key Match Points", results['strengths'], Colors.greenAccent),
+            _buildResultList("Key Match Points", results['strengths'], Colors.green),
           
           if (results['gaps'] != null && results['gaps'].isNotEmpty)
-            _buildResultList("Development Areas", results['gaps'], Colors.orangeAccent),
+            _buildResultList("Development Areas", results['gaps'], Colors.orange),
 
           if (results['recommendations'] != null && results['recommendations'].isNotEmpty)
-            _buildResultList("Next Steps", results['recommendations'], Colors.blueAccent),
+            _buildResultList("Next Steps", results['recommendations'], Colors.blue),
         ],
       ),
     );
@@ -524,13 +549,13 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     return Container(
       padding: EdgeInsets.all(2.w),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: _innerBg,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Text("${s.toInt()}%", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 14)),
+          Text("${s.toInt()}%", style: TextStyle(color: _textPrimary, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(color: _textSecondary, fontSize: 14)),
         ],
       ),
     );
@@ -556,7 +581,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                     ),
                     SizedBox(width: 3.w),
                     Expanded(
-                      child: Text(item.toString(), style: const TextStyle(color: Colors.white60, fontSize: 16, height: 1.3)),
+                      child: Text(item.toString(), style: TextStyle(color: _textSecondary, fontSize: 16, height: 1.3)),
                     ),
                   ],
                 ),
@@ -594,9 +619,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                   label: Text(role['title']!),
                   selected: isSelected,
                   selectedColor: Theme.of(context).primaryColor,
-                  backgroundColor: const Color(0xFF1E293B),
+                  backgroundColor: _innerBg,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white60,
+                    color: isSelected ? Colors.white : _textSecondary,
                     fontSize: 15.sp,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
@@ -623,10 +648,9 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
       style: TextStyle(
         fontSize: 14.sp,
         fontWeight: FontWeight.bold,
-        color: Colors.white24,
+        color: _textLabel,
         letterSpacing: 1.5,
       ),
     );
   }
 }
-

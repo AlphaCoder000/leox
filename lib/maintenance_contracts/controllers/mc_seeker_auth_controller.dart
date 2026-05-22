@@ -63,17 +63,14 @@ class McSeekerAuthController extends ChangeNotifier {
           _currentSeeker = newSeeker;
         }
 
-        // Sync with primary 'users' collection if it doesn't exist yet
-        final userDoc = await _firestore.collection('users').doc(user.uid).get();
-        if (!userDoc.exists) {
-          await _firestore.collection('users').doc(user.uid).set({
-            'id': user.uid,
-            'email': user.email ?? '',
-            'role': 'mc_seeker',
-            'createdAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        }
+        // Sync with primary 'users' collection
+        await _firestore.collection('users').doc(user.uid).set({
+          'id': user.uid,
+          'email': user.email ?? '',
+          'role': 'mc_seeker',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
 
         // Save session in local cache for role tracking
         final idToken = await user.getIdToken();
@@ -151,17 +148,14 @@ class McSeekerAuthController extends ChangeNotifier {
       await _firestore.collection('mc_seekers').doc(newSeeker.id).set(newSeeker.toJson());
       _currentSeeker = newSeeker;
       
-      // Sync with primary 'users' collection if it doesn't exist yet
-      final userDoc = await _firestore.collection('users').doc(newSeeker.id).get();
-      if (!userDoc.exists) {
-        await _firestore.collection('users').doc(newSeeker.id).set({
-          'id': newSeeker.id,
-          'email': email,
-          'role': 'mc_seeker',
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
+      // Sync with primary 'users' collection
+      await _firestore.collection('users').doc(newSeeker.id).set({
+        'id': newSeeker.id,
+        'email': email,
+        'role': 'mc_seeker',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
       // Save session in local cache for role tracking
       final idToken = await userCredential.user?.getIdToken();
@@ -205,6 +199,12 @@ class McSeekerAuthController extends ChangeNotifier {
       
       _currentSeeker = McSeekerModel.fromJson(doc.data() as Map<String, dynamic>, doc.id);
       
+      // Sync with primary 'users' collection
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'role': 'mc_seeker',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
       // Save session in local cache for role tracking
       final idToken = await userCredential.user?.getIdToken();
       await SessionService.saveSession(

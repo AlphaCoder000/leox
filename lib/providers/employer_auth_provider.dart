@@ -66,6 +66,22 @@ void _initializeAuthState() {
 Future<void> _checkRoleWithRetry(String uid) async {
   for (int i = 0; i < 3; i++) {
     try {
+      final employerDoc = await _firestore.collection('employers').doc(uid).get();
+      if (employerDoc.exists) {
+        _setLoggedIn(true);
+        final userDoc = await _firestore.collection('users').doc(uid).get();
+        if (!userDoc.exists || userDoc.data()?['role'] != 'employer') {
+          await _firestore.collection('users').doc(uid).set({
+            'id': uid,
+            'email': _userEmail,
+            'role': 'employer',
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
+        debugPrint('[EmployerAuthProvider] User role confirmed: employer (exists in employers collection).');
+        return; // Success
+      }
+
       final userDoc = await _firestore.collection('users').doc(uid).get();
       if (userDoc.exists) {
         final role = userDoc.data()?['role'];
@@ -324,6 +340,12 @@ Future<void> _checkRoleWithRetry(String uid) async {
            );
         }
 
+        // Update user registry role to employer
+        await _firestore.collection('users').doc(user.uid).set({
+          'role': 'employer',
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
         // Save session with real Firebase user data
         await SessionService.saveSession(
           role: "employer",
@@ -381,18 +403,15 @@ Future<void> _checkRoleWithRetry(String uid) async {
     String? linkedin,
   }) async {
     try {
-      // 1. Create user document for role check if it doesn't exist yet
+      // 1. Create or update user document for role check
       final userDocRef = _firestore.collection('users').doc(user.uid);
-      final userDoc = await userDocRef.get();
-      if (!userDoc.exists) {
-        await userDocRef.set({
-          'id': user.uid,
-          'email': user.email,
-          'role': 'employer',
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
+      await userDocRef.set({
+        'id': user.uid,
+        'email': user.email,
+        'role': 'employer',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
       // 2. Create or update detailed employer profile
       final employerProfile = {

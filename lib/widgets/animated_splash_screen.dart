@@ -138,7 +138,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     final backgroundColor = isDark ? const Color(0xFF0F172A) : Colors.white; 
     
     // Logo Names Darker in light mode (pure solid black) and pure white in dark mode
-    final textColor = isDark ? Colors.white : Colors.black;
     final subtitleColor = isDark ? Colors.grey[300] : const Color(0xFF334155); // Darker slate grey for subtitle
     final dividerColor = isDark ? Colors.white38 : Colors.black38;
 
@@ -183,18 +182,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   fit: BoxFit.contain,
                                 ),
                               ),
-                              // SizedBox(height: 2.h),
-                              // Text(
-                              //   "LEO ENGINEERS",
-                              //   textAlign: TextAlign.center,
-                              //   style: TextStyle(
-                              //     fontSize: 22.sp, // Bigger font size
-                              //     fontWeight: FontWeight.w900, // Even bolder
-                              //     fontFamily: customFontFamily,
-                              //     color: textColor, // Solid black in light mode
-                              //     letterSpacing: 3.0,
-                              //   ),
-                              // ),
                             ],
                           ),
                         ),

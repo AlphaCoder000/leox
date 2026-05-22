@@ -58,7 +58,6 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
 
       // Verify the presence of text elements in their capitalized forms
-      expect(find.text('LEO ENGINEERS'), findsOneWidget);
       expect(find.text('BRINGS'), findsOneWidget);
       expect(find.text('LEO OPUS'), findsOneWidget);
       expect(find.text('Hiring platform along with maintenance contracts'), findsOneWidget);
