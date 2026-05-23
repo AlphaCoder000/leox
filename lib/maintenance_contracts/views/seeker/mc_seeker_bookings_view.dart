@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
 import '../../models/mc_request_model.dart';
 
@@ -87,125 +88,202 @@ class McSeekerBookingsView extends StatelessWidget {
   }
 
   Widget _buildBookingCard(McRequestModel request, ThemeData theme, BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showBookingDetailSheet(context, request),
-      child: Container(
-        margin: EdgeInsets.only(bottom: 2.h),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: theme.cardColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: _getStatusColor(request.status).withValues(alpha: 0.3),
-            width: 2,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(4.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(2.w),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(request.status).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _getStatusIcon(request.status),
-                      color: _getStatusColor(request.status),
-                      size: 22.sp,
-                    ),
-                  ),
-                  SizedBox(width: 3.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Company Booking",
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        SizedBox(height: 0.5.h),
-                        Text(
-                          "Service Request",
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.8.h),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(request.status).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      request.status.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: _getStatusColor(request.status),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 1.5.h),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today_outlined, size: 18.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
-                  SizedBox(width: 1.w),
-                  Text(
-                    "Booked on: ${request.dateTime.toLocal().toString().split(' ')[0]}",
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
-              if (request.message.isNotEmpty) ...[
-                SizedBox(height: 1.h),
-                Text(
-                  "Your Message",
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                  ),
-                ),
-                SizedBox(height: 0.5.h),
-                Text(
-                  request.message,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('mc_providers').doc(request.providerId).get(),
+      builder: (context, snapshot) {
+        String companyName = "Loading Provider...";
+        String providerPhone = "";
+        String providerEmail = "";
+        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+          companyName = data?['companyName'] ?? 'Unknown Provider';
+          providerPhone = data?['phone'] ?? '';
+          providerEmail = data?['email'] ?? '';
+        }
+
+        final isRevealed = request.status == 'accepted' || request.status == 'completed';
+
+        return GestureDetector(
+          onTap: () => _showBookingDetailSheet(context, request, companyName, providerPhone, providerEmail),
+          child: Container(
+            margin: EdgeInsets.only(bottom: 2.h),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: theme.cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
-            ],
+              border: Border.all(
+                color: _getStatusColor(request.status).withValues(alpha: 0.3),
+                width: 2,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(4.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(2.w),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(request.status).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          _getStatusIcon(request.status),
+                          color: _getStatusColor(request.status),
+                          size: 22.sp,
+                        ),
+                      ),
+                      SizedBox(width: 3.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              companyName,
+                              style: TextStyle(
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            SizedBox(height: 0.5.h),
+                            Text(
+                              "Service Booking",
+                              style: TextStyle(
+                                fontSize: 13.5.sp,
+                                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.8.h),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(request.status).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          request.status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: _getStatusColor(request.status),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 1.5.h),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today_outlined, size: 16.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                      SizedBox(width: 1.5.w),
+                      Text(
+                        "Booked on: ${request.dateTime.toLocal().toString().split(' ')[0]}",
+                        style: TextStyle(
+                          fontSize: 13.5.sp,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (request.message.isNotEmpty) ...[
+                    SizedBox(height: 1.h),
+                    Text(
+                      "Your Message",
+                      style: TextStyle(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    SizedBox(height: 0.5.h),
+                    Text(
+                      request.message,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (isRevealed) ...[
+                    SizedBox(height: 2.h),
+                    Container(
+                      padding: EdgeInsets.all(3.w),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF0EA5E9).withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.contact_phone_outlined, size: 15.sp, color: const Color(0xFF0EA5E9)),
+                              SizedBox(width: 2.w),
+                              Text(
+                                "Provider Contact Details",
+                                style: TextStyle(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0EA5E9),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 16),
+                          Row(
+                            children: [
+                              Icon(Icons.phone_outlined, size: 14.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                              SizedBox(width: 2.w),
+                              Text(
+                                providerPhone.isNotEmpty ? providerPhone : "Not Provided",
+                                style: TextStyle(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 0.8.h),
+                          Row(
+                            children: [
+                              Icon(Icons.email_outlined, size: 14.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                              SizedBox(width: 2.w),
+                              Text(
+                                providerEmail.isNotEmpty ? providerEmail : "Not Provided",
+                                style: TextStyle(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -224,7 +302,7 @@ class McSeekerBookingsView extends StatelessWidget {
     }
   }
 
-  void _showBookingDetailSheet(BuildContext context, McRequestModel request) {
+  void _showBookingDetailSheet(BuildContext context, McRequestModel request, String companyName, String phone, String email) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
@@ -286,10 +364,13 @@ class McSeekerBookingsView extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 2.h),
-                _buildDetailRow("Company", request.seekerName.isNotEmpty ? request.seekerName : "Unknown", theme),
-                
+                _buildDetailRow("Provider Company", companyName, theme),
                 _buildDetailRow("Status", request.status.toUpperCase(), theme, _getStatusColor(request.status)),
                 _buildDetailRow("Booking Date", request.dateTime.toLocal().toString().split(' ')[0], theme),
+                if (request.status == 'accepted' || request.status == 'completed') ...[
+                  _buildDetailRow("Provider Phone", phone.isNotEmpty ? phone : "Not Provided", theme),
+                  _buildDetailRow("Provider Email", email.isNotEmpty ? email : "Not Provided", theme),
+                ],
                 if (request.message.isNotEmpty) ...[
                   SizedBox(height: 2.h),
                   Text(
@@ -376,7 +457,6 @@ class McSeekerBookingsView extends StatelessWidget {
       ),
     );
   }
-  }
 
   Color _getStatusColor(String status) {
     if (status == 'pending') return Colors.orangeAccent;
@@ -384,3 +464,4 @@ class McSeekerBookingsView extends StatelessWidget {
     if (status == 'completed') return Colors.greenAccent;
     return Colors.redAccent;
   }
+}

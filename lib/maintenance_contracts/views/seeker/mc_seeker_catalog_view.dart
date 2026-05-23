@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
 import 'mc_service_details_view.dart';
 
@@ -85,7 +86,7 @@ class McSeekerCatalogView extends StatelessWidget {
   }
 
   Widget _buildServiceCard(BuildContext context, service, ThemeData theme) {
-    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -96,36 +97,52 @@ class McSeekerCatalogView extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.only(bottom: 2.h),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           color: theme.cardColor,
+          border: Border.all(
+            color: const Color(0xFF0EA5E9).withValues(alpha: isDark ? 0.15 : 0.08),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: const Color(0xFF0EA5E9).withValues(alpha: isDark ? 0.04 : 0.06),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Padding(
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.all(4.5.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(2.w),
+                    padding: EdgeInsets.all(3.w),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      Icons.build_outlined,
-                      color: const Color(0xFF0EA5E9),
+                      Icons.handyman_rounded,
+                      color: Colors.white,
                       size: 20.sp,
                     ),
                   ),
-                  SizedBox(width: 3.w),
+                  SizedBox(width: 4.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,26 +150,44 @@ class McSeekerCatalogView extends StatelessWidget {
                         Text(
                           service.title,
                           style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 19.sp,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17.sp,
                             color: theme.colorScheme.onSurface,
+                            height: 1.25,
                           ),
                         ),
-                        SizedBox(height: 0.5.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            service.category,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                        SizedBox(height: 0.8.h),
+                        FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance.collection('mc_providers').doc(service.providerId).get(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.done && snapshot.hasData && snapshot.data!.exists) {
+                              final data = snapshot.data!.data() as Map<String, dynamic>?;
+                              final companyName = data?['companyName'] ?? 'Unknown Provider';
+                              return Row(
+                                children: [
+                                  Icon(
+                                    Icons.business_rounded,
+                                    size: 13.sp,
+                                    color: const Color(0xFF0EA5E9),
+                                  ),
+                                  SizedBox(width: 1.5.w),
+                                  Expanded(
+                                    child: Text(
+                                      companyName,
+                                      style: TextStyle(
+                                        fontSize: 13.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF0EA5E9),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
                         ),
                       ],
                     ),
@@ -160,46 +195,46 @@ class McSeekerCatalogView extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 2.h),
+              Divider(
+                color: theme.dividerColor.withValues(alpha: 0.5),
+                height: 1,
+              ),
+              SizedBox(height: 2.h),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.sp,
-                        color: const Color(0xFF0EA5E9),
-                      ),
-                    ),
-                  ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
+                    padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.8.h),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [const Color(0xFF0EA5E9), const Color(0xFF0284C7)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Icon(
+                          Icons.label_outline_rounded,
+                          size: 13.sp,
+                          color: const Color(0xFF0EA5E9),
+                        ),
+                        SizedBox(width: 1.5.w),
                         Text(
-                          "View Details",
+                          service.category,
                           style: TextStyle(
-                            fontSize: 16.sp,
+                            fontSize: 12.5.sp,
+                            color: const Color(0xFF0EA5E9),
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                         ),
-                        SizedBox(width: 1.w),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 14.sp,
-                          color: Colors.white,
-                        ),
                       ],
+                    ),
+                  ),
+                  Text(
+                    service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17.sp,
+                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
                     ),
                   ),
                 ],

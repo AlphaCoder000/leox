@@ -139,13 +139,11 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     
     // Logo Names Darker in light mode (pure solid black) and pure white in dark mode
     final subtitleColor = isDark ? Colors.grey[300] : const Color(0xFF334155); // Darker slate grey for subtitle
-    final dividerColor = isDark ? Colors.white38 : Colors.black38;
 
-    // Solid dark corporate brand colors for LEO OPUS
-    final opusBrandColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1); // Deep high-contrast ocean blue in light mode
 
-    // Shared clean bold corporate typography
-    final customFontFamily = GoogleFonts.montserrat().fontFamily;
+
+    // Shared clean bold corporate typography (Syncopate matches the modern geometric engineering logo style perfectly)
+    final customFontFamily = GoogleFonts.syncopate().fontFamily;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -156,40 +154,43 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // 1. LEO ENGINEERS
                   AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) {
-                      return Transform.scale(
-                        scale: _engineersScale.value,
-                        child: Opacity(
-                          opacity: _engineersOpacity.value,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(2.w),
-                                decoration: BoxDecoration(
-                                  color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
+                      return Transform.translate(
+                        offset: Offset(0, -3.h),
+                        child: Transform.scale(
+                          scale: _engineersScale.value,
+                          child: Opacity(
+                            opacity: _engineersOpacity.value,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(2.w),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/icons/leo_engineers_logo.png',
+                                    height: 18.h, // Bigger logo size
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
-                                child: Image.asset(
-                                  'assets/icons/leo_engineers_logo.png',
-                                  height: 18.h, // Bigger logo size
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
                     },
                   ),
 
-                  SizedBox(height: 5.h),
+                
 
                   // 2. BRINGS Transition text
                   AnimatedBuilder(
@@ -202,29 +203,19 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Container(
-                                width: 12.w, // Longer line
-                                height: 1.5, // Thicker line
-                                color: dividerColor,
-                              ),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 5.w),
                                 child: Text(
                                   "BRINGS",
                                   style: TextStyle(
-                                    fontSize: 16.sp, // Bigger font size
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15.sp, // Crisp size
+                                    fontWeight: FontWeight.w300, // Faint weight
                                     fontStyle: FontStyle.italic,
                                     fontFamily: GoogleFonts.playfairDisplay().fontFamily,
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color: isDark ? Colors.white30 : const Color(0xFF94A3B8), // Faint and grey
                                     letterSpacing: 4.0,
                                   ),
                                 ),
-                              ),
-                              Container(
-                                width: 12.w,
-                                height: 1.5,
-                                color: dividerColor,
                               ),
                             ],
                           ),
@@ -233,7 +224,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                     },
                   ),
 
-                  SizedBox(height: 5.h),
+                  SizedBox(height: 2.5.h),
 
                   // 3. LEO OPUS
                   AnimatedBuilder(
@@ -261,21 +252,34 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   borderRadius: BorderRadius.circular(24),
                                   child: Image.asset(
                                     'assets/icons/leo_Opus_logo.jpeg',
-                                    height: 20.h, // Bigger logo size
+                                    height: 33.h, // Bigger logo size and centered
                                     fit: BoxFit.contain,
                                   ),
                                 ),
                               ),
                               SizedBox(height: 2.5.h),
-                              Text(
-                                "LEO OPUS",
+                              RichText(
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 25.sp, // Bigger font size
-                                  fontWeight: FontWeight.w900, // Even bolder
-                                  fontFamily: customFontFamily,
-                                  color: opusBrandColor, // Solid darker corporate brand blue in light mode
-                                  letterSpacing: 3.5,
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 25.sp, // Premium big title
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: customFontFamily,
+                                    letterSpacing: 3.5,
+                                  ),
+                                  children: const [
+                                    TextSpan(
+                                      text: "LEO",
+                                      style: TextStyle(color: Color.fromARGB(255, 4, 44, 130)), // Premium blue color of L
+                                    ),
+                                    TextSpan(
+                                      text: " ",
+                                    ),
+                                    TextSpan(
+                                      text: "OPUS",
+                                      style: TextStyle(color: Color.fromARGB(255, 16, 69, 182)), // Premium blue color of E
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -285,7 +289,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                     },
                   ),
 
-                  SizedBox(height: 5.h),
+                  SizedBox(height: 2.h),
 
                   // 4. Subtitle / Heading
                   AnimatedBuilder(
@@ -298,10 +302,10 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 2.w),
                             child: Text(
-                              "Hiring platform along with maintenance contracts",
+                              "Hiring | Servicing",
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 16.sp, // Bigger font size
+                                fontSize: 17.sp, // Bigger font size
                                 fontWeight: FontWeight.w600, // Slightly bolder for premium crisp readability
                                 color: subtitleColor,
                                 letterSpacing: 0.6,

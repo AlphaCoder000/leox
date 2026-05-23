@@ -226,16 +226,16 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: EdgeInsets.all(3.w),
+      padding: EdgeInsets.all(5.w),
       decoration: BoxDecoration(
         color: _cardBg,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: _borderCol),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: _isDark ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: _isDark ? 0.3 : 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -244,63 +244,82 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
         children: [
           Row(
             children: [
-              Icon(Icons.description_outlined, color: colorScheme.primary, size: 17.sp),
+              Container(
+                padding: EdgeInsets.all(2.w),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.insights_rounded, color: colorScheme.primary, size: 16.sp),
+              ),
               SizedBox(width: 3.w),
               Text(
-                "Assessment Input",
+                "Match Parameters",
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: _textPrimary),
               ),
             ],
           ),
-          SizedBox(height: 1.h),
+          SizedBox(height: 2.h),
 
           // Job Description
-          _buildLabel(context, "Target Description"),
-          SizedBox(height: 0.5.h),
+          _buildLabel(context, "Target Job Description"),
+          SizedBox(height: 1.h),
           TextField(
             controller: _jobDescController,
-            maxLines: 5,
-            style: TextStyle(color: _textPrimary, fontSize: 13),
+            maxLines: 6,
+            style: TextStyle(color: _textPrimary, fontSize: 13.sp),
             onChanged: provider.updateJobDescription,
             decoration: InputDecoration(
-              hintText: "Enter the skills and responsibilities you're looking for...",
+              hintText: "State the duties, required qualifications, and tools...",
               hintStyle: TextStyle(color: _textSecondary.withValues(alpha: 0.4)),
               filled: true,
               fillColor: _innerBg,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(20),
                 borderSide: BorderSide(color: _borderCol),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(20),
                 borderSide: BorderSide(color: _borderCol),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: colorScheme.primary),
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
               ),
             ),
           ),
 
-          SizedBox(height: 1.5.h),
+          SizedBox(height: 2.5.h),
 
           // Resume Upload
-          _buildLabel(context, "Candidate Portfolio (PDF/Text)"),
-          SizedBox(height: 0.5.h),
+          _buildLabel(context, "Candidate Portfolio (PDF / Text)"),
+          SizedBox(height: 1.h),
           InkWell(
             onTap: provider.isUploading ? null : () => provider.pickResumeFile(),
-            borderRadius: BorderRadius.circular(15),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+            borderRadius: BorderRadius.circular(20),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.5.h),
               decoration: BoxDecoration(
-                color: _innerBg,
-                borderRadius: BorderRadius.circular(15),
+                color: provider.selectedResumeFileName != null 
+                  ? (_isDark ? const Color(0xFF132F27) : const Color(0xFFECFDF5))
+                  : _innerBg,
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: provider.selectedResumeFileName != null 
-                    ? colorScheme.primary.withValues(alpha: 0.5) 
-                    : _borderCol,
-                  style: BorderStyle.solid,
+                  color: provider.selectedResumeFileName != null
+                      ? Colors.greenAccent
+                      : _borderCol,
+                  width: 1.5,
                 ),
+                boxShadow: provider.selectedResumeFileName != null
+                    ? [
+                        BoxShadow(
+                          color: Colors.greenAccent.withValues(alpha: _isDark ? 0.15 : 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [],
               ),
               child: provider.isUploading
                   ? Column(
@@ -308,82 +327,156 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                         LinearProgressIndicator(
                           value: provider.uploadProgress,
                           backgroundColor: _isDark ? Colors.white10 : Colors.black12,
+                          color: colorScheme.primary,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        SizedBox(height: 1.h),
+                        SizedBox(height: 1.5.h),
                         Text(
-                          "Ingesting Data... ${(provider.uploadProgress * 100).toInt()}%",
-                          style: TextStyle(fontSize: 16.sp, color: colorScheme.primary),
+                          "Uploading Document... ${(provider.uploadProgress * 100).toInt()}%",
+                          style: TextStyle(fontSize: 14.sp, color: colorScheme.primary, fontWeight: FontWeight.bold),
                         ),
                       ],
                     )
-                  : Row(
-                      children: [
-                        Icon(
-                          provider.selectedResumeFileName != null ? Icons.check_circle : Icons.cloud_upload_outlined,
-                          color: provider.selectedResumeFileName != null ? Colors.greenAccent : colorScheme.primary,
-                        ),
-                        SizedBox(width: 4.w),
-                        Expanded(
-                          child: Text(
-                            provider.selectedResumeFileName ?? "Tap here to Select Resume Document",
-                            style: TextStyle(
-                              fontSize: 16.sp, 
-                              color: provider.selectedResumeFileName != null ? _textPrimary : _textSecondary
+                  : provider.selectedResumeFileName != null
+                      ? Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(2.5.w),
+                              decoration: BoxDecoration(
+                                color: Colors.greenAccent.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check_circle_rounded,
+                                color: Colors.green,
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            SizedBox(width: 4.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Resume Loaded Successfully",
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: _textPrimary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 0.5.h),
+                                  Text(
+                                    provider.selectedResumeFileName!,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: _textSecondary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.change_circle_outlined, color: colorScheme.primary, size: 20.sp),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.cloud_upload_outlined, color: colorScheme.primary, size: 22.sp),
+                            SizedBox(width: 4.w),
+                            Text(
+                              "Click to Select Resume File",
+                              style: TextStyle(
+                                fontSize: 15.sp, 
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        if (provider.selectedResumeFileName != null)
-                          Icon(Icons.edit_outlined, size: 18, color: _textSecondary),
-                      ],
-                    ),
             ),
           ),
 
-          SizedBox(height: 2.h),
+          SizedBox(height: 3.h),
 
           // Main Action
-          SizedBox(
+          Container(
             width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
             child: ElevatedButton(
               onPressed: provider.isAnalyzing || provider.isUploading 
                 ? null 
                 : () => provider.matchResumeToJob(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 2.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                elevation: 0,
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: EdgeInsets.symmetric(vertical: 2.2.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               child: provider.isAnalyzing
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white.withValues(alpha: 0.8))),
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
                       SizedBox(width: 3.w),
-                      const Text("Synthesizing Match Data..."),
+                      Text(
+                        "Analyzing Alignment...",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15.sp,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ],
                   )
-                : const Text("Perform AI Analysis", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                : Text(
+                    "Launch AI Match Analysis",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15.sp,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
             ),
           ),
 
           // Error Message
           if (provider.errorMessage.isNotEmpty) ...[
-            SizedBox(height: 2.h),
+            SizedBox(height: 2.5.h),
             Container(
-              padding: EdgeInsets.all(3.w),
+              padding: EdgeInsets.all(4.w),
               decoration: BoxDecoration(
                 color: Colors.redAccent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 18),
+                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
                   SizedBox(width: 3.w),
                   Expanded(
                     child: Text(provider.errorMessage, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
@@ -593,20 +686,35 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
 
   Widget _buildPopularRoles(AIResumeMatcherProvider provider) {
     final roles = [
-      {'title': 'Data Science',  'desc': 'Analyze complex data sets to derive insights, build ML models, and optimize business strategies. Requirements: Python, SQL, Statistics, Machine Learning frameworks.'},
-      {'title': 'Machine Learning', 'desc': 'Design and implement ML algorithms/pipelines. Requirements: PyTorch/TensorFlow, Linear Algebra, Feature Engineering.'},
-      {'title': 'Full Stack Dev', 'desc': 'Build end-to-end web applications. Requirements: React/Flutter, Node.js, PostgreSQL/Firebase, System Design.'},
-      {'title': 'UI/UX Design', 'desc': 'Create user-centered designs and prototypes. Requirements: Figma, User Research, Wireframing, Visual Design.'},
-      {'title': 'Cloud Engineer', 'desc': 'Manage cloud infrastructure and deployments. Requirements: AWS/Azure, Docker, Kubernetes, CI/CD.'},
+      {
+        'title': 'Mechanical Design',
+        'desc': 'Design and develop mechanical components and systems. Create detailed 3D CAD models and perform finite element analysis (FEA). Requirements: SolidWorks/AutoCAD, FEA, GD&T, and Materials Science.'
+      },
+      {
+        'title': 'HVAC Engineer',
+        'desc': 'Design, analyze, and optimize heating, ventilation, and air conditioning systems. Perform thermal load calculations and airflow simulations. Requirements: ASHRAE standards, Revit MEP, thermodynamics.'
+      },
+      {
+        'title': 'Robotics & Automation',
+        'desc': 'Design robotic mechanisms, automated systems, and control integration. Oversee kinematic modeling and sensor integration. Requirements: PLC programming, ROS, actuator design, control systems.'
+      },
+      {
+        'title': 'Manufacturing Eng',
+        'desc': 'Optimize production systems, design assembly tooling, and implement Lean/Six Sigma principles to enhance manufacturing efficiency. Requirements: CNC machining, quality control, assembly lines.'
+      },
+      {
+        'title': 'Automotive Engineer',
+        'desc': 'Develop automotive structures, powertrains, and aerodynamics. Conduct structural analysis, NVH testing, and thermal management studies. Requirements: Vehicle dynamics, Matlab/Simulink, CFD.'
+      },
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(context, "Quick Roles"),
-        SizedBox(height: 0.5.h),
+        SizedBox(height: 1.h),
         SizedBox(
-          height: 5.h,
+          height: 6.h,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: roles.length,
@@ -614,25 +722,55 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
               final role = roles[index];
               final isSelected = _jobDescController.text.contains(role['title']!);
               return Padding(
-                padding: EdgeInsets.only(right: 3.w),
-                child: ChoiceChip(
-                  label: Text(role['title']!),
-                  selected: isSelected,
-                  selectedColor: Theme.of(context).primaryColor,
-                  backgroundColor: _innerBg,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : _textSecondary,
-                    fontSize: 15.sp,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  onSelected: (selected) {
-                    if (selected) {
-                      final jobText = "Title: ${role['title']}\nDescription: ${role['desc']}";
-                      _jobDescController.text = jobText;
-                      provider.updateJobDescription(jobText);
-                      setState(() => _selectedJob = null);
-                    }
+                padding: EdgeInsets.only(right: 3.w, bottom: 2),
+                child: GestureDetector(
+                  onTap: () {
+                    final jobText = "Title: ${role['title']}\nDescription: ${role['desc']}";
+                    _jobDescController.text = jobText;
+                    provider.updateJobDescription(jobText);
+                    setState(() => _selectedJob = null);
                   },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+                    decoration: BoxDecoration(
+                      gradient: isSelected
+                          ? const LinearGradient(
+                              colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: isSelected ? null : _cardBg,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.transparent
+                            : _borderCol,
+                        width: 1.5,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
+                          : [],
+                    ),
+                    child: Center(
+                      child: Text(
+                        role['title']!,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : _textSecondary,
+                          fontSize: 13.sp,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               );
             },

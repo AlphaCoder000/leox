@@ -196,17 +196,19 @@ class EmployeeDrawer extends StatelessWidget {
                 ),
                 SizedBox(width: 4.w),
                 Expanded(
-                  child: Text(
-                    title,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: title.length > 15 ? 14.sp : 16.sp,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color:
-                          isSelected
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.85),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: title.length > 15 ? 15.sp : 17.sp,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color:
+                            isSelected
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.85),
+                      ),
                     ),
                   ),
                 ),
@@ -231,12 +233,18 @@ class EmployeeDrawer extends StatelessWidget {
             children: [
               Icon(Icons.logout_rounded, size: 21.sp, color: Colors.redAccent),
               SizedBox(width: 4.w),
-              Text(
-                "Logout",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.redAccent,
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Logout",
+                    style: TextStyle(
+                      fontSize: 19.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.redAccent,
+                    ),
+                  ),
                 ),
               ),
             ],

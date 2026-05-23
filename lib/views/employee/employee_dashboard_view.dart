@@ -155,296 +155,436 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
           }
 
           final dashboard = dashboardProvider.dashboard;
+          final isDark = theme.brightness == Brightness.dark;
+          final textOnSurface = theme.colorScheme.onSurface;
+          final secondaryText = theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7) ?? Colors.grey;
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(3.w), // Reduced from 4.w to match employer dashboard
+            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Dashboard",
-                  style: TextStyle(
-                    fontSize: 22.sp, fontWeight: FontWeight.bold,
-                  ),
+                // Premium Cohesive Welcome Header
+                Consumer<EmployeeProfileProvider>(
+                  builder: (context, profileProvider, _) {
+                    final profile = profileProvider.profile;
+                    final firstName = profile?.firstName ?? '';
+                    final greeting = firstName.isNotEmpty ? "Hello, $firstName! 👋" : "Hello there! 👋";
+                    return Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(vertical: 2.5.h, horizontal: 4.5.w),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isDark
+                              ? [theme.cardColor, theme.cardColor.withValues(alpha: 0.8)]
+                              : [colorScheme.primary.withValues(alpha: 0.06), colorScheme.primary.withValues(alpha: 0.02)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.primary.withValues(alpha: isDark ? 0.01 : 0.03),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  greeting,
+                                  style: TextStyle(
+                                    fontSize: 20.sp,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark ? Colors.white : colorScheme.primary,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                SizedBox(height: 0.6.h),
+                                Text(
+                                  "Track your career opportunities & progress.",
+                                  style: TextStyle(
+                                    fontSize: 13.5.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: secondaryText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(3.w),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.dashboard_customize_rounded,
+                              color: colorScheme.primary,
+                              size: 22.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-                SizedBox(height: 0.8.h),
-                Text(
-                  "Your personal application overview.",
-                  style: TextStyle(
-                    fontSize: 17.sp, fontWeight: FontWeight.w600,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.71),
-                  ),
-                ),
+                SizedBox(height: 2.5.h),
 
-                SizedBox(height: 1.h),
+                // Section Title: Career Insights
+                Row(
+                  children: [
+                    Icon(Icons.analytics_outlined, size: 15.sp, color: colorScheme.primary),
+                    SizedBox(width: 1.5.w),
+                    Text(
+                      "Career Activity Insights",
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                        color: textOnSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 1.5.h),
 
                 // 🔹 STATS GRID
                 GridView.count(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 3.w, // Reduced from 4.w to match employer dashboard
-                  mainAxisSpacing: 2.h, // Keep the same vertical spacing
+                  crossAxisSpacing: 3.5.w,
+                  mainAxisSpacing: 2.h,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.4, // Updated from 2.0 to 1.4 to match employer dashboard
+                  childAspectRatio: 1.35,
                   children: [
                     StatCard(
                       title: "Applications Sent",
                       value: dashboard.totalApplications,
-                      subtitle: "Total jobs you have applied for.",
+                      subtitle: "Total jobs applied",
                       icon: Icons.description_outlined,
                     ),
                     StatCard(
                       title: "Under Review",
                       value: dashboard.applicationsUnderReview,
-                      subtitle: "Applications under review.",
+                      subtitle: "Under hiring review",
                       icon: Icons.access_time_outlined,
                     ),
                   ],
                 ),
+                SizedBox(height: 2.5.h),
 
-              
-
-                // 🔹 PROFILE COMPLETION
-                Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: theme.dividerColor),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(4.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Profile Completion",
-                              style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              "${dashboard.profileCompletionPercentage.toStringAsFixed(0)}%",
-                              style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ],
+                // 🔹 PROFILE COMPLETION (Tap to edit)
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const EmployeeProfileView()),
+                    );
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: (dashboard.profileCompletionPercentage >= 80 ? Colors.green : colorScheme.primary)
+                            .withValues(alpha: isDark ? 0.2 : 0.1),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.02 : 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
-                        SizedBox(height: 1.h),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: dashboard.profileCompletionPercentage / 100,
-                            minHeight: 1.h,
-                            backgroundColor:
-                                colorScheme.surfaceContainerHighest,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              dashboard.profileCompletionPercentage >= 80
-                                  ? Colors.green
-                                  : colorScheme.primary,
+                      ],
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(4.5.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    dashboard.profileCompletionPercentage >= 80
+                                        ? Icons.verified_user_rounded
+                                        : Icons.pending_actions_rounded,
+                                    color: dashboard.profileCompletionPercentage >= 80 ? Colors.green : colorScheme.primary,
+                                    size: 18.sp,
+                                  ),
+                                  SizedBox(width: 2.w),
+                                  Text(
+                                    "Profile Completion",
+                                    style: TextStyle(
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: textOnSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 2.5.w, vertical: 0.5.h),
+                                decoration: BoxDecoration(
+                                  color: (dashboard.profileCompletionPercentage >= 80 ? Colors.green : colorScheme.primary)
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  "${dashboard.profileCompletionPercentage.toStringAsFixed(0)}%",
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w900,
+                                    color: dashboard.profileCompletionPercentage >= 80 ? Colors.green : colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 1.5.h),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: dashboard.profileCompletionPercentage / 100,
+                              minHeight: 0.8.h,
+                              backgroundColor: colorScheme.surfaceContainerHighest,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                dashboard.profileCompletionPercentage >= 80
+                                    ? Colors.green
+                                    : colorScheme.primary,
+                              ),
                             ),
                           ),
+                          SizedBox(height: 1.5.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  dashboard.profileCompletionPercentage >= 80
+                                      ? "Excellent! Your profile is highly visible to employers."
+                                      : "Complete your profile details to stand out to recruiters.",
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: secondaryText,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 12.sp,
+                                color: secondaryText,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 3.h),
+
+                // 🔹 RECENT APPLICATIONS HEADER
+                Row(
+                  children: [
+                    Icon(Icons.work_history_outlined, size: 15.sp, color: colorScheme.primary),
+                    SizedBox(width: 1.5.w),
+                    Text(
+                      "Recent Applications Feed",
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                        color: textOnSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 2.h),
+
+                if (dashboard.recentApplications.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 4.w),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.inbox_outlined,
+                          size: 42.sp,
+                          color: secondaryText.withValues(alpha: 0.5),
                         ),
-                        SizedBox(height: 1.h),
+                        SizedBox(height: 1.5.h),
                         Text(
-                          dashboard.profileCompletionPercentage >= 80
-                              ? "Great! Your profile looks complete."
-                              : "Complete your profile to improve visibility.",
+                          "No active applications yet",
+                          style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: textOnSurface),
+                        ),
+                        SizedBox(height: 0.8.h),
+                        Text(
+                          "Explore available jobs and start applying!",
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16.sp,
-                            color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.7),
+                            fontSize: 12.5.sp,
+                            color: secondaryText,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ),
-
-                SizedBox(height: 1.h),
-
-                // 🔹 RECENT APPLICATIONS
-                Card(
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: theme.dividerColor),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(4.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Recent Applications",
-                          style: TextStyle(
-                            fontSize: 19.sp,
-                            fontWeight: FontWeight.w600,
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: dashboard.recentApplications.length,
+                    separatorBuilder: (_, __) => SizedBox(height: 2.h),
+                    itemBuilder: (_, index) {
+                      final app = dashboard.recentApplications[index];
+                      final statusColor = app.statusColor();
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: statusColor.withValues(alpha: isDark ? 0.2 : 0.1),
+                            width: 1.5,
                           ),
-                        ),
-                        SizedBox(height: 0.2.h),
-                        Text(
-                          "Your latest job applications",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: theme.textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.7),
-                          ),
-                        ),
-
-                        SizedBox(height: 1.h),
-
-                        if (dashboard.recentApplications.isEmpty)
-                          Center(
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.inbox_outlined,
-                                  size: 42.sp,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(height: 1.2.h),
-                                Text(
-                                  "No applications yet.",
-                                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold,),
-                                ),
-                                SizedBox(height: 0.4.h),
-                                Text(
-                                  "Start applying to jobs to see them here.",
-                                  style: TextStyle(
-                                    fontSize: 13.sp, fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: statusColor.withValues(alpha: isDark ? 0.02 : 0.04),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
-                          )
-                        else
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: dashboard.recentApplications.length,
-                            separatorBuilder:
-                                (_, __) => SizedBox(height: 1.5.h),
-                            itemBuilder: (_, index) {
-                              final app = dashboard.recentApplications[index];
-                              return Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (_) => JobApplicationDetailsView(
-                                              application:
-                                                  CandidateModel.fromEmployeeApplication(
-                                                    app,
-                                                  ),
-                                              isEmployer: false,
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: EdgeInsets.all(3.w),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.surface,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: theme.dividerColor,
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    app.jobTitle,
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: 19.sp, fontWeight: FontWeight.bold,
-                                                          
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 0.5.h),
-                                                  Text(
-                                                    app.companyName,
-                                                    style: TextStyle(
-                                                      fontSize: 17.sp, fontWeight: FontWeight.bold,
-                                                      color:
-                                                          colorScheme.primary,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Container(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 2.w,
-                                                vertical: 0.5.h,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: app
-                                                    .statusColor()
-                                                    .withValues(alpha: 0.2),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                app.statusLabel(),
-                                                style: TextStyle(
-                                                  fontSize: 15.sp, fontWeight: FontWeight.w600,
-                                                  color: app.statusColor(),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 1.5.h),
-                                        Text(
-                                          app.statusWithDays(),
-                                          style: TextStyle(
-                                            fontSize: 16.sp, fontWeight: FontWeight.normal,
-                                            color: theme
-                                                .textTheme
-                                                .bodySmall
-                                                ?.color
-                                                ?.withValues(alpha: 0.6),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => JobApplicationDetailsView(
+                                    application: CandidateModel.fromEmployeeApplication(app),
+                                    isEmployer: false,
                                   ),
                                 ),
                               );
                             },
+                            child: Padding(
+                              padding: EdgeInsets.all(4.5.w),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              app.jobTitle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 16.sp,
+                                                fontWeight: FontWeight.bold,
+                                                color: textOnSurface,
+                                              ),
+                                            ),
+                                            SizedBox(height: 0.5.h),
+                                            Text(
+                                              app.companyName,
+                                              style: TextStyle(
+                                                fontSize: 14.sp,
+                                                fontWeight: FontWeight.bold,
+                                                color: colorScheme.primary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(width: 2.w),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 3.w,
+                                          vertical: 0.6.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusColor.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          app.statusLabel(),
+                                          style: TextStyle(
+                                            fontSize: 12.5.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: statusColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Divider(color: theme.dividerColor.withValues(alpha: 0.5), height: 1),
+                                  SizedBox(height: 2.h),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.calendar_today_rounded,
+                                            size: 13.sp,
+                                            color: secondaryText,
+                                          ),
+                                          SizedBox(width: 1.5.w),
+                                          Text(
+                                            app.statusWithDays(),
+                                            style: TextStyle(
+                                              fontSize: 12.5.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: secondaryText,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Icon(
+                                        Icons.arrow_forward_ios_rounded,
+                                        size: 13.sp,
+                                        color: secondaryText,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                      ],
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                ),
-
                 SizedBox(height: 3.h),
               ],
             ),

@@ -33,17 +33,16 @@ class McRoleOptionView extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 6.w),
         child: Column(
           children: [
-            SizedBox(height: 2.h),
             Text(
               "Maintenance Contracts",
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontSize: 23.sp,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: 5.h),
+            SizedBox(height: 2.h),
             Text(
               "Choose your role",
               textAlign: TextAlign.center,
@@ -53,7 +52,7 @@ class McRoleOptionView extends StatelessWidget {
                 color: isDark ? Colors.grey[400] : const Color.fromRGBO(0, 0, 0, 0.6),
               ),
             ),
-            SizedBox(height: 4.h),
+            SizedBox(height: 2.h),
 
             // Provider Card
             _roleCard(

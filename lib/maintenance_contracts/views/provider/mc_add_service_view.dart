@@ -111,7 +111,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                       _buildTextField(
                         controller: _titleCtrl,
                         labelText: "Service Title",
-                        hintText: "e.g., General Plumbing, AC Repair",
+                        hintText: "e.g., Steam Turbine Overhauling",
                         icon: Icons.title_rounded,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -126,7 +126,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                       _buildTextField(
                         controller: _catCtrl,
                         labelText: "Category",
-                        hintText: "e.g., Plumbing, Electrical, Cleaning",
+                        hintText: "e.g., Steam Turbine Maintainance",
                         icon: Icons.category_rounded,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {

@@ -16,7 +16,9 @@ class NotificationService {
     Map<String, dynamic> data = const {},
   }) async {
     try {
-      final docRef = _firestore.collection('notifications').doc();
+      final docRef = kIsWeb
+          ? _firestore.collection('users').doc(recipientId).collection('notifications').doc()
+          : _firestore.collection('notifications').doc();
       final notification = NotificationModel(
         id: docRef.id,
         userId: recipientId,
@@ -39,27 +41,45 @@ class NotificationService {
     final user = _auth.currentUser;
     if (user == null) return Stream.value([]);
 
-    return _firestore
-        .collection('notifications')
-        .where('userId', isEqualTo: user.uid)
-        .snapshots()
-        .map((snapshot) {
-      final list = snapshot.docs
-          .map((doc) => NotificationModel.fromFirestore(doc))
-          .toList();
-      // Sort in-memory to avoid index requirement
-      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return list;
-    });
+    try {
+      final query = kIsWeb
+          ? _firestore.collection('users').doc(user.uid).collection('notifications')
+          : _firestore.collection('notifications').where('userId', isEqualTo: user.uid);
+
+      return query
+          .snapshots()
+          .map((snapshot) {
+            try {
+              final list = snapshot.docs
+                  .map((doc) => NotificationModel.fromFirestore(doc))
+                  .toList();
+              // Sort in-memory to avoid index requirement
+              list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+              return list;
+            } catch (e) {
+              debugPrint('[NotificationService] Error mapping notifications: $e');
+              return <NotificationModel>[];
+            }
+          })
+          .handleError((error) {
+            debugPrint('[NotificationService] Error in notifications stream: $error');
+            return <NotificationModel>[];
+          });
+    } catch (e) {
+      debugPrint('[NotificationService] Error starting notifications stream: $e');
+      return Stream.value([]);
+    }
   }
 
   /// Mark a notification as read
   Future<void> markAsRead(String notificationId) async {
     try {
-      await _firestore
-          .collection('notifications')
-          .doc(notificationId)
-          .update({'isRead': true});
+      final user = _auth.currentUser;
+      if (user == null) return;
+      final docRef = kIsWeb
+          ? _firestore.collection('users').doc(user.uid).collection('notifications').doc(notificationId)
+          : _firestore.collection('notifications').doc(notificationId);
+      await docRef.update({'isRead': true});
     } catch (e) {
       debugPrint('[NotificationService] Error marking as read: $e');
     }
@@ -71,11 +91,11 @@ class NotificationService {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      final snapshot = await _firestore
-          .collection('notifications')
-          .where('userId', isEqualTo: user.uid)
-          .where('isRead', isEqualTo: false)
-          .get();
+      final query = kIsWeb
+          ? _firestore.collection('users').doc(user.uid).collection('notifications').where('isRead', isEqualTo: false)
+          : _firestore.collection('notifications').where('userId', isEqualTo: user.uid).where('isRead', isEqualTo: false);
+
+      final snapshot = await query.get();
 
       final batch = _firestore.batch();
       for (var doc in snapshot.docs) {
@@ -90,7 +110,12 @@ class NotificationService {
   /// Delete a notification
   Future<void> deleteNotification(String notificationId) async {
     try {
-      await _firestore.collection('notifications').doc(notificationId).delete();
+      final user = _auth.currentUser;
+      if (user == null) return;
+      final docRef = kIsWeb
+          ? _firestore.collection('users').doc(user.uid).collection('notifications').doc(notificationId)
+          : _firestore.collection('notifications').doc(notificationId);
+      await docRef.delete();
     } catch (e) {
       debugPrint('[NotificationService] Error deleting notification: $e');
     }
