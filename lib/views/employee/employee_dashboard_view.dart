@@ -4,6 +4,7 @@ import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
 import 'package:leox/utils/error_handler_ui.dart';
 import 'package:leox/views/employee/employee_profile_view.dart';
+import 'package:leox/views/employee/employee_jobs_list_view.dart';
 import 'package:leox/widgets/employee_drawer.dart';
 import '../../models/candidate_model.dart';
 import '../common/application_details_view.dart';
@@ -13,6 +14,7 @@ import '../common/notifications_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/providers/theme_povider.dart';
+import 'package:leox/utils/app_theme.dart';
 
 class EmployeeDashboardView extends StatefulWidget {
   const EmployeeDashboardView({super.key});
@@ -239,6 +241,81 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                     );
                   },
                 ),
+                SizedBox(height: 2.5.h),
+
+                // 🔹 QUICK JOBS SHORTCUT
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EmployeeJobsListView(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(4.5.w),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(3.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.work_rounded,
+                            color: Colors.white,
+                            size: 22.sp,
+                          ),
+                        ),
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Find New Jobs",
+                                style: TextStyle(
+                                  fontSize: 17.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 0.5.h),
+                              Text(
+                                "Explore new career opportunities now",
+                                style: TextStyle(
+                                  fontSize: 12.5.sp,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Colors.white,
+                          size: 15.sp,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 SizedBox(height: 2.5.h),
 
                 // Section Title: Career Insights

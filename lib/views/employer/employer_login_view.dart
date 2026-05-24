@@ -206,15 +206,10 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                 dropdownColor: theme.cardTheme.color,
                                 underline: const SizedBox(),
                                 items: const [
-                                  DropdownMenuItem(
-                                    value: "+91",
-                                    child: Text("+91"),
-                                  ),
+                                  DropdownMenuItem(value: "+91", child: Text("+91")),
                                   DropdownMenuItem(value: "+1", child: Text("+1")),
-                                  DropdownMenuItem(
-                                    value: "+44",
-                                    child: Text("+44"),
-                                  ),
+                                  DropdownMenuItem(value: "+44", child: Text("+44")),
+                                  DropdownMenuItem(value: "+61", child: Text("+61")),
                                 ],
                                 onChanged:
                                     (v) => setState(() => selectedCountryCode = v!),

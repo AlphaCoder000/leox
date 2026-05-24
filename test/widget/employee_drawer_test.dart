@@ -4,11 +4,12 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'employee_drawer_test.mocks.dart';
 import 'package:leox/widgets/employee_drawer.dart';
 import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
-
-import 'employee_drawer_test.mocks.dart';
+import 'package:leox/providers/employee_providers/employee_jobs_provider.dart';
+import 'package:leox/models/job_model.dart';
 
 @GenerateMocks([EmployeeAuthProvider, EmployeeProfileProvider])
 void main() {
@@ -28,6 +29,7 @@ void main() {
             providers: [
               ChangeNotifierProvider<EmployeeAuthProvider>.value(value: mockAuth),
               ChangeNotifierProvider<EmployeeProfileProvider>.value(value: mockProfile),
+              ChangeNotifierProvider<EmployeeJobsProvider>(create: (_) => FakeEmployeeJobsProvider()),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -58,7 +60,8 @@ void main() {
       expect(find.byType(EmployeeDrawer), findsOneWidget);
 
       // Check if header is displayed
-      expect(find.text('LeoOpus'), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('LEO')), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('OPUS')), findsOneWidget);
       expect(find.byIcon(Icons.work_outline), findsOneWidget);
 
       // Check if menu items are displayed
@@ -136,7 +139,7 @@ void main() {
       // Check if logout dialog is displayed
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('Logout'), findsWidgets); // Both dialog title and button
-      expect(find.text('Are you sure you want to sign out of your employee account?'), findsOneWidget);
+      expect(find.textContaining('Are you sure you want to sign out of your employee account?'), findsOneWidget);
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('Yes, Logout'), findsOneWidget);
     });
@@ -255,5 +258,73 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
       }
     });
+
+    testWidgets('AI Resume Matcher should have 16.sp font size, contain FittedBox, and not overflow on narrow screens', (WidgetTester tester) async {
+      // Test on a very narrow device to verify non-overflow behavior
+      tester.view.physicalSize = const Size(200, 800); // extreme narrow width
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(createTestWidget(selectedItem: EmployeeDrawerItem.aiMatcher));
+
+      // Open drawer manually
+      final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+      scaffoldState.openDrawer();
+      await tester.pumpAndSettle();
+
+      // Find AI Resume Matcher text
+      final matcherTextFinder = find.text('AI Resume Matcher');
+      expect(matcherTextFinder, findsOneWidget);
+
+      final textWidget = tester.widget<Text>(matcherTextFinder);
+      // Verify font size is 16.sp
+      expect(textWidget.style?.fontSize, equals(16.sp));
+
+      // Verify that it is wrapped in FittedBox
+      final fittedBoxFinder = find.ancestor(
+        of: matcherTextFinder,
+        matching: find.byType(FittedBox),
+      );
+      expect(fittedBoxFinder, findsAtLeastNWidgets(1));
+
+      // Verify FittedBox has scaleDown fit strategy to prevent overflows
+      final fittedBox = tester.widget<FittedBox>(fittedBoxFinder.first);
+      expect(fittedBox.fit, equals(BoxFit.scaleDown));
+    });
   });
+}
+
+class FakeEmployeeJobsProvider extends ChangeNotifier implements EmployeeJobsProvider {
+  @override
+  bool get isLoading => false;
+
+  @override
+  String? get errorMessage => null;
+
+  @override
+  List<JobModel> get jobs => [];
+
+  @override
+  List<JobModel> get savedJobs => [];
+
+  @override
+  Future<void> loadJobs() async {}
+
+  @override
+  List<JobModel> getJobsByCategory(String category) => [];
+
+  @override
+  List<JobModel> searchJobs(String query) => [];
+
+  @override
+  JobModel? getJobById(String jobId) => null;
+
+  @override
+  void saveJob(JobModel job) {}
+
+  @override
+  void removeSavedJob(JobModel job) {}
+
+  @override
+  void clearError() {}
 }

@@ -55,8 +55,9 @@ void main() {
       expect(find.byType(EmployerDrawer), findsOneWidget);
 
       // Check if header is displayed
-      expect(find.text('LeoOpus'), findsOneWidget);
-      expect(find.byIcon(Icons.work_rounded), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('LEO')), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w is RichText && w.text.toPlainText().contains('OPUS')), findsOneWidget);
+      expect(find.byIcon(Icons.work_outline_rounded), findsOneWidget);
 
       // Check if menu items are displayed
       expect(find.text('Dashboard'), findsOneWidget);

@@ -4,9 +4,24 @@ import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
 import 'mc_service_details_view.dart';
+import 'package:leox/utils/app_theme.dart';
 
-class McSeekerCatalogView extends StatelessWidget {
+class McSeekerCatalogView extends StatefulWidget {
   const McSeekerCatalogView({super.key});
+
+  @override
+  State<McSeekerCatalogView> createState() => _McSeekerCatalogViewState();
+}
+
+class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +33,142 @@ class McSeekerCatalogView extends StatelessWidget {
     }
 
     final services = dashboardController.allServices;
+    final filteredServices = services.where((service) {
+      final query = _searchQuery.toLowerCase();
+      final title = service.title.toLowerCase();
+      final category = service.category.toLowerCase();
+      final description = service.description.toLowerCase();
+      return title.contains(query) || category.contains(query) || description.contains(query);
+    }).toList();
 
     return Scaffold(
       body: services.isEmpty
           ? _buildEmptyState(context)
-          : _buildServicesList(services, theme),
+          : Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: "Search services by title, category...",
+                      hintStyle: TextStyle(
+                        fontSize: 15.sp,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                      ),
+                      prefixIcon: Icon(Icons.search_rounded, color: theme.colorScheme.primary),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, color: Colors.grey),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = "";
+                                });
+                              },
+                            )
+                          : null,
+                      contentPadding: EdgeInsets.symmetric(vertical: 1.5.h, horizontal: 4.w),
+                      filled: true,
+                      fillColor: theme.cardColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.primary,
+                          width: 2.0,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(
+                          color: theme.dividerColor.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: filteredServices.isEmpty
+                      ? _buildNoResultsState(context)
+                      : _buildServicesList(filteredServices, theme),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildNoResultsState(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(4.w),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.search_off_rounded,
+              size: 50.sp,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            "No Results Found",
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          SizedBox(height: 1.h),
+          Text(
+            "Try searching with a different keyword.",
+            style: TextStyle(
+              fontSize: 17.sp,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            ),
+          ),
+          SizedBox(height: 2.h),
+          OutlinedButton(
+            onPressed: () {
+              _searchController.clear();
+              setState(() {
+                _searchQuery = "";
+              });
+            },
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: theme.colorScheme.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.2.h),
+            ),
+            child: Text(
+              "Clear Search",
+              style: TextStyle(
+                color: theme.colorScheme.primary,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -100,12 +246,12 @@ class McSeekerCatalogView extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           color: theme.cardColor,
           border: Border.all(
-            color: const Color(0xFF0EA5E9).withValues(alpha: isDark ? 0.15 : 0.08),
+            color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0EA5E9).withValues(alpha: isDark ? 0.04 : 0.06),
+              color: theme.colorScheme.primary.withValues(alpha: isDark ? 0.04 : 0.06),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -122,15 +268,11 @@ class McSeekerCatalogView extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(3.w),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      gradient: AppTheme.primaryGradient,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -168,7 +310,7 @@ class McSeekerCatalogView extends StatelessWidget {
                                   Icon(
                                     Icons.business_rounded,
                                     size: 13.sp,
-                                    color: const Color(0xFF0EA5E9),
+                                    color: theme.colorScheme.primary,
                                   ),
                                   SizedBox(width: 1.5.w),
                                   Expanded(
@@ -177,7 +319,7 @@ class McSeekerCatalogView extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 13.sp,
                                         fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF0EA5E9),
+                                        color: theme.colorScheme.primary,
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -206,7 +348,7 @@ class McSeekerCatalogView extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.8.h),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.08),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -215,14 +357,14 @@ class McSeekerCatalogView extends StatelessWidget {
                         Icon(
                           Icons.label_outline_rounded,
                           size: 13.sp,
-                          color: const Color(0xFF0EA5E9),
+                          color: theme.colorScheme.primary,
                         ),
                         SizedBox(width: 1.5.w),
                         Text(
                           service.category,
                           style: TextStyle(
                             fontSize: 12.5.sp,
-                            color: const Color(0xFF0EA5E9),
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -234,7 +376,7 @@ class McSeekerCatalogView extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 17.sp,
-                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ],

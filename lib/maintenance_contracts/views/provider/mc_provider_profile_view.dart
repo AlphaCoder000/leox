@@ -430,7 +430,7 @@ class McProviderProfileView extends StatelessWidget {
             SizedBox(height: 2.h),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                padding: EdgeInsets.symmetric(vertical: 1.5.h, horizontal: 4.w),
                 side: const BorderSide(color: Colors.redAccent),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 foregroundColor: Colors.redAccent,
@@ -473,7 +473,7 @@ class McProviderProfileView extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 1.5.h),
+              padding: EdgeInsets.symmetric(vertical: 1.5.h, horizontal: 4.w),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.delete_forever),

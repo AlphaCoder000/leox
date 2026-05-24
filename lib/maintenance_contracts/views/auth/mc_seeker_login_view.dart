@@ -45,9 +45,9 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
           buttonLabel: 'Go to Dashboard',
         );
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
+            (route) => false,
           );
         }
       } else {
@@ -76,9 +76,9 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
         buttonLabel: 'Go to Dashboard',
       );
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
+          (route) => false,
         );
       }
     } else if (error != "Sign-In cancelled by user") {
@@ -116,10 +116,14 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
           child: SingleChildScrollView(
             padding: EdgeInsets.all(6.w),
             child: Card(
-              color: theme.cardTheme.color ?? (isDark ? Colors.black87 : Colors.white),
+              color:
+                  theme.cardTheme.color ??
+                  (isDark ? Colors.black87 : Colors.white),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.3)),
+                side: BorderSide(
+                  color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                ),
               ),
               elevation: 8,
               child: Padding(
@@ -129,52 +133,116 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.search_outlined, size: 42.sp, color: const Color(0xFF0EA5E9)),
+                      Icon(
+                        Icons.search_outlined,
+                        size: 42.sp,
+                        color: const Color(0xFF0EA5E9),
+                      ),
                       SizedBox(height: 2.h),
                       Text(
                         "Seeker Portal",
-                        style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
                       ),
                       SizedBox(height: 1.h),
                       Text(
                         "Find experts for repair and maintenance.",
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700], fontSize: 17.sp),
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          fontSize: 17.sp,
+                        ),
                       ),
                       SizedBox(height: 4.h),
-                      
+
                       TextFormField(
                         controller: _emailController,
                         style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: "Email",
-                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
-                          prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF0EA5E9)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9))),
+                          labelStyle: TextStyle(
+                            color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.email_outlined,
+                            color: Color(0xFF0EA5E9),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  isDark
+                                      ? Colors.grey[800]!
+                                      : Colors.grey[300]!,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF0EA5E9),
+                            ),
+                          ),
                         ),
-                        validator: (value) => (value == null || value.isEmpty) ? "Please enter your email" : null,
+                        validator:
+                            (value) =>
+                                (value == null || value.isEmpty)
+                                    ? "Please enter your email"
+                                    : null,
                       ),
                       SizedBox(height: 2.h),
-                      
+
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         style: TextStyle(color: theme.colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: "Password",
-                          labelStyle: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[700]),
-                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0EA5E9)),
-                          suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: isDark ? Colors.grey[400] : Colors.grey[700]),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          labelStyle: TextStyle(
+                            color: isDark ? Colors.grey[400] : Colors.grey[700],
                           ),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0EA5E9))),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: Color(0xFF0EA5E9),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color:
+                                  isDark ? Colors.grey[400] : Colors.grey[700],
+                            ),
+                            onPressed:
+                                () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  isDark
+                                      ? Colors.grey[800]!
+                                      : Colors.grey[300]!,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF0EA5E9),
+                            ),
+                          ),
                         ),
-                        validator: (value) => (value == null || value.isEmpty) ? "Please enter your password" : null,
+                        validator:
+                            (value) =>
+                                (value == null || value.isEmpty)
+                                    ? "Please enter your password"
+                                    : null,
                       ),
-                      
+
                       SizedBox(height: 4.h),
                       SizedBox(
                         width: double.infinity,
@@ -182,33 +250,59 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0EA5E9),
                             padding: EdgeInsets.symmetric(vertical: 2.h),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: authController.isLoading ? null : _login,
-                          child: authController.isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : Text("Login", style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+                          child:
+                              authController.isLoading
+                                  ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                  : Text(
+                                    "Login",
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                         ),
                       ),
                       SizedBox(height: 2.h),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: authController.isLoading ? null : _loginWithGoogle,
-                          icon: authController.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0EA5E9)),
-                                )
-                              : Image.asset(
-                                  'assets/icons/google_logo.png',
-                                  height: 24,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.g_mobiledata, size: 24, color: Color(0xFF0EA5E9)),
-                                ),
+                          onPressed:
+                              authController.isLoading
+                                  ? null
+                                  : _loginWithGoogle,
+                          icon:
+                              authController.isLoading
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFF0EA5E9),
+                                    ),
+                                  )
+                                  : Image.asset(
+                                    'assets/icons/google_logo.png',
+                                    height: 24,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.g_mobiledata,
+                                              size: 24,
+                                              color: Color(0xFF0EA5E9),
+                                            ),
+                                  ),
                           label: Text(
-                            authController.isLoading ? "Signing in..." : "Sign In with Google",
+                            authController.isLoading
+                                ? "Signing in..."
+                                : "Sign In with Google",
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -217,7 +311,11 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                           ),
                           style: OutlinedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 2.h),
-                            side: BorderSide(color: const Color(0xFF0EA5E9).withValues(alpha: 0.5)),
+                            side: BorderSide(
+                              color: const Color(
+                                0xFF0EA5E9,
+                              ).withValues(alpha: 0.5),
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -226,8 +324,20 @@ class _McSeekerLoginViewState extends State<McSeekerLoginView> {
                       ),
                       SizedBox(height: 2.h),
                       TextButton(
-                        onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const McSeekerRegisterView())),
-                        child: Text("Need services? Register here", style: TextStyle(color: const Color(0xFF0EA5E9), fontSize: 18.sp)),
+                        onPressed:
+                            () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const McSeekerRegisterView(),
+                              ),
+                            ),
+                        child: Text(
+                          "Need services? Register here",
+                          style: TextStyle(
+                            color: const Color(0xFF0EA5E9),
+                            fontSize: 18.sp,
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -29,12 +29,14 @@ class _JobApplicationViewState extends State<JobApplicationView> {
   final _portfolioController = TextEditingController();
   PlatformFile? _selectedResume;
   String _selectedExperience = '0-1 years'; // Default experience
+  String _selectedCurrency = "₹";
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<JobApplicationProvider>().clearMessages();
+      context.read<JobApplicationProvider>().loadEmployeeApplications();
     });
   }
 
@@ -76,6 +78,18 @@ class _JobApplicationViewState extends State<JobApplicationView> {
   }
 
   Future<void> _submitApplication() async {
+    final applicationProvider = context.read<JobApplicationProvider>();
+    final appCount = applicationProvider.applications
+        .where((app) => app.jobId == widget.job.id)
+        .length;
+    if (appCount >= 2) {
+      ErrorHandlerUI.showErrorSnackbar(
+        context,
+        'You have already applied for this job 2 times. You cannot submit another application.',
+      );
+      return;
+    }
+
     if (_coverLetterController.text.trim().isEmpty) {
       ErrorHandlerUI.showErrorSnackbar(context, 'Please write a cover letter');
       return;
@@ -94,7 +108,9 @@ class _JobApplicationViewState extends State<JobApplicationView> {
           _selectedResume, // Only use uploaded resume, not existing profile resume
       jobPosting: widget.job,
       experience: _selectedExperience,
-      expectedSalary: _salaryController.text.trim(),
+      expectedSalary: _salaryController.text.trim().isNotEmpty
+          ? "$_selectedCurrency ${_salaryController.text.trim()}"
+          : "",
       availability: _availabilityController.text.trim(),
       linkedIn: _linkedinController.text.trim(),
       portfolio: _portfolioController.text.trim(),
@@ -567,20 +583,63 @@ class _JobApplicationViewState extends State<JobApplicationView> {
               style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 0.5.h),
-            TextField(
-              controller: _salaryController,
-              decoration: InputDecoration(
-                hintText: 'Enter your expected salary',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 25.w,
+                  height: 7.2.h,
+                  padding: EdgeInsets.symmetric(horizontal: 2.w),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedCurrency,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      items: ['₹', '\$', '£', '€', 'A\$', '¥', 'Rp', 'AED', 'SAR', 'KWD'].map((symbol) {
+                        return DropdownMenuItem<String>(
+                          value: symbol,
+                          child: Text(symbol),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedCurrency = val!;
+                        });
+                      },
+                    ),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: colorScheme.primary),
+                SizedBox(width: 3.w),
+                Expanded(
+                  child: TextField(
+                    controller: _salaryController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter your expected salary',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: colorScheme.primary),
+                      ),
+                    ),
+                  ),
                 ),
-                prefixIcon: Icon(Icons.currency_rupee, color: Colors.grey[600]),
-              ),
+              ],
             ),
 
             SizedBox(height: 1.5.h),
@@ -665,6 +724,10 @@ class _JobApplicationViewState extends State<JobApplicationView> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final applicationProvider = context.watch<JobApplicationProvider>();
+    final appCount = applicationProvider.applications
+        .where((app) => app.jobId == widget.job.id)
+        .length;
+    final isLimitReached = appCount >= 2;
 
     return Scaffold(
       appBar: AppBar(
@@ -697,6 +760,38 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                 // Additional Application Details
                 _buildApplicationDetailsSection(context, colorScheme),
 
+                if (isLimitReached) ...[
+                  SizedBox(height: 3.h),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(4.w),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.red.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.red, size: 22.sp),
+                        SizedBox(width: 3.w),
+                        Expanded(
+                          child: Text(
+                            "You have already applied for this job 2 times. You cannot submit another application.",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 SizedBox(height: 4.h),
 
                 // Submit Button
@@ -705,25 +800,29 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                   height: 6.h,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.primary.withValues(alpha: 0.8),
-                      ],
+                      colors: isLimitReached
+                          ? [Colors.grey.shade400, Colors.grey.shade500]
+                          : [
+                              colorScheme.primary,
+                              colorScheme.primary.withValues(alpha: 0.8),
+                            ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    boxShadow: isLimitReached
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                   ),
                   child: ElevatedButton(
                     onPressed:
-                        applicationProvider.isLoading
+                        (applicationProvider.isLoading || isLimitReached)
                             ? null
                             : _submitApplication,
                     style: ElevatedButton.styleFrom(
@@ -738,28 +837,28 @@ class _JobApplicationViewState extends State<JobApplicationView> {
                     child:
                         applicationProvider.isLoading
                             ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.send, size: 18),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Submit Application',
-                                  style: TextStyle(
-                                    fontSize: 18.sp,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.5,
-                                  ),
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
                                 ),
-                              ],
-                            ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.send, size: 18),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    isLimitReached ? 'Application Limit Reached' : 'Submit Application',
+                                    style: TextStyle(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
                   ),
                 ),
               ],

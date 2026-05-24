@@ -48,25 +48,30 @@ class EmployeeDrawer extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 3.w),
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: GoogleFonts.playfairDisplay().fontFamily,
-                      letterSpacing: 0.5,
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.syncopate(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2.5,
+                        ),
+                        children: const [
+                          TextSpan(
+                            text: 'LEO',
+                            style: TextStyle(color: Color.fromARGB(255, 34, 81, 222)),
+                          ),
+                          TextSpan(text: ' '),
+                          TextSpan(
+                            text: 'OPUS',
+                            style: TextStyle(color: Color(0xFF3374D9)),
+                          ),
+                        ],
+                      ),
                     ),
-                    children: const [
-                      TextSpan(
-                        text: 'LEO',
-                        style: TextStyle(color: Color.fromARGB(255, 34, 81, 222)),
-                      ),
-                      TextSpan(text: ' '),
-                      TextSpan(
-                        text: 'Opus',
-                        style: TextStyle(color: Color(0xFF3374D9)),
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -202,7 +207,7 @@ class EmployeeDrawer extends StatelessWidget {
                     child: Text(
                       title,
                       style: TextStyle(
-                        fontSize: title.length > 15 ? 15.sp : 17.sp,
+                        fontSize: title == "AI Resume Matcher" ? 16.sp : (title.length > 15 ? 15.sp : 17.sp),
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         color:
                             isSelected

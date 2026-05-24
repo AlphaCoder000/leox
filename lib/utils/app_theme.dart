@@ -4,12 +4,19 @@ import 'package:sizer/sizer.dart';
 
 class AppTheme {
   // Light Theme Colors (Strict Match)
-  static const Color primaryBlue = Color.fromRGBO(66, 133, 244, 1);
+  static const Color primaryBlue = Color(0xFF0284C7); // Premium Azure Blue
   static const Color lightBackground = Color.fromRGBO(245, 247, 250, 1);
   static const Color white = Colors.white;
   static const Color primaryText = Color.fromRGBO(32, 33, 36, 1);
   static const Color secondaryText = Color.fromRGBO(95, 99, 104, 1);
   static const Color borderColor = Color.fromRGBO(224, 227, 231, 1);
+
+  // Premium Unified Brand Gradient
+  static const Gradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF0EA5E9), Color(0xFF2563EB)], // Sky to Royal Blue
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   // Dark Theme Colors (Navy)
   static const Color darkBackground = Color(0xFF0F172A); // Dark Navy

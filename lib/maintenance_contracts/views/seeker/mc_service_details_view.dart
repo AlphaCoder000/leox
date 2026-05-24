@@ -276,7 +276,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
               ],
 
               // Custom Request Message input
-              _buildSectionHeader("Booking Message (Optional)", Icons.chat_bubble_outline_rounded, theme),
+              _buildSectionHeader("Enquiry", Icons.chat_bubble_outline_rounded, theme),
               SizedBox(height: 1.5.h),
               Container(
                 decoration: BoxDecoration(
@@ -289,7 +289,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                   maxLines: 3,
                   style: TextStyle(fontSize: 14.5.sp, color: textOnSurface),
                   decoration: InputDecoration(
-                    hintText: "Add specific requests, timing preference, or booking notes here...",
+                    hintText: "Add Specific Requirements, Requests, Timing Preferences, Questions and Queries here...",
                     hintStyle: TextStyle(fontSize: 13.5.sp, color: secondaryText),
                     contentPadding: EdgeInsets.all(4.w),
                     border: InputBorder.none,
@@ -332,9 +332,9 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                       await CustomPopup.show(
                         context,
                         type: CustomPopupType.success,
-                        title: 'Booking Request Sent!',
-                        message: 'Your request for "${widget.service.title}" has been placed successfully and is pending provider approval.',
-                        buttonLabel: 'View Bookings',
+                        title: 'Enquiry Sent!',
+                        message: 'Your enquiry for "${widget.service.title}" has been placed successfully and is pending provider approval.',
+                        buttonLabel: 'View Enquiries',
                       );
 
                       if (context.mounted) {
@@ -348,7 +348,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                       Icon(Icons.bolt, size: 20.sp, color: Colors.white),
                       SizedBox(width: 2.w),
                       Text(
-                        "Book Service Now",
+                        "Send Enquiry",
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,

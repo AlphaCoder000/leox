@@ -96,6 +96,15 @@ class McProviderDashboardController extends ChangeNotifier {
       debugPrint("Error deleting service: $e");
     }
   }
+
+  Future<void> updateService(McServiceModel service) async {
+    try {
+      await _firestore.collection('mc_services').doc(service.id).update(service.toJson());
+      await fetchMyServices(service.providerId);
+    } catch (e) {
+      debugPrint("Error updating service: $e");
+    }
+  }
   
   Future<void> updateRequestStatus(String requestId, String newStatus, String providerId) async {
     try {

@@ -330,11 +330,22 @@ class McRequestManagementView extends StatelessWidget {
                         SizedBox(width: 2.w),
                         ElevatedButton.icon(
                           onPressed: () {
-                            dashboardController.updateRequestStatus(request.id, 'accepted', providerId);
+                            _showConfirmationDialog(
+                              context: context,
+                              title: "Accept Request",
+                              message: "Are you sure you want to accept this service request from $seekerName?",
+                              icon: Icons.check_circle_outline_rounded,
+                              iconColor: Colors.green,
+                              confirmButtonLabel: "Accept",
+                              confirmButtonColor: Colors.green,
+                              onConfirm: () {
+                                dashboardController.updateRequestStatus(request.id, 'accepted', providerId);
+                              },
+                            );
                           },
                           icon: Icon(Icons.check, size: 18.sp),
                           label: Text(
-                            "Accept",
+                            "Accept Enquiry",
                             style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(
@@ -354,7 +365,18 @@ class McRequestManagementView extends StatelessWidget {
                       children: [
                         ElevatedButton.icon(
                           onPressed: () {
-                            dashboardController.updateRequestStatus(request.id, 'completed', providerId);
+                            _showConfirmationDialog(
+                              context: context,
+                              title: "Mark as Complete",
+                              message: "Are you sure you want to mark this booking request from $seekerName as completed?",
+                              icon: Icons.task_alt_outlined,
+                              iconColor: const Color(0xFF0EA5E9),
+                              confirmButtonLabel: "Complete",
+                              confirmButtonColor: const Color(0xFF0EA5E9),
+                              onConfirm: () {
+                                dashboardController.updateRequestStatus(request.id, 'completed', providerId);
+                              },
+                            );
                           },
                           icon: Icon(Icons.task_alt, size: 18.sp),
                           label: Text(
@@ -558,5 +580,65 @@ class McRequestManagementView extends StatelessWidget {
     if (status == 'accepted') return Colors.blueAccent;
     if (status == 'completed') return Colors.greenAccent;
     return Colors.redAccent;
+  }
+
+  void _showConfirmationDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color iconColor,
+    required String confirmButtonLabel,
+    required Color confirmButtonColor,
+    required VoidCallback onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 26.sp),
+            SizedBox(width: 2.w),
+            Text(
+              title,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17.5.sp),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(fontSize: 15.5.sp, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              "Cancel",
+              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500),
+            ),
+          ),
+          SizedBox(width: 2.w),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onConfirm();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: confirmButtonColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              confirmButtonLabel,
+              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -4,10 +4,12 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_provider_dashboard_controller.dart';
 import '../../models/mc_service_model.dart';
 import 'package:leox/widgets/custom_popup.dart';
+import 'package:leox/utils/app_theme.dart';
 
 class McAddServiceView extends StatefulWidget {
   final String providerId;
-  const McAddServiceView({super.key, required this.providerId});
+  final McServiceModel? service;
+  const McAddServiceView({super.key, required this.providerId, this.service});
 
   @override
   State<McAddServiceView> createState() => _McAddServiceViewState();
@@ -20,6 +22,31 @@ class _McAddServiceViewState extends State<McAddServiceView> {
   final _catCtrl = TextEditingController();
   final _priceRangeCtrl = TextEditingController();
   final _justificationCtrl = TextEditingController();
+  String _selectedCurrency = "₹";
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.service != null) {
+      _titleCtrl.text = widget.service!.title;
+      _descCtrl.text = widget.service!.description;
+      _catCtrl.text = widget.service!.category;
+      _justificationCtrl.text = widget.service!.priceJustification;
+
+      // Parse priceRange for matching currency symbol prefix
+      String storedPriceRange = widget.service!.priceRange;
+      String foundCurrency = "₹";
+      for (final symbol in ['A\$', 'AED', 'SAR', 'KWD', 'Rp', '\$', '£', '€', '₹', '¥']) {
+        if (storedPriceRange.startsWith(symbol)) {
+          foundCurrency = symbol;
+          storedPriceRange = storedPriceRange.substring(symbol.length).trim();
+          break;
+        }
+      }
+      _selectedCurrency = foundCurrency;
+      _priceRangeCtrl.text = storedPriceRange;
+    }
+  }
 
   @override
   void dispose() {
@@ -39,7 +66,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Add New Service",
+          widget.service != null ? "Edit Service" : "Add New Service",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
         ),
         elevation: 0,
@@ -65,7 +92,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "List a New Service",
+                  widget.service != null ? "Update Your Service" : "List a New Service",
                   style: TextStyle(
                     fontSize: 22.sp,
                     fontWeight: FontWeight.w800,
@@ -180,18 +207,63 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                       _buildSectionTitle(context, "Pricing & Estimation", Icons.currency_rupee_rounded),
                       SizedBox(height: 2.h),
 
-                      // Price Range Field
-                      _buildTextField(
-                        controller: _priceRangeCtrl,
-                        labelText: "Price Range",
-                        hintText: "e.g., ₹500 - ₹1500, ₹800/hour",
-                        icon: Icons.payments_rounded,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return "Please enter a price range";
-                          }
-                          return null;
-                        },
+                      // Price Range Row with Currency Dropdown
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 25.w,
+                            height: 7.2.h,
+                            padding: EdgeInsets.symmetric(horizontal: 2.w),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: theme.dividerColor.withValues(alpha: 0.2),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              color: theme.cardColor,
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedCurrency,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                items: ['₹', '\$', '£', '€', 'A\$', '¥', 'Rp', 'AED', 'SAR', 'KWD'].map((symbol) {
+                                  return DropdownMenuItem<String>(
+                                    value: symbol,
+                                    child: Text(symbol),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedCurrency = val!;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 3.w),
+                          Expanded(
+                            child: _buildTextField(
+                              controller: _priceRangeCtrl,
+                              labelText: "Price Range",
+                              hintText: "e.g., 500 - 1500, 800/hour",
+                              icon: Icons.payments_rounded,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Please enter a price range";
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       SizedBox(height: 2.5.h),
 
@@ -241,13 +313,11 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF0EA5E9), Color(0xFF0284C7)],
-                          ),
+                          gradient: AppTheme.primaryGradient,
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0EA5E9).withValues(alpha: 0.3),
+                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -264,7 +334,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                             ),
                           ),
                           child: Text(
-                            "Publish Service",
+                            widget.service != null ? "Save Changes" : "Publish Service",
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -292,10 +362,10 @@ class _McAddServiceViewState extends State<McAddServiceView> {
         Container(
           padding: EdgeInsets.all(2.w),
           decoration: BoxDecoration(
-            color: const Color(0xFF0EA5E9).withValues(alpha: 0.15),
+            color: theme.colorScheme.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: const Color(0xFF0EA5E9), size: 18.sp),
+          child: Icon(icon, color: theme.colorScheme.primary, size: 18.sp),
         ),
         SizedBox(width: 3.w),
         Text(
@@ -328,7 +398,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
         labelText: labelText,
         hintText: hintText,
         alignLabelWithHint: maxLines > 1,
-        prefixIcon: Icon(icon, color: const Color(0xFF0EA5E9), size: 18.sp),
+        prefixIcon: Icon(icon, color: theme.colorScheme.primary, size: 18.sp),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
@@ -339,7 +409,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0EA5E9), width: 2),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         labelStyle: TextStyle(fontSize: 15.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
         hintStyle: TextStyle(fontSize: 15.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
@@ -353,38 +423,63 @@ class _McAddServiceViewState extends State<McAddServiceView> {
       final title = _titleCtrl.text.trim();
       final desc = _descCtrl.text.trim();
       final cat = _catCtrl.text.trim();
-      final priceRange = _priceRangeCtrl.text.trim();
+      final priceRange = "$_selectedCurrency ${_priceRangeCtrl.text.trim()}";
       final justification = _justificationCtrl.text.trim();
 
       // Legacy fallback for price: extract first number found in the price range string, or default to 0.0
       double legacyPrice = 0.0;
-      final numbersMatch = RegExp(r'\d+').firstMatch(priceRange.replaceAll(',', ''));
+      final numbersMatch = RegExp(r'\d+').firstMatch(_priceRangeCtrl.text.trim().replaceAll(',', ''));
       if (numbersMatch != null) {
         legacyPrice = double.tryParse(numbersMatch.group(0) ?? '') ?? 0.0;
       }
 
-      final newService = McServiceModel(
-        id: '',
-        title: title,
-        description: desc,
-        category: cat,
-        price: legacyPrice,
-        priceRange: priceRange,
-        priceJustification: justification,
-        providerId: widget.providerId,
-      );
+      if (widget.service != null) {
+        final updatedService = McServiceModel(
+          id: widget.service!.id,
+          title: title,
+          description: desc,
+          category: cat,
+          price: legacyPrice,
+          priceRange: priceRange,
+          priceJustification: justification,
+          providerId: widget.providerId,
+          status: widget.service!.status,
+        );
 
-      // Save using dashboard controller
-      context.read<McProviderDashboardController>().addService(newService);
-      Navigator.pop(context);
+        context.read<McProviderDashboardController>().updateService(updatedService);
+        Navigator.pop(context);
 
-      await CustomPopup.show(
-        context,
-        type: CustomPopupType.success,
-        title: 'Service Published!',
-        message: 'Your service "${newService.title}" has been listed successfully.',
-        buttonLabel: 'Awesome',
-      );
+        await CustomPopup.show(
+          context,
+          type: CustomPopupType.success,
+          title: 'Service Updated!',
+          message: 'Your service "${updatedService.title}" has been updated successfully.',
+          buttonLabel: 'Awesome',
+        );
+      } else {
+        final newService = McServiceModel(
+          id: '',
+          title: title,
+          description: desc,
+          category: cat,
+          price: legacyPrice,
+          priceRange: priceRange,
+          priceJustification: justification,
+          providerId: widget.providerId,
+        );
+
+        // Save using dashboard controller
+        context.read<McProviderDashboardController>().addService(newService);
+        Navigator.pop(context);
+
+        await CustomPopup.show(
+          context,
+          type: CustomPopupType.success,
+          title: 'Service Published!',
+          message: 'Your service "${newService.title}" has been listed successfully.',
+          buttonLabel: 'Awesome',
+        );
+      }
     }
   }
 }

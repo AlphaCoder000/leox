@@ -24,6 +24,7 @@ class _CreateJobViewState extends State<CreateJobView> {
   final reqCtrl = TextEditingController();
   final salaryCtrl = TextEditingController();
   final otherCategoryCtrl = TextEditingController();
+  String _selectedCurrency = "₹";
 
   String category = "Mechanical Engineering";
   String jobType = "Full-time";
@@ -40,8 +41,20 @@ class _CreateJobViewState extends State<CreateJobView> {
       locationCtrl.text = j.location;
       descCtrl.text = j.description;
       reqCtrl.text = j.requirements.join('\n');
-      salaryCtrl.text = j.salaryRange;
-      salaryCtrl.text = j.salaryRange;
+      
+      // Parse salaryRange for matching currency symbol prefix
+      String storedSalary = j.salaryRange;
+      String foundCurrency = "₹";
+      for (final symbol in ['A\$', 'AED', 'SAR', 'KWD', 'Rp', '\$', '£', '€', '₹', '¥']) {
+        if (storedSalary.startsWith(symbol)) {
+          foundCurrency = symbol;
+          storedSalary = storedSalary.substring(symbol.length).trim();
+          break;
+        }
+      }
+      _selectedCurrency = foundCurrency;
+      salaryCtrl.text = storedSalary;
+
       category = j.category;
       if (![
         "Data Science", "Machine Learning", "Software Development", "Mobile App Development", 
@@ -180,10 +193,54 @@ class _CreateJobViewState extends State<CreateJobView> {
 
               const SizedBox(height: 16),
 
-              _field(
-                label: "Salary Range (e.g. 50k-80k) *",
-                controller: salaryCtrl,
-                validator: "Salary range is required",
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 25.w,
+                    height: 7.2.h,
+                    padding: EdgeInsets.symmetric(horizontal: 2.w),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedCurrency,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        items: ['₹', '\$', '£', '€', 'A\$', '¥', 'Rp', 'AED', 'SAR', 'KWD'].map((symbol) {
+                          return DropdownMenuItem<String>(
+                            value: symbol,
+                            child: Text(symbol),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedCurrency = val!;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 3.w),
+                  Expanded(
+                    child: _field(
+                      label: "Salary Range (e.g. 50k-80k) *",
+                      controller: salaryCtrl,
+                      validator: "Salary range is required",
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 16),
@@ -225,7 +282,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                           category: category == "Other" ? otherCategoryCtrl.text.trim() : category,
                           jobType: jobType,
                           experienceLevel: experience,
-                          salaryRange: salaryCtrl.text.trim(),
+                          salaryRange: "$_selectedCurrency ${salaryCtrl.text.trim()}",
                           description: descCtrl.text.trim(),
                           requirements: reqCtrl.text.trim().split('\n'),
                           postedOn: widget.jobToEdit?.postedOn ?? DateTime.now(),

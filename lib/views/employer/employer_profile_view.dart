@@ -508,12 +508,25 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
   late TextEditingController contactNumberCtrl;
   late TextEditingController addressCtrl;
   late TextEditingController linkedinCtrl;
+  String _selectedCountryCode = "+91";
 
   @override
   void initState() {
     final profile = context.read<EmployerProfileProvider>().profile;
     companyCtrl = TextEditingController(text: profile.companyName);
-    contactNumberCtrl = TextEditingController(text: profile.contactNumber);
+    
+    // Parse country code from phone
+    final phone = profile.contactNumber ?? '';
+    String parsedNumber = phone;
+    for (String code in ["+91", "+1", "+44", "+61"]) {
+      if (phone.startsWith(code)) {
+        _selectedCountryCode = code;
+        parsedNumber = phone.substring(code.length);
+        break;
+      }
+    }
+    contactNumberCtrl = TextEditingController(text: parsedNumber);
+    
     addressCtrl = TextEditingController(text: profile.address);
     linkedinCtrl = TextEditingController(text: profile.linkedin);
     super.initState();
@@ -541,9 +554,42 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             controller: companyCtrl,
             decoration: const InputDecoration(labelText: "Company Name"),
           ),
-          TextField(
-            controller: contactNumberCtrl,
-            decoration: const InputDecoration(labelText: "Contact Number"),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedCountryCode,
+                        items: const [
+                          DropdownMenuItem(value: "+91", child: Text("+91")),
+                          DropdownMenuItem(value: "+1", child: Text("+1")),
+                          DropdownMenuItem(value: "+44", child: Text("+44")),
+                          DropdownMenuItem(value: "+61", child: Text("+61")),
+                        ],
+                        onChanged: (v) => setState(() => _selectedCountryCode = v!),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: contactNumberCtrl,
+                      decoration: const InputDecoration(labelText: "Contact Number"),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
           ),
           TextField(
             controller: addressCtrl,
@@ -560,7 +606,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             onPressed: () {
               context.read<EmployerProfileProvider>().updateProfile(
                 companyName: companyCtrl.text.trim(),
-                contactNumber: contactNumberCtrl.text.trim(),
+                contactNumber: "$_selectedCountryCode${contactNumberCtrl.text.trim()}",
                 address: addressCtrl.text.trim(),
                 linkedin: linkedinCtrl.text.trim(),
               );

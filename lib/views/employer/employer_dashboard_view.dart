@@ -3,6 +3,8 @@ import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/providers/employer_profile_provider.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
+import 'package:leox/views/employer/create_job_view.dart';
+import 'package:leox/views/employer/employer_jobs_list_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/providers/theme_povider.dart';
@@ -188,7 +190,55 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                     ],
                   ),
 
-                  SizedBox(height: 1.h),
+                  SizedBox(height: 2.5.h),
+
+                  Text(
+                    "Quick Actions",
+                    style: TextStyle(
+                      fontSize: 19.sp,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: 1.5.h),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _quickActionButton(
+                          context,
+                          title: "Post Job",
+                          subtitle: "Create new listing",
+                          icon: Icons.add_circle_outline_rounded,
+                          color: theme.colorScheme.primary,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const CreateJobView()),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 3.5.w),
+                      Expanded(
+                        child: _quickActionButton(
+                          context,
+                          title: "View Job Posting",
+                          subtitle: "Manage active jobs",
+                          icon: Icons.pageview_outlined,
+                          color: const Color(0xFF10B981),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const EmployerJobsListView()),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 2.5.h),
 
                   Text(
                     "Candidate Pipeline",
@@ -224,7 +274,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                           context,
                           "Applied",
                           dashboard.pending,
-                          Colors.blue,
+                          theme.colorScheme.primary,
                         ),
                         _pipelineItem(
                           context,
@@ -476,6 +526,82 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
           ),
         );
       },
+    );
+  }
+
+  Widget _quickActionButton(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.25 : 0.12),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: isDark ? 0.02 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(2.5.w),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 20.sp,
+                  ),
+                ),
+                SizedBox(height: 1.5.h),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: 0.5.h),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12.5.sp,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

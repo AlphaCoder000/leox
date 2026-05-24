@@ -251,6 +251,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
 
                         Expanded(
                           child: _inputField(
+                            controller: phoneController,
                             keyboardType: TextInputType.phone,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,

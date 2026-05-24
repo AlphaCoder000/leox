@@ -53,6 +53,17 @@ class JobApplicationService {
         jobId = jobPosting.id;
       }
 
+      // Enforce application limit: max 2 applications per job by an employee
+      final existingSnapshot = await _firestore
+          .collection('applications')
+          .where('employeeId', isEqualTo: user.uid)
+          .where('jobId', isEqualTo: jobId)
+          .get();
+
+      if (existingSnapshot.docs.length >= 2) {
+        throw Exception('You have already applied to this job 2 times. You cannot apply a third time.');
+      }
+
       debugPrint('[JobApplicationService] Submitting application:');
       debugPrint('  - Job ID: "$jobId"');
       debugPrint('  - Job Title: "${jobPosting.title}"');

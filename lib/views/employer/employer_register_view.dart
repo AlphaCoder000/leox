@@ -25,6 +25,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
   final TextEditingController _contactNumberController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _linkedinController = TextEditingController();
+  String _selectedCountryCode = "+91";
 
   @override
   void initState() {
@@ -86,7 +87,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         companyName: _companyController.text.trim(),
-        contactNumber: _contactNumberController.text.trim(),
+        contactNumber: "$_selectedCountryCode${_contactNumberController.text.trim()}",
         address: _addressController.text.trim(),
         linkedin: _linkedinController.text.trim(),
       );
@@ -200,7 +201,66 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                     children: [
                       _buildTextField("Company Name", _companyController),
                       const SizedBox(height: 16),
-                      _buildTextField("Contact Number", _contactNumberController),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Contact Number",
+                            style: TextStyle(
+                              fontSize: 15.0,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: theme.dividerColor),
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: theme.inputDecorationTheme.fillColor ?? Colors.grey[100],
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedCountryCode,
+                                    dropdownColor: theme.cardTheme.color ?? (isDark ? Colors.grey[900] : Colors.white),
+                                    style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16),
+                                    items: const [
+                                      DropdownMenuItem(value: "+91", child: Text("+91")),
+                                      DropdownMenuItem(value: "+1", child: Text("+1")),
+                                      DropdownMenuItem(value: "+44", child: Text("+44")),
+                                      DropdownMenuItem(value: "+61", child: Text("+61")),
+                                    ],
+                                    onChanged: (v) => setState(() => _selectedCountryCode = v!),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextField(
+                                  controller: _contactNumberController,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(color: theme.dividerColor),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                    filled: true,
+                                    fillColor: theme.inputDecorationTheme.fillColor ?? Colors.grey[100],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 16),
                       _buildTextField("Company Address", _addressController),
                       const SizedBox(height: 16),
