@@ -117,7 +117,7 @@ class EmployerDrawer extends StatelessWidget {
                   context,
                   icon: Icons.smart_toy_outlined,
                   activeIcon: Icons.smart_toy_rounded,
-                  title: "AI Resume Matcher",
+                  title: "Resume Matcher",
                   isSelected: selectedItem == EmployerDrawerItem.aiMatcher,
                   onTap:
                       () => _navigate(
@@ -159,7 +159,7 @@ class EmployerDrawer extends StatelessWidget {
             child: Text(
               "v1.0.0",
               style: TextStyle(
-                fontSize: 10.sp,
+                fontSize: 12.sp,
                 color: Colors.white.withValues(alpha: 0.45),
               ),
             ),
@@ -200,7 +200,7 @@ class EmployerDrawer extends StatelessWidget {
               children: [
                 Icon(
                   isSelected ? activeIcon : icon,
-                  size: 22.sp,
+                  size: 23.sp,
                   color:
                       isSelected ? Colors.white : Colors.white.withAlpha(165),
                 ),
@@ -244,7 +244,7 @@ class EmployerDrawer extends StatelessWidget {
               Text(
                 "Logout",
                 style: TextStyle(
-                  fontSize: 17.sp,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.redAccent,
                 ),
@@ -279,7 +279,7 @@ class EmployerDrawer extends StatelessWidget {
                   "Logout",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18.sp,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -289,7 +289,7 @@ class EmployerDrawer extends StatelessWidget {
               "Are you sure you want to sign out of your employer account? You'll need to login again to manage your job listings.",
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 14.sp,
+                fontSize: 16.sp,
               ),
             ),
             actions: [
@@ -299,7 +299,7 @@ class EmployerDrawer extends StatelessWidget {
                   "Cancel",
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 11.sp,
+                    fontSize: 16.sp,
                   ),
                 ),
               ),
@@ -330,7 +330,7 @@ class EmployerDrawer extends StatelessWidget {
                   child: Text(
                     "Yes, Logout",
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

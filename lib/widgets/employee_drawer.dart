@@ -121,7 +121,7 @@ class EmployeeDrawer extends StatelessWidget {
                   context,
                   icon: Icons.smart_toy_outlined,
                   activeIcon: Icons.smart_toy,
-                  title: "AI Resume Matcher",
+                  title: "Resume Matcher",
                   isSelected: selectedItem == EmployeeDrawerItem.aiMatcher,
                   onTap: () {
                     _navigate(context, const EmployeeAiResumeMatcherView());
@@ -196,7 +196,7 @@ class EmployeeDrawer extends StatelessWidget {
               children: [
                 Icon(
                   isSelected ? activeIcon : icon,
-                  size: 20.sp,
+                  size: 23.sp,
                   color: Colors.white.withValues(alpha: 0.65),
                 ),
                 SizedBox(width: 4.w),
@@ -280,7 +280,7 @@ class EmployeeDrawer extends StatelessWidget {
                   "Logout",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18.sp,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -290,7 +290,7 @@ class EmployeeDrawer extends StatelessWidget {
               "Are you sure you want to sign out of your employee account? You'll need to login again to see your applications and saved jobs.",
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 15.sp,
+                fontSize: 16.sp,
               ),
             ),
             actions: [
@@ -300,7 +300,7 @@ class EmployeeDrawer extends StatelessWidget {
                   "Cancel",
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 15.sp,
+                    fontSize: 16.sp,
                   ),
                 ),
               ),
@@ -333,7 +333,7 @@ class EmployeeDrawer extends StatelessWidget {
                   child: Text(
                     "Yes, Logout",
                     style: TextStyle(
-                      fontSize: 15.sp,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
