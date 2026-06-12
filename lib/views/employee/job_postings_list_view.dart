@@ -235,7 +235,7 @@ class _JobPostingsListViewState extends State<JobPostingsListView> {
             // Salary
             Row(
               children: [
-                Icon(Icons.currency_rupee, size: 3.w, color: colorScheme.primary),
+                Icon(Icons.payments_outlined, size: 3.w, color: colorScheme.primary),
                 SizedBox(width: 1.w),
                 Text(
                   job.salary,

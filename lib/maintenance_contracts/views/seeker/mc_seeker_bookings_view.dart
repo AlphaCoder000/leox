@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
 import '../../models/mc_request_model.dart';
 
@@ -245,34 +246,42 @@ class McSeekerBookingsView extends StatelessWidget {
                             ],
                           ),
                           const Divider(height: 16),
-                          Row(
-                            children: [
-                              Icon(Icons.phone_outlined, size: 14.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
-                              SizedBox(width: 2.w),
-                              Text(
-                                providerPhone.isNotEmpty ? providerPhone : "Not Provided",
-                                style: TextStyle(
-                                  fontSize: 13.5.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface,
+                           GestureDetector(
+                            onTap: providerPhone.isNotEmpty ? () => launchUrl(Uri.parse('tel:$providerPhone')) : null,
+                            child: Row(
+                              children: [
+                                Icon(Icons.phone_outlined, size: 14.sp, color: providerPhone.isNotEmpty ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                                SizedBox(width: 2.w),
+                                Text(
+                                  providerPhone.isNotEmpty ? providerPhone : "Not Provided",
+                                  style: TextStyle(
+                                    fontSize: 13.5.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: providerPhone.isNotEmpty ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                                    decoration: providerPhone.isNotEmpty ? TextDecoration.underline : null,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           SizedBox(height: 0.8.h),
-                          Row(
-                            children: [
-                              Icon(Icons.email_outlined, size: 14.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
-                              SizedBox(width: 2.w),
-                              Text(
-                                providerEmail.isNotEmpty ? providerEmail : "Not Provided",
-                                style: TextStyle(
-                                  fontSize: 13.5.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface,
+                          GestureDetector(
+                            onTap: providerEmail.isNotEmpty ? () => launchUrl(Uri.parse('mailto:$providerEmail')) : null,
+                            child: Row(
+                              children: [
+                                Icon(Icons.email_outlined, size: 14.sp, color: providerEmail.isNotEmpty ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                                SizedBox(width: 2.w),
+                                Text(
+                                  providerEmail.isNotEmpty ? providerEmail : "Not Provided",
+                                  style: TextStyle(
+                                    fontSize: 13.5.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: providerEmail.isNotEmpty ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                                    decoration: providerEmail.isNotEmpty ? TextDecoration.underline : null,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -368,8 +377,20 @@ class McSeekerBookingsView extends StatelessWidget {
                 _buildDetailRow("Status", request.status.toUpperCase(), theme, _getStatusColor(request.status)),
                 _buildDetailRow("Booking Date", request.dateTime.toLocal().toString().split(' ')[0], theme),
                 if (request.status == 'accepted' || request.status == 'completed') ...[
-                  _buildDetailRow("Provider Phone", phone.isNotEmpty ? phone : "Not Provided", theme),
-                  _buildDetailRow("Provider Email", email.isNotEmpty ? email : "Not Provided", theme),
+                  _buildDetailRow(
+                    "Provider Phone",
+                    phone.isNotEmpty ? phone : "Not Provided",
+                    theme,
+                    null,
+                    phone.isNotEmpty ? () => launchUrl(Uri.parse('tel:$phone')) : null,
+                  ),
+                  _buildDetailRow(
+                    "Provider Email",
+                    email.isNotEmpty ? email : "Not Provided",
+                    theme,
+                    null,
+                    email.isNotEmpty ? () => launchUrl(Uri.parse('mailto:$email')) : null,
+                  ),
                 ],
                 if (request.message.isNotEmpty) ...[
                   SizedBox(height: 2.h),
@@ -426,7 +447,7 @@ class McSeekerBookingsView extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, ThemeData theme, [Color? valueColor]) {
+  Widget _buildDetailRow(String label, String value, ThemeData theme, [Color? valueColor, VoidCallback? onTap]) {
     return Padding(
       padding: EdgeInsets.only(bottom: 1.5.h),
       child: Row(
@@ -444,12 +465,16 @@ class McSeekerBookingsView extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: valueColor ?? theme.colorScheme.onSurface,
+            child: GestureDetector(
+              onTap: onTap,
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? (onTap != null ? theme.colorScheme.primary : theme.colorScheme.onSurface),
+                  decoration: onTap != null ? TextDecoration.underline : null,
+                ),
               ),
             ),
           ),

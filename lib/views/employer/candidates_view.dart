@@ -28,6 +28,7 @@ class _CandidatesViewState extends State<CandidatesView>
   String? _selectedJobTitle;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _updatingCandidateId;
 
   @override
   void initState() {
@@ -647,6 +648,23 @@ class _CandidatesViewState extends State<CandidatesView>
   Widget _buildStatusUpdateDropdown(CandidateModel candidate) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    if (_updatingCandidateId == candidate.id) {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 1.2.h),
+        decoration: BoxDecoration(
+          color: colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       child: PopupMenuButton<String>(
@@ -826,12 +844,20 @@ class _CandidatesViewState extends State<CandidatesView>
     String applicationId,
     String status,
   ) async {
+    setState(() {
+      _updatingCandidateId = applicationId;
+    });
     final success = await context
         .read<JobApplicationProvider>()
         .updateApplicationStatus(applicationId: applicationId, status: status);
 
-    if (mounted && success) {
-      ErrorHandlerUI.showSuccessSnackbar(context, 'Status updated to $status');
+    if (mounted) {
+      setState(() {
+        _updatingCandidateId = null;
+      });
+      if (success) {
+        ErrorHandlerUI.showSuccessSnackbar(context, 'Status updated to $status');
+      }
     }
   }
 }

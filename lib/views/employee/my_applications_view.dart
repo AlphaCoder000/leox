@@ -8,6 +8,8 @@ import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/job_application_provider.dart';
 import '../../models/job_application_model.dart';
+import '../../models/candidate_model.dart';
+import '../common/application_details_view.dart';
 import '../../utils/error_handler_ui.dart';
 
 class MyApplicationsView extends StatefulWidget {
@@ -230,7 +232,7 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
                   if (application.salary.isNotEmpty) ...[
                     SizedBox(height: 0.3.h),
                     Text(
-                      'Salary: \$${application.salary}',
+                      'Salary: ${application.salary}',
                       style: TextStyle(
                         fontSize: 12.sp, fontWeight: FontWeight.w600,
                         color: colorScheme.primary,
@@ -305,21 +307,49 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
             
             SizedBox(height: 1.5.h),
             
-            // Action Buttons
+             // Action Buttons
             Row(
               children: [
+                // Details Button
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => JobApplicationDetailsView(
+                            application: CandidateModel.fromJobApplication(application),
+                            isEmployer: false,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.info_outline, size: 16),
+                    label: Text(
+                      'Details',
+                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: colorScheme.primary),
+                      foregroundColor: colorScheme.primary,
+                      padding: EdgeInsets.symmetric(vertical: 1.h),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 2.w),
+
                 // View Resume Button
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _viewResume(application),
                     icon: const Icon(Icons.description, size: 16),
                     label: Text(
-                      'View Resume',
+                      'Resume',
                       style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: colorScheme.primary),
-                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: Colors.blueGrey),
+                      foregroundColor: Colors.blueGrey,
                       padding: EdgeInsets.symmetric(vertical: 1.h),
                     ),
                   ),

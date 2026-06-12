@@ -67,16 +67,37 @@ class AIResumeMatcherProvider extends ChangeNotifier {
           try {
             debugPrint('[AIResumeMatcherProvider] Extracting text from PDF...');
             final PdfDocument document = PdfDocument(inputBytes: file.bytes);
-            final String text = PdfTextExtractor(document).extractText();
+            final String text = PdfTextExtractor(document).extractText().trim();
             document.dispose();
+            
+            if (text.isEmpty) {
+              _errorMessage = 'Could not extract text from the PDF. It might be scanned or image-only. Please try pasting the text instead.';
+              _isUploading = false;
+              _selectedResumeFileName = null;
+              notifyListeners();
+              return false;
+            }
+            
             _selectedResumeText = text;
             debugPrint('[AIResumeMatcherProvider] PDF text extracted successfully (${text.length} chars)');
           } catch (e) {
             debugPrint('[AIResumeMatcherProvider] PDF extraction error: $e');
-            // Continue to upload, maybe backend can handle it
+            _errorMessage = 'Error reading PDF content. Please ensure the file is not protected or corrupted.';
+            _isUploading = false;
+            _selectedResumeFileName = null;
+            notifyListeners();
+            return false;
           }
         } else if (file.extension?.toLowerCase() == 'txt') {
-          _selectedResumeText = String.fromCharCodes(file.bytes!);
+          final text = String.fromCharCodes(file.bytes!).trim();
+          if (text.isEmpty) {
+            _errorMessage = 'The selected TXT file is empty.';
+            _isUploading = false;
+            _selectedResumeFileName = null;
+            notifyListeners();
+            return false;
+          }
+          _selectedResumeText = text;
         }
 
         // --- STEP 2: Upload to Storage (Parallel) ---
@@ -152,7 +173,7 @@ class AIResumeMatcherProvider extends ChangeNotifier {
         _errorMessage = '';
         debugPrint('[AIResumeMatcherProvider] Resume parsed successfully');
       } else {
-        _errorMessage = result['error'] ?? 'Failed to parse resume';
+        _errorMessage = _getUserFriendlyAIError(result['error'] ?? 'Failed to parse resume');
         debugPrint('[AIResumeMatcherProvider] Resume parsing failed: ${result['error']}');
       }
 
@@ -161,7 +182,7 @@ class AIResumeMatcherProvider extends ChangeNotifier {
       return result['success'] == true;
     } catch (e) {
       _isAnalyzing = false;
-      _errorMessage = 'Error parsing resume: ${e.toString()}';
+      _errorMessage = _getUserFriendlyAIError(e.toString());
       notifyListeners();
       debugPrint('[AIResumeMatcherProvider] Error parsing resume: $e');
       return false;
@@ -213,7 +234,7 @@ class AIResumeMatcherProvider extends ChangeNotifier {
         _errorMessage = '';
         debugPrint('[AIResumeMatcherProvider] Resume matching completed');
       } else {
-        _errorMessage = result['error'] ?? 'Failed to match resume';
+        _errorMessage = _getUserFriendlyAIError(result['error'] ?? 'Failed to match resume');
         debugPrint('[AIResumeMatcherProvider] Resume matching failed: ${result['error']}');
       }
 
@@ -222,11 +243,26 @@ class AIResumeMatcherProvider extends ChangeNotifier {
       return result['success'] == true;
     } catch (e) {
       _isAnalyzing = false;
-      _errorMessage = 'Error matching resume: ${e.toString()}';
+      _errorMessage = _getUserFriendlyAIError(e.toString());
       notifyListeners();
       debugPrint('[AIResumeMatcherProvider] Error matching resume: $e');
       return false;
     }
+  }
+
+  /// Map raw exception strings to helpful user-facing errors
+  String _getUserFriendlyAIError(String rawError) {
+    final err = rawError.toLowerCase();
+    if (err.contains('resource_exhausted') || err.contains('quota') || err.contains('429') || err.contains('rate limit')) {
+      return 'AI service limit exceeded. The system is receiving too many requests right now. Please wait a minute and try again.';
+    }
+    if (err.contains('api key') || err.contains('api_key_invalid') || err.contains('unauthorized') || err.contains('invalid key') || err.contains('not configured')) {
+      return 'AI service configuration issue. Please contact support to verify the API key setup.';
+    }
+    if (err.contains('too long') || err.contains('context length') || err.contains('token limit')) {
+      return 'The input content is too long for the AI model to analyze. Please shorten the job description or resume.';
+    }
+    return 'Unable to complete AI analysis at this moment. Please check your internet connection and try again.';
   }
 
   /// Update resume text (for paste option)

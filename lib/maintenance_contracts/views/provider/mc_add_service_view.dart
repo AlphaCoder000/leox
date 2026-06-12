@@ -5,6 +5,7 @@ import '../../controllers/mc_provider_dashboard_controller.dart';
 import '../../models/mc_service_model.dart';
 import 'package:leox/widgets/custom_popup.dart';
 import 'package:leox/utils/app_theme.dart';
+import 'package:flutter/services.dart';
 
 class McAddServiceView extends StatefulWidget {
   final String providerId;
@@ -20,7 +21,8 @@ class _McAddServiceViewState extends State<McAddServiceView> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _catCtrl = TextEditingController();
-  final _priceRangeCtrl = TextEditingController();
+  final _startPriceCtrl = TextEditingController();
+  final _endPriceCtrl = TextEditingController();
   final _justificationCtrl = TextEditingController();
   String _selectedCurrency = "₹";
 
@@ -44,7 +46,14 @@ class _McAddServiceViewState extends State<McAddServiceView> {
         }
       }
       _selectedCurrency = foundCurrency;
-      _priceRangeCtrl.text = storedPriceRange;
+      final parts = storedPriceRange.split('-');
+      if (parts.length == 2) {
+        _startPriceCtrl.text = parts[0].trim();
+        _endPriceCtrl.text = parts[1].trim();
+      } else {
+        _startPriceCtrl.text = storedPriceRange.trim();
+        _endPriceCtrl.text = '';
+      }
     }
   }
 
@@ -53,7 +62,8 @@ class _McAddServiceViewState extends State<McAddServiceView> {
     _titleCtrl.dispose();
     _descCtrl.dispose();
     _catCtrl.dispose();
-    _priceRangeCtrl.dispose();
+    _startPriceCtrl.dispose();
+    _endPriceCtrl.dispose();
     _justificationCtrl.dispose();
     super.dispose();
   }
@@ -250,17 +260,43 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                           ),
                           SizedBox(width: 3.w),
                           Expanded(
-                            child: _buildTextField(
-                              controller: _priceRangeCtrl,
-                              labelText: "Price Range",
-                              hintText: "e.g., 500 - 1500, 800/hour",
-                              icon: Icons.payments_rounded,
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return "Please enter a price range";
-                                }
-                                return null;
-                              },
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _startPriceCtrl,
+                                    labelText: "Start Price *",
+                                    hintText: "Min price",
+                                    icon: Icons.payments_rounded,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return "Required";
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: 2.w),
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _endPriceCtrl,
+                                    labelText: "End Price *",
+                                    hintText: "Max price",
+                                    icon: Icons.payments_rounded,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                    validator: (value) {
+                                      if (value == null || value.trim().isEmpty) {
+                                        return "Required";
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -270,16 +306,10 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                       // Price Justification Field
                       _buildTextField(
                         controller: _justificationCtrl,
-                        labelText: "Price Justification",
+                        labelText: "Price Justification (Optional)",
                         hintText: "Explain why the price ranges (e.g., depends on parts needed, distance, labor time)...",
                         icon: Icons.rate_review_rounded,
                         maxLines: 3,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return "Please justify the price range";
-                          }
-                          return null;
-                        },
                       ),
                     ],
                   ),
@@ -387,12 +417,16 @@ class _McAddServiceViewState extends State<McAddServiceView> {
     required IconData icon,
     int maxLines = 1,
     String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
       validator: validator,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       style: TextStyle(fontSize: 16.sp, color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: labelText,
@@ -423,15 +457,11 @@ class _McAddServiceViewState extends State<McAddServiceView> {
       final title = _titleCtrl.text.trim();
       final desc = _descCtrl.text.trim();
       final cat = _catCtrl.text.trim();
-      final priceRange = "$_selectedCurrency ${_priceRangeCtrl.text.trim()}";
+      final priceRange = "$_selectedCurrency ${_startPriceCtrl.text.trim()} - ${_endPriceCtrl.text.trim()}";
       final justification = _justificationCtrl.text.trim();
 
-      // Legacy fallback for price: extract first number found in the price range string, or default to 0.0
       double legacyPrice = 0.0;
-      final numbersMatch = RegExp(r'\d+').firstMatch(_priceRangeCtrl.text.trim().replaceAll(',', ''));
-      if (numbersMatch != null) {
-        legacyPrice = double.tryParse(numbersMatch.group(0) ?? '') ?? 0.0;
-      }
+      legacyPrice = double.tryParse(_startPriceCtrl.text.trim()) ?? 0.0;
 
       if (widget.service != null) {
         final updatedService = McServiceModel(

@@ -5,6 +5,7 @@ import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
 import 'package:leox/views/employer/create_job_view.dart';
 import 'package:leox/views/employer/employer_jobs_list_view.dart';
+import 'package:leox/views/employer/candidates_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/providers/theme_povider.dart';
@@ -152,42 +153,105 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
 
                   SizedBox(height: 1.h),
 
-                  // 🔹 STATS GRID
-                  GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing:
-                        3.w, // Reduced from 4.w to make cards wider
-                    mainAxisSpacing: 2.h, // Keep the same vertical spacing
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio:
-                        1.4, // Reduced from 1.8 to make cards wider (more square)
-                    children: [
-                      StatCard(
-                        title: "Total Jobs",
-                        value: dashboard.totalJobs,
-                        subtitle: "Active posts",
-                        icon: Icons.work_outline_rounded,
+                  // 🔹 RECRUITMENT SUMMARY CARD
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.analytics_outlined,
+                                color: colorScheme.primary,
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 2.w),
+                              Text(
+                                "Recruitment Summary",
+                                style: TextStyle(
+                                  fontSize: 17.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 2.h),
+                          GridView.count(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 3.w,
+                            mainAxisSpacing: 2.h,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            childAspectRatio: 1.3,
+                            children: [
+                              StatCard(
+                                title: "Total Jobs",
+                                value: dashboard.totalJobs,
+                                subtitle: "Active posts",
+                                icon: Icons.work_outline_rounded,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const EmployerJobsListView(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              StatCard(
+                                title: "Candidates",
+                                value: dashboard.totalCandidates,
+                                subtitle: "Total applications",
+                                icon: Icons.people_alt_outlined,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CandidatesView(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              StatCard(
+                                title: "Shortlisted",
+                                value: dashboard.shortlisted,
+                                subtitle: "Passed screening",
+                                icon: Icons.check_circle_outline_rounded,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CandidatesView(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              StatCard(
+                                title: "Hired",
+                                value: dashboard.hired,
+                                subtitle: "Offer accepted",
+                                icon: Icons.verified_outlined,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CandidatesView(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      StatCard(
-                        title: "Candidates",
-                        value: dashboard.totalCandidates,
-                        subtitle: "Total applications",
-                        icon: Icons.people_alt_outlined,
-                      ),
-                      StatCard(
-                        title: "Shortlisted",
-                        value: dashboard.shortlisted,
-                        subtitle: "Passed screening",
-                        icon: Icons.check_circle_outline_rounded,
-                      ),
-                      StatCard(
-                        title: "Hired",
-                        value: dashboard.hired,
-                        subtitle: "Offer accepted",
-                        icon: Icons.verified_outlined,
-                      ),
-                    ],
+                    ),
                   ),
 
                   SizedBox(height: 2.5.h),

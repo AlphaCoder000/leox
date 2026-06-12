@@ -6,6 +6,7 @@ class StatCard extends StatelessWidget {
   final int value;
   final String subtitle;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const StatCard({
     super.key,
@@ -13,6 +14,7 @@ class StatCard extends StatelessWidget {
     required this.value,
     required this.subtitle,
     required this.icon,
+    this.onTap,
   });
 
   @override
@@ -26,10 +28,13 @@ class StatCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: SizedBox(
-        height: 22.h, // Increased height from 18.h to 22.h
-        child: Padding(
-          padding: EdgeInsets.all(3.w), // Increased padding from 2.5.w to 3.w
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          height: 22.h, // Increased height from 18.h to 22.h
+          child: Padding(
+            padding: EdgeInsets.all(3.w), // Increased padding from 2.5.w to 3.w
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -99,6 +104,7 @@ class StatCard extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }

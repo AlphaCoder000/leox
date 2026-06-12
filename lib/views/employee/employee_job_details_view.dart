@@ -3,16 +3,34 @@ import 'package:leox/views/employee/job_application_view.dart';
 import 'package:sizer/sizer.dart';
 import '../../models/job_model.dart';
 import '../../models/job_posting_model.dart';
+import 'package:provider/provider.dart';
+import '../../providers/job_application_provider.dart';
 
-class EmployeeJobDetailsView extends StatelessWidget {
+class EmployeeJobDetailsView extends StatefulWidget {
   final JobModel job;
 
   const EmployeeJobDetailsView({super.key, required this.job});
 
   @override
+  State<EmployeeJobDetailsView> createState() => _EmployeeJobDetailsViewState();
+}
+
+class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<JobApplicationProvider>().loadEmployeeApplications();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final job = widget.job;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Job Details")),
@@ -124,6 +142,34 @@ class EmployeeJobDetailsView extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  final appProvider = context.read<JobApplicationProvider>();
+                  final myApplications = appProvider.applications;
+                  final jobApplicationsCount = myApplications.where((app) => app.jobId == job.id).length;
+
+                  if (jobApplicationsCount >= 2) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.warning_amber_rounded, color: Colors.white),
+                            SizedBox(width: 3.w),
+                            const Expanded(
+                              child: Text(
+                                "You have already submitted 2 applications for this job. You cannot apply more than twice.",
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Colors.orange.shade800,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
                   // Map `JobModel` to `JobPostingModel` for compatibility with JobApplicationView
                   final posting = JobPostingModel(
                     id: job.id,

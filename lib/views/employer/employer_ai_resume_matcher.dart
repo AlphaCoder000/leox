@@ -6,6 +6,7 @@ import '../../providers/ai_resume_matcher_provider.dart';
 import '../../providers/employer_jobs_provider.dart';
 import '../../widgets/employer_drawer.dart';
 import '../../models/job_model.dart';
+import '../../widgets/custom_popup.dart';
 
 class EmployerAiResumeMatcherView extends StatelessWidget {
   const EmployerAiResumeMatcherView({super.key});
@@ -421,7 +422,18 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             child: ElevatedButton(
               onPressed: provider.isAnalyzing || provider.isUploading 
                 ? null 
-                : () => provider.matchResumeToJob(),
+                : () async {
+                    final success = await provider.matchResumeToJob();
+                    if (!success && context.mounted) {
+                      CustomPopup.show(
+                        context,
+                        type: CustomPopupType.error,
+                        title: "Analysis Failed",
+                        message: provider.errorMessage,
+                        buttonLabel: "OK",
+                      );
+                    }
+                  },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,

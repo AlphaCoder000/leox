@@ -21,7 +21,8 @@ class _CreateJobViewState extends State<CreateJobView> {
   final locationCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final reqCtrl = TextEditingController();
-  final salaryCtrl = TextEditingController();
+  final startSalaryCtrl = TextEditingController();
+  final endSalaryCtrl = TextEditingController();
   final otherCategoryCtrl = TextEditingController();
   String _selectedCurrency = "₹";
 
@@ -52,7 +53,14 @@ class _CreateJobViewState extends State<CreateJobView> {
         }
       }
       _selectedCurrency = foundCurrency;
-      salaryCtrl.text = storedSalary;
+      final parts = storedSalary.split('-');
+      if (parts.length == 2) {
+        startSalaryCtrl.text = parts[0].trim();
+        endSalaryCtrl.text = parts[1].trim();
+      } else {
+        startSalaryCtrl.text = storedSalary.trim();
+        endSalaryCtrl.text = '';
+      }
 
       category = j.category;
       if (![
@@ -233,10 +241,25 @@ class _CreateJobViewState extends State<CreateJobView> {
                   ),
                   SizedBox(width: 3.w),
                   Expanded(
-                    child: _field(
-                      label: "Salary Range (e.g. 50k-80k) *",
-                      controller: salaryCtrl,
-                      validator: "Salary range is required",
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _field(
+                            label: "Start Salary *",
+                            controller: startSalaryCtrl,
+                            validator: "Start salary is required",
+                          ),
+                        ),
+                        SizedBox(width: 2.w),
+                        Expanded(
+                          child: _field(
+                            label: "End Salary *",
+                            controller: endSalaryCtrl,
+                            validator: "End salary is required",
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -281,7 +304,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                           category: category == "Other" ? otherCategoryCtrl.text.trim() : category,
                           jobType: jobType,
                           experienceLevel: experience,
-                          salaryRange: "$_selectedCurrency ${salaryCtrl.text.trim()}",
+                          salaryRange: "$_selectedCurrency ${startSalaryCtrl.text.trim()} - ${endSalaryCtrl.text.trim()}",
                           description: descCtrl.text.trim(),
                           requirements: reqCtrl.text.trim().split('\n'),
                           postedOn: widget.jobToEdit?.postedOn ?? DateTime.now(),
@@ -408,7 +431,8 @@ class _CreateJobViewState extends State<CreateJobView> {
     locationCtrl.dispose();
     descCtrl.dispose();
     reqCtrl.dispose();
-    salaryCtrl.dispose();
+    startSalaryCtrl.dispose();
+    endSalaryCtrl.dispose();
     otherCategoryCtrl.dispose();
     super.dispose();
   }

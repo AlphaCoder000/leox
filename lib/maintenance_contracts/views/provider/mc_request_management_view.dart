@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/mc_provider_dashboard_controller.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import '../../models/mc_request_model.dart';
@@ -245,36 +246,44 @@ class McRequestManagementView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: 0.8.h),
-                          Row(
-                            children: [
-                              Icon(Icons.phone_outlined, size: 14.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
-                              SizedBox(width: 2.w),
-                              Text(
-                                seekerPhone.isNotEmpty ? seekerPhone : "Not Provided",
-                                style: TextStyle(
-                                  fontSize: 13.5.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (seekerEmail.isNotEmpty) ...[
-                            SizedBox(height: 0.8.h),
-                            Row(
+                           SizedBox(height: 0.8.h),
+                          GestureDetector(
+                            onTap: seekerPhone.isNotEmpty ? () => launchUrl(Uri.parse('tel:$seekerPhone')) : null,
+                            child: Row(
                               children: [
-                                Icon(Icons.email_outlined, size: 14.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
+                                Icon(Icons.phone_outlined, size: 14.sp, color: seekerPhone.isNotEmpty ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
                                 SizedBox(width: 2.w),
                                 Text(
-                                  seekerEmail,
+                                  seekerPhone.isNotEmpty ? seekerPhone : "Not Provided",
                                   style: TextStyle(
                                     fontSize: 13.5.sp,
                                     fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface,
+                                    color: seekerPhone.isNotEmpty ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                                    decoration: seekerPhone.isNotEmpty ? TextDecoration.underline : null,
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          if (seekerEmail.isNotEmpty) ...[
+                            SizedBox(height: 0.8.h),
+                            GestureDetector(
+                              onTap: () => launchUrl(Uri.parse('mailto:$seekerEmail')),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.email_outlined, size: 14.sp, color: theme.colorScheme.primary),
+                                  SizedBox(width: 2.w),
+                                  Text(
+                                    seekerEmail,
+                                    style: TextStyle(
+                                      fontSize: 13.5.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.primary,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                           if (seekerAddress.isNotEmpty) ...[
@@ -484,8 +493,21 @@ class McRequestManagementView extends StatelessWidget {
                 _buildDetailRow("Company Name", name, theme),
                 _buildDetailRow("Status", request.status.toUpperCase(), theme, _getStatusColor(request.status)),
                 if (request.status == 'accepted' || request.status == 'completed') ...[
-                  _buildDetailRow("Phone", phone.isNotEmpty ? phone : "Not Provided", theme),
-                  if (email.isNotEmpty) _buildDetailRow("Email", email, theme),
+                  _buildDetailRow(
+                    "Phone",
+                    phone.isNotEmpty ? phone : "Not Provided",
+                    theme,
+                    null,
+                    phone.isNotEmpty ? () => launchUrl(Uri.parse('tel:$phone')) : null,
+                  ),
+                  if (email.isNotEmpty)
+                    _buildDetailRow(
+                      "Email",
+                      email,
+                      theme,
+                      null,
+                      () => launchUrl(Uri.parse('mailto:$email')),
+                    ),
                   _buildDetailRow("Address", address.isNotEmpty ? address : "Not Provided", theme),
                 ],
                 if (request.message.isNotEmpty) ...[
@@ -543,7 +565,7 @@ class McRequestManagementView extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, ThemeData theme, [Color? valueColor]) {
+  Widget _buildDetailRow(String label, String value, ThemeData theme, [Color? valueColor, VoidCallback? onTap]) {
     return Padding(
       padding: EdgeInsets.only(bottom: 1.5.h),
       child: Row(
@@ -561,12 +583,16 @@ class McRequestManagementView extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: valueColor ?? theme.colorScheme.onSurface,
+            child: GestureDetector(
+              onTap: onTap,
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? (onTap != null ? theme.colorScheme.primary : theme.colorScheme.onSurface),
+                  decoration: onTap != null ? TextDecoration.underline : null,
+                ),
               ),
             ),
           ),
