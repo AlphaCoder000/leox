@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:leox/models/job_model.dart';
 import 'package:leox/services/firebase_service.dart';
@@ -7,6 +10,7 @@ class EmployerJobsProvider extends ChangeNotifier {
   List<JobModel> get jobs => _jobs;
 
   final FirebaseService _firebaseService;
+  StreamSubscription<QuerySnapshot>? _jobsSubscription;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -32,21 +36,54 @@ class EmployerJobsProvider extends ChangeNotifier {
   // ================= LOAD =================
 
   Future<void> loadJobs() async {
-    _setLoading(true);
-    _setError(null);
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (uid.isEmpty) return;
 
-    try {
-      final jobs = await _firebaseService.getEmployerJobs();
-      _jobs = List.from(jobs);
-      debugPrint('[EmployerJobsProvider] Loaded ${jobs.length} jobs from Firebase');
-    } catch (e) {
-      debugPrint('[EmployerJobsProvider] Firebase error: $e');
-      _setError('Failed to load jobs: ${e.toString()}');
-      // Don't use dummy data - keep empty list to show real Firebase state
-      _jobs = [];
-    } finally {
+    _setError(null);
+    _jobsSubscription?.cancel();
+    _setLoading(true);
+
+    _jobsSubscription = FirebaseFirestore.instance
+        .collection('jobs')
+        .where('postedBy', isEqualTo: uid)
+        .snapshots()
+        .listen((snapshot) {
+      final list = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return JobModel(
+          id: doc.id,
+          title: data['title'] ?? '',
+          department: data['department'] ?? '',
+          category: data['category'] ?? '',
+          description: data['description'] ?? '',
+          requirements: List<String>.from(data['requirements'] ?? []),
+          postedOn: (data['postedOn'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          employerId: data['employerId'] ?? data['postedBy'] ?? '',
+          companyName: data['companyName'] ?? '',
+          location: data['location'] ?? '',
+          jobType: data['jobType'] ?? '',
+          experienceLevel: data['experienceLevel'] ?? '',
+          salaryRange: data['salaryRange'] ?? '',
+          skills: List<String>.from(data['skills'] ?? []),
+          benefits: List<String>.from(data['benefits'] ?? []),
+          status: data['status'] ?? '',
+          postedBy: data['postedBy'] ?? '',
+          applicationCount: data['applicationCount'] ?? 0,
+          deadline: (data['deadline'] as Timestamp?)?.toDate(),
+          additionalInfo: Map<String, dynamic>.from(data['additionalInfo'] ?? {}),
+        );
+      }).toList();
+
+      list.sort((a, b) => b.postedOn.compareTo(a.postedOn));
+      _jobs = list;
       _setLoading(false);
-    }
+      notifyListeners();
+      debugPrint('[EmployerJobsProvider] Real-time updated: ${_jobs.length} jobs');
+    }, onError: (e) {
+      debugPrint('[EmployerJobsProvider] Error in stream: $e');
+      _setError('Failed to load jobs: ${e.toString()}');
+      _setLoading(false);
+    });
   }
 
   // ================= ADD =================
@@ -57,8 +94,6 @@ class EmployerJobsProvider extends ChangeNotifier {
 
     try {
       await _firebaseService.postJob(job);
-      _jobs.insert(0, job);
-      notifyListeners();
       debugPrint('[EmployerJobsProvider] Job added to Firebase: ${job.title}');
     } catch (e) {
       debugPrint('[EmployerJobsProvider] Firebase error: $e');
@@ -76,11 +111,7 @@ class EmployerJobsProvider extends ChangeNotifier {
     _setError(null);
 
     try {
-      // For now, use a simple approach - in real implementation, you'd store job ID
-      // This is a simplified version for demo purposes
       await _firebaseService.deleteJob(job.id);
-      _jobs.remove(job);
-      notifyListeners();
       debugPrint('[EmployerJobsProvider] Job deleted: ${job.title}');
     } catch (e) {
       _setError('Failed to delete job: $e');
@@ -98,14 +129,6 @@ class EmployerJobsProvider extends ChangeNotifier {
 
     try {
       await _firebaseService.updateJob(updatedJob);
-
-      final index =
-          _jobs.indexWhere((job) => job.id == updatedJob.id);
-
-      if (index != -1) {
-        _jobs[index] = updatedJob;
-      }
-
       debugPrint('[EmployerJobsProvider] Job updated: ${updatedJob.title}');
     } catch (e) {
       _setError('Failed to update job: $e');
@@ -119,5 +142,11 @@ class EmployerJobsProvider extends ChangeNotifier {
 
   void clearError() {
     _setError(null);
+  }
+
+  @override
+  void dispose() {
+    _jobsSubscription?.cancel();
+    super.dispose();
   }
 }

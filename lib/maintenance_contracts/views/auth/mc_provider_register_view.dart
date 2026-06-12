@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import 'mc_provider_login_view.dart';
-import '../provider/mc_provider_dashboard_view.dart';
 import 'package:leox/widgets/custom_popup.dart';
 
 class McProviderRegisterView extends StatefulWidget {
@@ -60,10 +59,7 @@ class _McProviderRegisterViewState extends State<McProviderRegisterView> {
           buttonLabel: 'Go to Dashboard',
         );
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const McProviderDashboardView()),
-            (route) => false,
-          );
+          Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } else {
         CustomPopup.show(
@@ -92,10 +88,7 @@ class _McProviderRegisterViewState extends State<McProviderRegisterView> {
         buttonLabel: 'Go to Dashboard',
       );
       if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const McProviderDashboardView()),
-          (route) => false,
-        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } else if (error != "Sign-In cancelled by user") {
       CustomPopup.show(

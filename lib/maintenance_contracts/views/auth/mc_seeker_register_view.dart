@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import '../../controllers/mc_seeker_auth_controller.dart';
 import 'mc_seeker_login_view.dart';
-import '../seeker/mc_seeker_dashboard_view.dart';
 import 'package:leox/widgets/custom_popup.dart';
 
 class McSeekerRegisterView extends StatefulWidget {
@@ -60,10 +59,7 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
           buttonLabel: 'Go to Dashboard',
         );
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
-            (route) => false,
-          );
+          Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } else {
         CustomPopup.show(
@@ -92,10 +88,7 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
         buttonLabel: 'Go to Dashboard',
       );
       if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const McSeekerDashboardView()),
-          (route) => false,
-        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } else if (error != "Sign-In cancelled by user") {
       CustomPopup.show(

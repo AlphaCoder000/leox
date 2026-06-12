@@ -1,11 +1,12 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/job_model.dart';
-import '../../services/firebase_service.dart';
 
 class EmployeeJobsProvider extends ChangeNotifier {
   final List<JobModel> _jobs = [];
-  final FirebaseService _firebaseService;
+  StreamSubscription<QuerySnapshot>? _jobsSubscription;
 
   // ======== STATE ========
   bool _isLoading = false;
@@ -14,7 +15,7 @@ class EmployeeJobsProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  EmployeeJobsProvider() : _firebaseService = FirebaseService();
+  EmployeeJobsProvider();
 
   List<JobModel> get jobs => _jobs;
 
@@ -29,23 +30,55 @@ class EmployeeJobsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load available jobs from Firebase
+  /// Load available jobs from Firebase in real-time
   Future<void> loadJobs() async {
-    _setLoading(true);
     _setError(null);
-    
-    try {
+    _jobsSubscription?.cancel();
+    _setLoading(true);
+
+    _jobsSubscription = FirebaseFirestore.instance
+        .collection('jobs')
+        .where('status', isEqualTo: 'Open')
+        .snapshots()
+        .listen((snapshot) {
       _jobs.clear();
-      final jobs = await _firebaseService.getAllJobs();
-      _jobs.addAll(jobs);
-      notifyListeners();
-      debugPrint('[EmployeeJobsProvider] Loaded ${jobs.length} jobs from Firebase');
-    } catch (e) {
-      debugPrint('[EmployeeJobsProvider] Error loading jobs: $e');
-      _setError('Failed to load jobs: ${e.toString()}');
-    } finally {
+      final list = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return JobModel(
+          id: doc.id,
+          title: data['title'] ?? '',
+          department: data['department'] ?? '',
+          category: data['category'] ?? '',
+          description: data['description'] ?? '',
+          requirements: List<String>.from(data['requirements'] ?? []),
+          postedOn: (data['postedOn'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          employerId: data['employerId'] ?? '',
+          companyName: data['companyName'] ?? '',
+          location: data['location'] ?? '',
+          jobType: data['jobType'] ?? '',
+          experienceLevel: data['experienceLevel'] ?? '',
+          salaryRange: data['salaryRange'] ?? '',
+          skills: List<String>.from(data['skills'] ?? []),
+          benefits: List<String>.from(data['benefits'] ?? []),
+          status: data['status'] ?? '',
+          postedBy: data['postedBy'] ?? '',
+          applicationCount: data['applicationCount'] ?? 0,
+          deadline: (data['deadline'] as Timestamp?)?.toDate(),
+          additionalInfo: Map<String, dynamic>.from(data['additionalInfo'] ?? {}),
+        );
+      }).toList();
+
+      // Sort in-memory to avoid index requirement
+      list.sort((a, b) => b.postedOn.compareTo(a.postedOn));
+      _jobs.addAll(list);
       _setLoading(false);
-    }
+      notifyListeners();
+      debugPrint('[EmployeeJobsProvider] Real-time updated: ${_jobs.length} jobs');
+    }, onError: (e) {
+      debugPrint('[EmployeeJobsProvider] Error in stream: $e');
+      _setError('Failed to load jobs: ${e.toString()}');
+      _setLoading(false);
+    });
   }
 
   /// Get jobs by category
@@ -99,5 +132,11 @@ class EmployeeJobsProvider extends ChangeNotifier {
   /// Clear error message
   void clearError() {
     _setError(null);
+  }
+
+  @override
+  void dispose() {
+    _jobsSubscription?.cancel();
+    super.dispose();
   }
 }

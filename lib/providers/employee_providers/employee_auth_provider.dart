@@ -203,6 +203,9 @@ Future<void> _checkRoleWithRetry(String uid) async {
         case 'too-many-requests':
           errorMessage = 'Too many failed attempts. Try again later';
           break;
+        default:
+          errorMessage = e.message ?? 'Login failed';
+          break;
       }
       _setError(errorMessage);
       debugPrint(

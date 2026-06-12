@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/mc_service_model.dart';
@@ -18,6 +19,8 @@ class McProviderDashboardController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  StreamSubscription<QuerySnapshot>? _requestsSubscription;
 
   Future<void> fetchMyServices(String providerId) async {
     _isLoading = true;
@@ -42,21 +45,24 @@ class McProviderDashboardController extends ChangeNotifier {
   Future<void> fetchIncomingRequests(String providerId) async {
     _isLoading = true;
     notifyListeners();
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('mc_requests')
-          .where('providerId', isEqualTo: providerId)
-          .get();
-      
+    _requestsSubscription?.cancel();
+
+    _requestsSubscription = _firestore
+        .collection('mc_requests')
+        .where('providerId', isEqualTo: providerId)
+        .snapshots()
+        .listen((snapshot) {
       _requests = snapshot.docs
-          .map((doc) => McRequestModel.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+          .map((doc) => McRequestModel.fromJson(doc.data(), doc.id))
           .toList();
-    } catch (e) {
-      debugPrint("Error fetching provider requests: $e");
-    } finally {
       _isLoading = false;
       notifyListeners();
-    }
+      debugPrint("[McProviderDashboardController] Real-time requests updated: ${_requests.length}");
+    }, onError: (e) {
+      debugPrint("Error in requests stream: $e");
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   Future<void> fetchProviderReviews(String providerId) async {
@@ -109,7 +115,6 @@ class McProviderDashboardController extends ChangeNotifier {
   Future<void> updateRequestStatus(String requestId, String newStatus, String providerId) async {
     try {
       await _firestore.collection('mc_requests').doc(requestId).update({'status': newStatus});
-      await fetchIncomingRequests(providerId);
     } catch (e) {
       debugPrint("Error updating request status: $e");
     }
@@ -122,5 +127,11 @@ class McProviderDashboardController extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error updating service status: $e");
     }
+  }
+
+  @override
+  void dispose() {
+    _requestsSubscription?.cancel();
+    super.dispose();
   }
 }

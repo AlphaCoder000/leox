@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:leox/models/job_model.dart';
 import 'package:leox/providers/employer_jobs_provider.dart';
-import 'package:leox/views/employer/employer_jobs_list_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -316,12 +315,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                             ),
                           );
 
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const EmployerJobsListView(),
-                            ),
-                            (route) => false,
-                          );
+                          Navigator.of(context).pop();
                         }
                       } catch (e) {
                         if (context.mounted) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/mc_service_model.dart';
@@ -19,6 +20,8 @@ class McSeekerDashboardController extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  StreamSubscription<QuerySnapshot>? _myRequestsSubscription;
+
   Future<void> fetchAllServices() async {
     _isLoading = true;
     notifyListeners();
@@ -39,27 +42,29 @@ class McSeekerDashboardController extends ChangeNotifier {
   Future<void> fetchMyRequests(String seekerId) async {
     _isLoading = true;
     notifyListeners();
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('mc_requests')
-          .where('seekerId', isEqualTo: seekerId)
-          .get();
-      
+    _myRequestsSubscription?.cancel();
+
+    _myRequestsSubscription = _firestore
+        .collection('mc_requests')
+        .where('seekerId', isEqualTo: seekerId)
+        .snapshots()
+        .listen((snapshot) {
       _myRequests = snapshot.docs
-          .map((doc) => McRequestModel.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+          .map((doc) => McRequestModel.fromJson(doc.data(), doc.id))
           .toList();
-    } catch (e) {
-      debugPrint("Error fetching seeker requests: $e");
-    } finally {
       _isLoading = false;
       notifyListeners();
-    }
+      debugPrint("[McSeekerDashboardController] Real-time my requests updated: ${_myRequests.length}");
+    }, onError: (e) {
+      debugPrint("Error in seeker requests stream: $e");
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   Future<void> createRequest(McRequestModel request) async {
     try {
       await _firestore.collection('mc_requests').add(request.toJson());
-      await fetchMyRequests(request.seekerId);
     } catch (e) {
       debugPrint("Error creating request: $e");
     }
@@ -115,5 +120,11 @@ class McSeekerDashboardController extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error submitting review: $e");
     }
+  }
+
+  @override
+  void dispose() {
+    _myRequestsSubscription?.cancel();
+    super.dispose();
   }
 }
