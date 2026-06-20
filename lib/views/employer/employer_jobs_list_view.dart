@@ -60,7 +60,7 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
             child: TextField(
               decoration: InputDecoration(
                 hintText: "Search jobs by title or category...",
-                hintStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w500, color: Colors.grey.shade300),
+                hintStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: const Color.fromARGB(255, 40, 38, 38)),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: query.isNotEmpty
                     ? IconButton(

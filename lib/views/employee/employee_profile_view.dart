@@ -385,7 +385,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard, ),
+      drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.profile),
       appBar: AppBar(title: const Text("My Profile", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
       body: Consumer<EmployeeProfileProvider>(
         builder: (context, profileProvider, _) {
@@ -414,21 +414,16 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                 SizedBox(height: 3.h),
 
                 // ================= PROFILE CARD =================
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: theme.dividerColor),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 3.h),
-                    child: Column(
-                      children: [
+                Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
                         GestureDetector(
                           onTap: _pickImage,
                           child: Stack(
                             children: [
                               CircleAvatar(
-                                radius: 36,
+                                radius: 50,
                                 backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                                 backgroundImage:
                                     (profile.profilePicture
@@ -443,7 +438,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                                   .toUpperCase()
                                               : "?",
                                           style: TextStyle(
-                                            fontSize: 24.sp, fontWeight: FontWeight.bold,
+                                            fontSize: 32.sp, fontWeight: FontWeight.bold,
                                             color: colorScheme.primary,
                                           ),
                                         )
@@ -453,11 +448,11 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                 bottom: 0,
                                 right: 0,
                                 child: CircleAvatar(
-                                  radius: 12,
+                                  radius: 14,
                                   backgroundColor: colorScheme.primary,
                                   child: const Icon(
                                     Icons.camera_alt,
-                                    size: 14,
+                                    size: 16,
                                     color: Colors.white,
                                   ),
                                 ),
@@ -486,7 +481,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                       ],
                     ),
                   ),
-                ),
+                
 
                 SizedBox(height: 1.h),
 

@@ -33,7 +33,7 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.dashboard),
+      drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.jobs),
       appBar: AppBar(title: const Text("Jobs", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
       body: Padding(
         padding: EdgeInsets.all(2.w),
@@ -58,12 +58,34 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
             // SEARCH
             TextField(
               onChanged: (v) => setState(() => query = v),
+              style: TextStyle(fontSize: 16.sp),
               decoration: InputDecoration(
                 hintText: "Search jobs by title or department...",
-                hintStyle: TextStyle(fontSize: 15.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(
+                  fontSize: 16.sp,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+                ),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 20.sp,
+                ),
+                filled: true,
+                fillColor: theme.brightness == Brightness.dark 
+                    ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3)
+                    : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.8.h),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
                 ),
               ),
             ),
@@ -87,6 +109,7 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
                           final job = jobs[index];
                           return EmployeeJobCard(
                             job: job,
+                            index: index,
                             onView: () {
                               Navigator.push(
                                 context,

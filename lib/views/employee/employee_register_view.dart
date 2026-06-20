@@ -183,13 +183,13 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                 if (isEmailSelected) ...[
                   _label(context, "Full Name"),
                   const SizedBox(height: 8),
-                  _inputField(keyboardType: TextInputType.name, controller: nameController),
+                  _inputField(keyboardType: TextInputType.name, controller: nameController, hintText: "Enter your full name"),
 
                   const SizedBox(height: 20),
 
                   _label(context, "Email"),
                   const SizedBox(height: 8),
-                  _inputField(keyboardType: TextInputType.emailAddress, controller: emailController),
+                  _inputField(keyboardType: TextInputType.emailAddress, controller: emailController, hintText: "Enter your email address"),
 
                   const SizedBox(height: 20),
 
@@ -198,6 +198,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                   _inputField(
                       isPassword: true, 
                       controller: passwordController,
+                      hintText: "Enter password",
                       obscureText: _obscurePassword,
                       onToggleVisibility: () {
                         setState(() { _obscurePassword = !_obscurePassword; });
@@ -210,6 +211,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                   _inputField(
                       isPassword: true, 
                       controller: confirmPasswordController,
+                      hintText: "Confirm password",
                       obscureText: _obscureConfirmPassword,
                       onToggleVisibility: () {
                         setState(() { _obscureConfirmPassword = !_obscureConfirmPassword; });
@@ -252,6 +254,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                         Expanded(
                           child: _inputField(
                             controller: phoneController,
+                            hintText: "Enter phone number",
                             keyboardType: TextInputType.phone,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
@@ -266,6 +269,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                     const SizedBox(height: 8),
                     _inputField(
                       keyboardType: TextInputType.number,
+                      hintText: "Enter 6-digit OTP",
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(6),
@@ -307,6 +311,12 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                             if (!context.mounted) return;
                             
                             if (provider.errorMessage != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(provider.errorMessage!),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                               CustomPopup.show(
                                 context,
                                 type: CustomPopupType.error,
@@ -314,6 +324,12 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                                 message: provider.errorMessage!,
                               );
                             } else if (provider.isLoggedIn) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Registered successfully! Welcome to LeoOpus.'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
                               await CustomPopup.show(
                                 context,
                                 type: CustomPopupType.success,
@@ -390,6 +406,12 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                           await provider.signUpWithGoogle();
                           
                           if (provider.errorMessage != null && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(provider.errorMessage!),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                             CustomPopup.show(
                               context,
                               type: CustomPopupType.error,
@@ -397,6 +419,12 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                               message: provider.errorMessage!,
                             );
                           } else if (provider.isLoggedIn && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Registered successfully with Google!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
                             await CustomPopup.show(
                               context,
                               type: CustomPopupType.success,
@@ -561,6 +589,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
   }
 
   Widget _inputField({
+    String? hintText,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
@@ -573,7 +602,13 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
       obscureText: isPassword ? obscureText : false,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
+      style: TextStyle(fontSize: 16.sp),
       decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(
+          fontSize: 16.sp,
+          color: Theme.of(context).hintColor.withValues(alpha: 0.6),
+        ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,

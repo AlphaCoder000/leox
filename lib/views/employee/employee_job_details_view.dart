@@ -44,7 +44,7 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
             Text(
               job.title,
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
@@ -53,7 +53,7 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
             Text(
               job.companyName,
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: 16.sp,
                 color: theme.textTheme.bodyMedium?.color?.withValues(
                   alpha: 0.7,
                 ),
@@ -68,7 +68,7 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
               title: "Job Description",
               child: Text(
                 job.description,
-                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.normal, height: 1.5),
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.normal, height: 1.5),
               ),
             ),
 
@@ -92,7 +92,7 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
                                 Expanded(
                                   child: Text(
                                     r,
-                                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.normal),
+                                    style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.normal),
                                   ),
                                 ),
                               ],
@@ -122,6 +122,42 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
                     Icons.business_outlined,
                     "Company",
                     job.companyName.isNotEmpty ? job.companyName : "Unknown",
+                  ),
+                  _infoRow(
+                    context,
+                    Icons.location_on_outlined,
+                    "Location",
+                    job.location.isNotEmpty ? job.location : "Unknown",
+                  ),
+                  _infoRow(
+                    context,
+                    Icons.payments_outlined,
+                    "Salary Range",
+                    job.salaryRange.isNotEmpty ? job.salaryRange : "Not Specified",
+                  ),
+                  _infoRow(
+                    context,
+                    Icons.apartment_outlined,
+                    "Department",
+                    job.department.isNotEmpty ? job.department : "Not Specified",
+                  ),
+                  _infoRow(
+                    context,
+                    Icons.category_outlined,
+                    "Category",
+                    job.category.isNotEmpty ? job.category : "Not Specified",
+                  ),
+                  _infoRow(
+                    context,
+                    Icons.work_outline,
+                    "Job Type",
+                    job.jobType.isNotEmpty ? job.jobType : "Not Specified",
+                  ),
+                  _infoRow(
+                    context,
+                    Icons.psychology_outlined,
+                    "Experience Level",
+                    job.experienceLevel.isNotEmpty ? job.experienceLevel : "Not Specified",
                   ),
                   _infoRow(
                     context,
@@ -245,7 +281,7 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 1.5.h),
             child,
@@ -265,15 +301,28 @@ class _EmployeeJobDetailsViewState extends State<EmployeeJobDetailsView> {
     return Padding(
       padding: EdgeInsets.only(bottom: 1.5.h),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18.sp, color: Colors.grey),
           SizedBox(width: 3.w),
-          Expanded(child: Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold))),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14.sp, fontWeight: FontWeight.w600,
-              color: valueColor ?? Theme.of(context).colorScheme.onSurface,
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+            ),
+          ),
+          SizedBox(width: 2.w),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
         ],

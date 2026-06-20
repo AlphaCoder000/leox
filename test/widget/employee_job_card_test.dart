@@ -62,9 +62,8 @@ void main() {
       // Check if posted date is displayed
       expect(find.text('Posted on 15/1/2024'), findsOneWidget);
 
-      // Check if View button is present
-      expect(find.text('View'), findsOneWidget);
-      expect(find.byType(OutlinedButton), findsOneWidget);
+      // Check if card has InkWell for interaction
+      expect(find.byType(InkWell), findsOneWidget);
     });
 
     testWidgets('should display status chip correctly', (WidgetTester tester) async {
@@ -136,7 +135,7 @@ void main() {
       expect(find.text('Junior Developer'), findsOneWidget);
     });
 
-    testWidgets('should call onView when View button is pressed', (WidgetTester tester) async {
+    testWidgets('should call onView when card is tapped', (WidgetTester tester) async {
       bool viewPressed = false;
       testOnView() {
         viewPressed = true;
@@ -162,8 +161,8 @@ void main() {
         ),
       );
 
-      // Tap the View button
-      await tester.tap(find.text('View'));
+      // Tap the Card/InkWell
+      await tester.tap(find.byType(InkWell));
       await tester.pump();
 
       // Verify onView was called

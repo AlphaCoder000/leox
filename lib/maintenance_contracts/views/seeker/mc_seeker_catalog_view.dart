@@ -162,7 +162,7 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
               "Clear Search",
               style: TextStyle(
                 color: theme.colorScheme.primary,
-                fontSize: 14.sp,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -293,7 +293,7 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
                           service.title,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 17.sp,
+                            fontSize: 18.sp,
                             color: theme.colorScheme.onSurface,
                             height: 1.25,
                           ),
@@ -309,7 +309,7 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
                                 children: [
                                   Icon(
                                     Icons.business_rounded,
-                                    size: 13.sp,
+                                    size: 16.sp,
                                     color: theme.colorScheme.primary,
                                   ),
                                   SizedBox(width: 1.5.w),
@@ -317,7 +317,7 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
                                     child: Text(
                                       companyName,
                                       style: TextStyle(
-                                        fontSize: 13.sp,
+                                        fontSize: 16.sp,
                                         fontWeight: FontWeight.bold,
                                         color: theme.colorScheme.primary,
                                       ),
@@ -356,14 +356,14 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
                       children: [
                         Icon(
                           Icons.label_outline_rounded,
-                          size: 13.sp,
+                          size: 16.sp,
                           color: theme.colorScheme.primary,
                         ),
                         SizedBox(width: 1.5.w),
                         Text(
                           service.category,
                           style: TextStyle(
-                            fontSize: 12.5.sp,
+                            fontSize: 16.sp,
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
@@ -375,7 +375,7 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
                     service.priceRange.isNotEmpty ? service.priceRange : "₹${service.price}",
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 17.sp,
+                      fontSize: 18.sp,
                       color: theme.colorScheme.primary,
                     ),
                   ),

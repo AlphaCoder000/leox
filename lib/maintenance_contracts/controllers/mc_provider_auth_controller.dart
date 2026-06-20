@@ -41,24 +41,96 @@ class McProviderAuthController extends ChangeNotifier {
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
+        accessToken: googleAuth.accessToken,
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user;
 
       if (user != null) {
+
+        final doc = await _firestore.collection('mc_providers').doc(user.uid).get();
+        if (!doc.exists) {
+          await _auth.signOut();
+          _isLoading = false;
+          notifyListeners();
+          return "No provider profile found. Please register first.";
+        }
+        _currentProvider = McProviderModel.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+
+        // Sync with primary 'users' collection
+        await _firestore.collection('users').doc(user.uid).set({
+          'id': user.uid,
+          'email': user.email ?? '',
+          'role': 'mc_provider',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+
+        // Save session in local cache for role tracking
+        final idToken = await user.getIdToken();
+        await SessionService.saveSession(
+          role: "mc_provider",
+          userId: user.uid,
+          email: user.email ?? "",
+          authToken: idToken ?? "",
+        );
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    } on FirebaseAuthException catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return e.message;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      return e.toString();
+    }
+  }
+
+  Future<String?> signUpWithGoogle() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      try {
+        await _googleSignIn.signOut();
+      } catch (e) {
+        debugPrint("Error signing out from Google Sign-In: $e");
+      }
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        _isLoading = false;
+        notifyListeners();
+        return "Sign-In cancelled by user";
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+        accessToken: googleAuth.accessToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user != null) {
+
         final doc = await _firestore.collection('mc_providers').doc(user.uid).get();
         if (doc.exists) {
           _currentProvider = McProviderModel.fromJson(doc.data() as Map<String, dynamic>, doc.id);
         } else {
           final newProvider = McProviderModel(
             id: user.uid,
-            companyName: user.displayName ?? 'New Company',
-            email: user.email ?? '',
-            phone: user.phoneNumber ?? '',
+            companyName: googleUser.displayName ?? 'New Company',
+            email: googleUser.email,
+            phone: '',
             location: '',
             rating: 0.0,
-            profilePicture: user.photoURL ?? '',
+            profilePicture: googleUser.photoUrl ?? '',
           );
           await _firestore.collection('mc_providers').doc(newProvider.id).set(newProvider.toJson());
           _currentProvider = newProvider;
@@ -97,10 +169,6 @@ class McProviderAuthController extends ChangeNotifier {
     }
   }
 
-  Future<String?> signUpWithGoogle() async {
-    return signInWithGoogle();
-  }
-
   Future<void> fetchProviderProfile(String uid) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('mc_providers').doc(uid).get();
@@ -119,11 +187,11 @@ class McProviderAuthController extends ChangeNotifier {
     try {
       UserCredential userCredential;
       try {
-        userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+        userCredential = await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password);
       } on FirebaseAuthException catch (authEx) {
         if (authEx.code == 'email-already-in-use') {
           debugPrint('[McProviderAuthController] Email already in use. Checking credentials and MC provider profile...');
-          userCredential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+          userCredential = await _auth.signInWithEmailAndPassword(email: email.trim(), password: password);
           
           final doc = await _firestore.collection('mc_providers').doc(userCredential.user!.uid).get();
           if (doc.exists) {
@@ -132,6 +200,7 @@ class McProviderAuthController extends ChangeNotifier {
               message: 'A provider account already exists with this email. Please sign in instead.',
             );
           }
+          
           debugPrint('[McProviderAuthController] Existing user authenticated. Creating provider profile...');
         } else {
           rethrow;

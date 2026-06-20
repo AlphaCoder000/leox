@@ -153,55 +153,60 @@ class EmployerProfileView extends StatelessWidget {
 
 
 
-  Widget _profileCard(BuildContext context, ThemeData theme, EmployerProfileModel profile) => Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Padding(
-      padding: EdgeInsets.symmetric(vertical: 1.h),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () => _pickImage(context),
-            child: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                  backgroundImage: (profile.profilePicture ?? '').isNotEmpty
-                      ? NetworkImage(profile.profilePicture!)
-                      : null,
-                  child: (profile.profilePicture ?? '').isEmpty
-                      ? Text(
-                          profile.companyName.isNotEmpty ? profile.companyName[0] : "?",
-                          style: TextStyle(
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        )
-                      : null,
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: CircleAvatar(
-                    radius: 12,
-                    backgroundColor: theme.colorScheme.primary,
-                    child: const Icon(
-                      Icons.camera_alt,
-                      size: 14,
-                      color: Colors.white,
+  Widget _profileCard(BuildContext context, ThemeData theme, EmployerProfileModel profile) => SizedBox(
+    width: double.infinity,
+    child: Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 2.h),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => _pickImage(context),
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    backgroundImage: (profile.profilePicture ?? '').isNotEmpty
+                        ? NetworkImage(profile.profilePicture!)
+                        : null,
+                    child: (profile.profilePicture ?? '').isEmpty
+                        ? Text(
+                            profile.companyName.isNotEmpty ? profile.companyName[0].toUpperCase() : "?",
+                            style: TextStyle(
+                              fontSize: 32.sp,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: theme.colorScheme.primary,
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 1.5.h),
-          Text(
-            profile.companyName.isNotEmpty ? profile.companyName : "Company Name",
-            style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
-          ),
-        ],
+            SizedBox(height: 1.h),
+            Text(
+              profile.companyName.isNotEmpty ? profile.companyName : "Company Name",
+              style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ),
     ),
   );
@@ -221,10 +226,6 @@ class EmployerProfileView extends StatelessWidget {
     required List<Widget> children,
 
   }) {
-
-    final theme = Theme.of(context);
-
-
 
     return Card(
 
@@ -252,7 +253,7 @@ class EmployerProfileView extends StatelessWidget {
 
                     style: TextStyle(
 
-                      fontSize: 17.sp,
+                      fontSize: 18.sp,
 
                       fontWeight: FontWeight.w600,
 
@@ -275,21 +276,7 @@ class EmployerProfileView extends StatelessWidget {
               ],
 
             ),
-
-            Text(
-
-              subtitle,
-
-              style: TextStyle(
-
-                fontSize: 14.sp,
-
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-
-              ),
-
-            ),
-
+            
             SizedBox(height: 2.h),
 
             ...children,
@@ -318,7 +305,7 @@ class EmployerProfileView extends StatelessWidget {
 
         SizedBox(width: 3.w),
 
-        Expanded(child: Text(text, style: TextStyle(fontSize: 16.sp))),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 17.sp))),
 
       ],
 

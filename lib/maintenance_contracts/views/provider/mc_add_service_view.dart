@@ -268,7 +268,6 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                                     controller: _startPriceCtrl,
                                     labelText: "Start Price *",
                                     hintText: "Min price",
-                                    icon: Icons.payments_rounded,
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                     validator: (value) {
@@ -285,7 +284,6 @@ class _McAddServiceViewState extends State<McAddServiceView> {
                                     controller: _endPriceCtrl,
                                     labelText: "End Price *",
                                     hintText: "Max price",
-                                    icon: Icons.payments_rounded,
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                     validator: (value) {
@@ -414,7 +412,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
     required TextEditingController controller,
     required String labelText,
     required String hintText,
-    required IconData icon,
+    IconData? icon,
     int maxLines = 1,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
@@ -432,7 +430,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
         labelText: labelText,
         hintText: hintText,
         alignLabelWithHint: maxLines > 1,
-        prefixIcon: Icon(icon, color: theme.colorScheme.primary, size: 18.sp),
+        prefixIcon: icon != null ? Icon(icon, color: theme.colorScheme.primary, size: 18.sp) : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
@@ -446,7 +444,7 @@ class _McAddServiceViewState extends State<McAddServiceView> {
           borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         labelStyle: TextStyle(fontSize: 15.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
-        hintStyle: TextStyle(fontSize: 15.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
+        hintStyle: TextStyle(fontSize: 16.sp, color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.4)),
         contentPadding: EdgeInsets.all(4.w),
       ),
     );

@@ -166,82 +166,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Premium Cohesive Welcome Header
-                Consumer<EmployeeProfileProvider>(
-                  builder: (context, profileProvider, _) {
-                    final profile = profileProvider.profile;
-                    final firstName = profile?.firstName ?? '';
-                    final greeting = firstName.isNotEmpty ? "Hello, $firstName! 👋" : "Hello there! 👋";
-                    return Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 2.5.h, horizontal: 4.5.w),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: isDark
-                              ? [theme.cardColor, theme.cardColor.withValues(alpha: 0.8)]
-                              : [colorScheme.primary.withValues(alpha: 0.06), colorScheme.primary.withValues(alpha: 0.02)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: isDark ? 0.01 : 0.03),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  greeting,
-                                  style: TextStyle(
-                                    fontSize: 20.sp,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark ? Colors.white : colorScheme.primary,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                SizedBox(height: 0.6.h),
-                                Text(
-                                  "Track your career opportunities & progress.",
-                                  style: TextStyle(
-                                    fontSize: 13.5.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: secondaryText,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.all(3.w),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.dashboard_customize_rounded,
-                              color: colorScheme.primary,
-                              size: 22.sp,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 2.5.h),
+
 
                 // 🔹 QUICK JOBS SHORTCUT
                 GestureDetector(
@@ -289,7 +214,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                               Text(
                                 "Find New Jobs",
                                 style: TextStyle(
-                                  fontSize: 17.sp,
+                                  fontSize: 18.sp,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -298,7 +223,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                               Text(
                                 "Explore new career opportunities now",
                                 style: TextStyle(
-                                  fontSize: 12.5.sp,
+                                  fontSize: 16.sp,
                                   color: Colors.white.withValues(alpha: 0.85),
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -326,7 +251,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                     Text(
                       "Career Activity Insights",
                       style: TextStyle(
-                        fontSize: 15.sp,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: textOnSurface,
                       ),
@@ -406,7 +331,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                   Text(
                                     "Profile Completion",
                                     style: TextStyle(
-                                      fontSize: 15.sp,
+                                      fontSize: 18.sp,
                                       fontWeight: FontWeight.bold,
                                       color: textOnSurface,
                                     ),
@@ -423,7 +348,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                 child: Text(
                                   "${dashboard.profileCompletionPercentage.toStringAsFixed(0)}%",
                                   style: TextStyle(
-                                    fontSize: 14.sp,
+                                    fontSize: 17.sp,
                                     fontWeight: FontWeight.w900,
                                     color: dashboard.profileCompletionPercentage >= 80 ? Colors.green : colorScheme.primary,
                                   ),
@@ -455,7 +380,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                                       ? "Excellent! Your profile is highly visible to employers."
                                       : "Complete your profile details to stand out to recruiters.",
                                   style: TextStyle(
-                                    fontSize: 12.sp,
+                                    fontSize: 16.sp,
                                     color: secondaryText,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -483,7 +408,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                     Text(
                       "Recent Applications Feed",
                       style: TextStyle(
-                        fontSize: 15.sp,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: textOnSurface,
                       ),
@@ -511,14 +436,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
                         SizedBox(height: 1.5.h),
                         Text(
                           "No active applications yet",
-                          style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: textOnSurface),
+                          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: textOnSurface),
                         ),
                         SizedBox(height: 0.8.h),
                         Text(
                           "Explore available jobs and start applying!",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 12.5.sp,
+                            fontSize: 16.sp,
                             color: secondaryText,
                             fontWeight: FontWeight.w500,
                           ),
@@ -783,10 +708,23 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
               ),
               const SizedBox(height: 20),
               ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  child: Icon(Icons.person, color: theme.colorScheme.primary),
-                ),
+                leading: (profile?.profilePicture ?? '').isNotEmpty
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(profile.profilePicture),
+                        backgroundColor: theme.colorScheme.primary,
+                      )
+                    : CircleAvatar(
+                        backgroundColor: theme.colorScheme.primary,
+                        child: Text(
+                          (profile?.firstName.isNotEmpty ?? false)
+                              ? profile.firstName[0].toUpperCase()
+                              : (displayName.isNotEmpty ? displayName[0].toUpperCase() : "P"),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                 title: Text(
                   displayName,
                   style: const TextStyle(fontWeight: FontWeight.bold),

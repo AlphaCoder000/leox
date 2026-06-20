@@ -21,22 +21,28 @@ class McSeekerDashboardController extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   StreamSubscription<QuerySnapshot>? _myRequestsSubscription;
+  StreamSubscription<QuerySnapshot>? _servicesSubscription;
 
   Future<void> fetchAllServices() async {
     _isLoading = true;
     notifyListeners();
-    try {
-      QuerySnapshot snapshot = await _firestore.collection('mc_services').get();
-      
+    _servicesSubscription?.cancel();
+
+    _servicesSubscription = _firestore
+        .collection('mc_services')
+        .snapshots()
+        .listen((snapshot) {
       _allServices = snapshot.docs
-          .map((doc) => McServiceModel.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+          .map((doc) => McServiceModel.fromJson(doc.data(), doc.id))
           .toList();
-    } catch (e) {
-      debugPrint("Error fetching all services: $e");
-    } finally {
       _isLoading = false;
       notifyListeners();
-    }
+      debugPrint("[McSeekerDashboardController] Real-time all services updated: ${_allServices.length}");
+    }, onError: (e) {
+      debugPrint("Error in seeker all services stream: $e");
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   Future<void> fetchMyRequests(String seekerId) async {
@@ -125,6 +131,7 @@ class McSeekerDashboardController extends ChangeNotifier {
   @override
   void dispose() {
     _myRequestsSubscription?.cancel();
+    _servicesSubscription?.cancel();
     super.dispose();
   }
 }

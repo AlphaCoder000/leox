@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import 'mc_provider_register_view.dart';
 import 'package:leox/widgets/custom_popup.dart';
+import 'package:leox/services/session_service.dart';
 
 class McProviderLoginView extends StatefulWidget {
   const McProviderLoginView({super.key});
@@ -28,6 +29,7 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
   void _login() async {
     if (_formKey.currentState!.validate()) {
       final authController = context.read<McProviderAuthController>();
+      await SessionService.saveTargetRole('mc_provider');
       final error = await authController.loginWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
@@ -36,6 +38,12 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
       if (!mounted) return;
 
       if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logged in successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
         await CustomPopup.show(
           context,
           type: CustomPopupType.success,
@@ -47,6 +55,12 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+          ),
+        );
         CustomPopup.show(
           context,
           type: CustomPopupType.error,
@@ -59,11 +73,18 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
 
   void _loginWithGoogle() async {
     final authController = context.read<McProviderAuthController>();
+    await SessionService.saveTargetRole('mc_provider');
     final error = await authController.signInWithGoogle();
 
     if (!mounted) return;
 
     if (error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logged in successfully with Google!'),
+          backgroundColor: Colors.green,
+        ),
+      );
       await CustomPopup.show(
         context,
         type: CustomPopupType.success,
@@ -75,6 +96,12 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } else if (error != "Sign-In cancelled by user") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
       CustomPopup.show(
         context,
         type: CustomPopupType.error,
@@ -152,11 +179,17 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                       SizedBox(height: 4.h),
                       TextFormField(
                         controller: _emailController,
-                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
                         decoration: InputDecoration(
+                          hintText: "Enter email address",
+                          hintStyle: TextStyle(
+                            fontSize: 16.sp,
+                            color: theme.hintColor.withValues(alpha: 0.6),
+                          ),
                           labelText: "Email",
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey[400] : Colors.grey[700],
+                            fontSize: 16.sp,
                           ),
                           prefixIcon: const Icon(
                             Icons.email_outlined,
@@ -188,11 +221,17 @@ class _McProviderLoginViewState extends State<McProviderLoginView> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
                         decoration: InputDecoration(
+                          hintText: "Enter password",
+                          hintStyle: TextStyle(
+                            fontSize: 16.sp,
+                            color: theme.hintColor.withValues(alpha: 0.6),
+                          ),
                           labelText: "Password",
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey[400] : Colors.grey[700],
+                            fontSize: 16.sp,
                           ),
                           prefixIcon: const Icon(
                             Icons.lock_outline,

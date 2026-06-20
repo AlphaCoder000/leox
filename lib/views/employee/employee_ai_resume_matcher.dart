@@ -210,7 +210,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
               Text(
                 "Let AI review your resume against any role",
                 style: TextStyle(
-                  fontSize: 13.sp, 
+                  fontSize: 16.sp, 
                   fontWeight: FontWeight.w600, 
                   color: isDark ? Colors.white54 : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -263,7 +263,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
               SizedBox(width: 3.w),
               Text(
                 "Analysis Parameters", 
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: primaryTextColor),
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: primaryTextColor),
               ),
             ],
           ),
@@ -280,7 +280,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
               hintText: "Enter details, skills, and tools of your target job...",
               hintStyle: TextStyle(
                 color: isDark ? Colors.white24 : theme.colorScheme.onSurface.withValues(alpha: 0.35), 
-                fontSize: 12.sp,
+                fontSize: 16.sp,
               ),
               filled: true,
               fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
@@ -791,7 +791,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
                         role['title']!,
                         style: TextStyle(
                           color: isSelected ? Colors.white : (isDark ? Colors.white70 : theme.colorScheme.onSurface.withValues(alpha: 0.8)),
-                          fontSize: 13.sp,
+                          fontSize: 16.sp,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         ),
                       ),
@@ -814,9 +814,9 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     return Text(
       text.toUpperCase(), 
       style: TextStyle(
-        fontSize: 11.sp, 
+        fontSize: 17.sp, 
         fontWeight: FontWeight.bold, 
-        color: isDark ? Colors.white24 : theme.colorScheme.onSurface.withValues(alpha: 0.45), 
+        color: isDark ? const Color.fromARGB(59, 11, 11, 11) : theme.colorScheme.onSurface.withValues(alpha: 0.85), 
         letterSpacing: 1.2,
       ),
     );
@@ -827,9 +827,9 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
     final isDark = theme.brightness == Brightness.dark;
     
     return TextStyle(
-      fontSize: 12.sp, 
+      fontSize: 16.sp, 
       fontWeight: FontWeight.bold, 
-      color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withValues(alpha: 0.5), 
+      color: isDark ? Colors.white38 : theme.colorScheme.onSurface.withValues(alpha: 0.6), 
       letterSpacing: 1,
     );
   }

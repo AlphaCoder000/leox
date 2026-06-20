@@ -278,7 +278,20 @@ class _MainAppContent extends StatelessWidget {
   Future<String?> _getUserRole(String uid) async {
     debugPrint('[Main] Starting role verification for UID: $uid');
 
-    // 1. FAST PATH: Check Local Session Cache first
+    // 1. TARGET PATH: Check if a target login role was cached pre-login
+    try {
+      final targetRole = await SessionService.getTargetRole();
+      if (targetRole != null && targetRole.isNotEmpty) {
+        debugPrint('[Main] Target Role Found: "$targetRole". Routing immediately.');
+        await SessionService.clearTargetRole();
+        await SessionService.saveRoleOnly(targetRole);
+        return targetRole;
+      }
+    } catch (e) {
+      debugPrint('[Main] Target role check failed: $e');
+    }
+
+    // 2. FAST PATH: Check Local Session Cache first
     try {
       final cachedRole = await SessionService.getRole();
       if (cachedRole != null && cachedRole.isNotEmpty) {

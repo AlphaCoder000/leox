@@ -56,7 +56,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
   Color get _borderCol => _isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0);
   Color get _textPrimary => _isDark ? Colors.white : const Color(0xFF0F172A);
   Color get _textSecondary => _isDark ? Colors.white.withValues(alpha: 0.6) : const Color(0xFF475569);
-  Color get _textLabel => _isDark ? Colors.white24 : const Color(0xFF94A3B8);
+  Color get _textLabel => _isDark ? const Color.fromARGB(58, 106, 103, 103) : const Color.fromARGB(255, 19, 19, 19);
   List<Color> get _gradientColors => _isDark 
       ? [const Color(0xFF030712), const Color(0xFF0B1222)] 
       : [const Color(0xFFF8FAFC), const Color(0xFFEEF2F6)];
@@ -149,7 +149,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                         Text(
                           "AI-powered intelligence for your hiring pipeline",
                           style: TextStyle(
-                            fontSize: 15.sp,
+                            fontSize: 16.sp,
                             color: _textSecondary,
                           ),
                         ),
@@ -256,7 +256,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
               SizedBox(width: 3.w),
               Text(
                 "Match Parameters",
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: _textPrimary),
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: _textPrimary),
               ),
             ],
           ),
@@ -268,11 +268,11 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
           TextField(
             controller: _jobDescController,
             maxLines: 6,
-            style: TextStyle(color: _textPrimary, fontSize: 13.sp),
+            style: TextStyle(color: _textPrimary, fontSize: 16.sp),
             onChanged: provider.updateJobDescription,
             decoration: InputDecoration(
               hintText: "State the duties, required qualifications, and tools...",
-              hintStyle: TextStyle(color: _textSecondary.withValues(alpha: 0.4)),
+              hintStyle: TextStyle(color: _textSecondary.withValues(alpha: 0.6)),
               filled: true,
               fillColor: _innerBg,
               border: OutlineInputBorder(
@@ -508,7 +508,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
         padding: EdgeInsets.all(4.w),
         width: double.infinity,
         decoration: BoxDecoration(
-          color: _cardBg.withValues(alpha: 0.5),
+          color: _cardBg.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: _borderCol),
         ),
@@ -518,12 +518,12 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
             SizedBox(height: 2.h),
             Text(
               "Analytics Pending",
-              style: TextStyle(color: _textPrimary.withValues(alpha: 0.3), fontWeight: FontWeight.bold, fontSize: 18.sp),
+              style: TextStyle(color: _textPrimary.withValues(alpha: 0.6), fontWeight: FontWeight.bold, fontSize: 18.sp),
             ),
             SizedBox(height: 1.h),
             Text(
               "Results will appear here after analysis",
-              style: TextStyle(color: _textSecondary.withValues(alpha: 0.4), fontSize: 15.sp),
+              style: TextStyle(color: _textSecondary.withValues(alpha: 0.6), fontSize: 16.sp),
             ),
           ],
         ),
@@ -777,7 +777,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
                         role['title']!,
                         style: TextStyle(
                           color: isSelected ? Colors.white : _textSecondary,
-                          fontSize: 13.sp,
+                          fontSize: 16.sp,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         ),
                       ),
@@ -796,7 +796,7 @@ class _EmployerAiResumeMatcherViewBodyState extends State<_EmployerAiResumeMatch
     return Text(
       text.toUpperCase(),
       style: TextStyle(
-        fontSize: 14.sp,
+        fontSize: 16.sp,
         fontWeight: FontWeight.bold,
         color: _textLabel,
         letterSpacing: 1.5,

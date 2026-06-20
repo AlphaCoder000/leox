@@ -6,6 +6,7 @@ import 'package:leox/views/general/role_option_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/widgets/custom_popup.dart';
+import 'package:leox/services/session_service.dart';
 
 class EmployeeLoginView extends StatefulWidget {
   const EmployeeLoginView({super.key});
@@ -176,12 +177,14 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                       const SizedBox(height: 8),
                       _inputField(
                           controller: emailController,
+                          hintText: "Enter your email",
                           keyboardType: TextInputType.emailAddress),
                       const SizedBox(height: 20),
                       _label(context, "Password"),
                       const SizedBox(height: 8),
                       _inputField(
                           controller: passwordController,
+                          hintText: "Enter your password",
                           isPassword: true,
                           obscureText: _obscurePassword,
                           onToggleVisibility: () {
@@ -217,6 +220,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                             Expanded(
                               child: _inputField(
                                 controller: phoneController,
+                                hintText: "Enter phone number",
                                 keyboardType: TextInputType.phone,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
@@ -231,6 +235,7 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                         const SizedBox(height: 8),
                         _inputField(
                           controller: otpController,
+                          hintText: "Enter 6-digit OTP",
                           keyboardType: TextInputType.number,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
@@ -258,6 +263,8 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                 ? null
                                 : () async {
                                     final provider = context.read<EmployeeAuthProvider>();
+                                    await SessionService.saveTargetRole('employee');
+                                    if (!context.mounted) return;
 
                                     if (isEmailSelected) {
                                       await provider.loginWithEmail(
@@ -293,8 +300,14 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                         await provider.verifyOtp(otpController.text);
                                       }
                                     }
-
+ 
                                     if (provider.errorMessage != null && context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(provider.errorMessage!),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
                                       CustomPopup.show(
                                         context,
                                         type: CustomPopupType.error,
@@ -302,6 +315,12 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                         message: provider.errorMessage!,
                                       );
                                     } else if (provider.isLoggedIn && context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Logged in successfully!'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
                                       await CustomPopup.show(
                                         context,
                                         type: CustomPopupType.success,
@@ -356,9 +375,16 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                           child: OutlinedButton.icon(
                             onPressed: auth.isLoading ? null : () async {
                               final provider = context.read<EmployeeAuthProvider>();
+                              await SessionService.saveTargetRole('employee');
                               await provider.signInWithGoogle();
                               
                               if (provider.errorMessage != null && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(provider.errorMessage!),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
                                 CustomPopup.show(
                                   context,
                                   type: CustomPopupType.error,
@@ -366,6 +392,12 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                                   message: provider.errorMessage!,
                                 );
                               } else if (provider.isLoggedIn && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Logged in successfully with Google!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
                                 await CustomPopup.show(
                                   context,
                                   type: CustomPopupType.success,
@@ -505,9 +537,9 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
 
   Widget _inputField({
     required TextEditingController controller,
+    String? hintText,
     bool isPassword = false,
-    TextInputType keyboardType =
-        TextInputType.text,
+    TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
     VoidCallback? onChanged,
     bool obscureText = false,
@@ -518,7 +550,13 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
       obscureText: isPassword ? obscureText : false,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
+      style: TextStyle(fontSize: 16.sp),
       decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(
+          fontSize: 16.sp,
+          color: Theme.of(context).hintColor.withValues(alpha: 0.6),
+        ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: true,

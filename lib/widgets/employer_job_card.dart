@@ -9,20 +9,45 @@ import 'package:sizer/sizer.dart';
 class JobCard extends StatelessWidget {
   final JobModel job;
 
+  static const List<Color> _baseColors = [
+    Colors.blue,
+    Colors.teal,
+    Colors.purple,
+    Colors.amber,
+    Colors.pink,
+    Colors.indigo,
+    Colors.cyan,
+    Colors.orange,
+  ];
+
   const JobCard({super.key, required this.job});
+
+  Color _getJobColor(JobModel job) {
+    return _baseColors[job.id.hashCode.abs() % _baseColors.length];
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = _getJobColor(job);
+    
+    // Cohesive theme colors for card borders, background, and chips
+    final backgroundColor = isDark ? cardColor.withValues(alpha: 0.1) : cardColor.withValues(alpha: 0.05);
+    final borderColor = cardColor.withValues(alpha: isDark ? 0.35 : 0.2);
+    final elementColor = cardColor;
+    final textColor = isDark ? cardColor.withValues(alpha: 0.95) : cardColor.withValues(alpha: 0.85);
 
     return InkWell(
-      onTap: () => _openDetails(context),
+      onTap: () => _openDetails(context, cardColor),
       borderRadius: BorderRadius.circular(16),
       child: Card(
-        elevation: 3,
-        shadowColor: Colors.white.withValues(alpha: 0.65),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        color: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: borderColor, width: 1.2),
+        ),
         child: Padding(
           padding: EdgeInsets.all(3.w),
           child: Column(
@@ -39,8 +64,8 @@ class JobCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 19.sp,
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -48,7 +73,7 @@ class JobCard extends StatelessWidget {
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert_rounded,
-                      color: colorScheme.primary.withAlpha(100),
+                      color: elementColor,
                     ),
                     onSelected: (value) {
                       if (value == 'delete') {
@@ -90,17 +115,25 @@ class JobCard extends StatelessWidget {
                 ],
               ),
 
+              SizedBox(height: 0.5.h),
+
               // ================= META CHIPS =================
               Wrap(
                 spacing: 1.5.w,
                 runSpacing: 0.8.h,
                 children: [
-                   _chip(context, Icons.work_outline_rounded, job.jobType),
-                   _chip(context, Icons.verified_outlined, job.status),
+                   _chip(context, Icons.business_rounded, job.companyName.isNotEmpty ? job.companyName : "No Company", elementColor, textColor),
+                   _chip(context, Icons.location_on_rounded, job.location.isNotEmpty ? job.location : "No Location", elementColor, textColor),
+                   _chip(context, Icons.payments_rounded, job.salaryRange.isNotEmpty ? job.salaryRange : "No Salary", elementColor, textColor),
+                   _chip(context, Icons.apartment_rounded, job.department.isNotEmpty ? job.department : "No Department", elementColor, textColor),
+                   _chip(context, Icons.category_rounded, job.category.isNotEmpty ? job.category : "No Category", elementColor, textColor),
+                   _chip(context, Icons.work_outline_rounded, job.jobType.isNotEmpty ? job.jobType : "No Job Type", elementColor, textColor),
+                   _chip(context, Icons.psychology_rounded, job.experienceLevel.isNotEmpty ? job.experienceLevel : "No Experience", elementColor, textColor),
+                   _chip(context, Icons.verified_outlined, job.status, elementColor, textColor),
                 ],
               ),
 
-              SizedBox(height: 1.h),
+              SizedBox(height: 1.5.h),
 
               // ================= DESCRIPTION PREVIEW =================
               Text(
@@ -108,13 +141,13 @@ class JobCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 16.sp,
+                  fontSize: 15.sp,
                   height: 1.4,
-                  color: theme.textTheme.bodyMedium?.color,
+                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.85),
                 ),
               ),
 
-              SizedBox(height:1.h),
+              SizedBox(height: 1.5.h),
 
               // ================= FOOTER =================
               Row(
@@ -124,20 +157,20 @@ class JobCard extends StatelessWidget {
                     "Posted on ${job.postedOn.day}/${job.postedOn.month}/${job.postedOn.year}",
                     style: TextStyle(
                       fontSize: 14.sp,
-                      color: theme.textTheme.bodySmall?.color?.withAlpha(153),
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                     ),
                   ),
 
                   Container(
                     padding: EdgeInsets.all(1.2.w),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withAlpha(26),
+                      color: elementColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.chevron_right_rounded,
                       size: 20.sp,
-                      color: colorScheme.primary,
+                      color: elementColor,
                     ),
                   ),
                 ],
@@ -151,26 +184,24 @@ class JobCard extends StatelessWidget {
 
   // ================= HELPERS =================
 
-  Widget _chip(BuildContext context, IconData icon, String text) {
-    final colorScheme = Theme.of(context).colorScheme;
-
+  Widget _chip(BuildContext context, IconData icon, String text, Color baseColor, Color textColor) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.6.h),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withAlpha(30),
+        color: baseColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16.sp, color: colorScheme.primary),
+          Icon(icon, size: 15.sp, color: textColor),
           SizedBox(width: 1.w),
           Text(
             text,
             style: TextStyle(
-              fontSize: 15.sp,
+              fontSize: 14.sp,
               fontWeight: FontWeight.w500,
-              color: colorScheme.primary,
+              color: textColor,
             ),
           ),
         ],
@@ -178,7 +209,7 @@ class JobCard extends StatelessWidget {
     );
   }
 
-  void _openDetails(BuildContext context) {
+  void _openDetails(BuildContext context, Color themeColor) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -186,7 +217,7 @@ class JobCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => JobDetailsSheet(job: job),
+      builder: (_) => JobDetailsSheet(job: job, themeColor: themeColor),
     );
   }
 }

@@ -175,7 +175,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                               Text(
                                 "Recruitment Summary",
                                 style: TextStyle(
-                                  fontSize: 17.sp,
+                                  fontSize: 18.sp,
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.onSurface,
                                 ),
@@ -548,12 +548,23 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
               ),
               const SizedBox(height: 20),
               ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: theme.colorScheme.primary.withValues(
-                    alpha: 0.1,
-                  ),
-                  child: Icon(Icons.person, color: theme.colorScheme.primary),
-                ),
+                leading: (profile.profilePicture ?? '').isNotEmpty
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(profile.profilePicture!),
+                        backgroundColor: theme.colorScheme.primary,
+                      )
+                    : CircleAvatar(
+                        backgroundColor: theme.colorScheme.primary,
+                        child: Text(
+                          profile.companyName.isNotEmpty
+                              ? profile.companyName[0].toUpperCase()
+                              : (profile.name.isNotEmpty ? profile.name[0].toUpperCase() : "E"),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                 title: Text(
                   profile.name.isNotEmpty ? profile.name : "Employer",
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -647,7 +658,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.onSurface,
                   ),
@@ -656,7 +667,7 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 12.5.sp,
+                    fontSize: 16.sp,
                     color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
                     fontWeight: FontWeight.w500,
                   ),

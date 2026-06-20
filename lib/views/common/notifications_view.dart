@@ -84,20 +84,20 @@ class NotificationsView extends StatelessWidget {
                   size: 40.w,
                   color: Colors.grey.withValues(alpha: 0.3),
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: 1.h),
                 Text(
                   "No notifications yet",
                   style: GoogleFonts.outfit(
-                    fontSize: 18.sp,
+                    fontSize: 20.sp,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey,
                   ),
                 ),
-                SizedBox(height: 1.h),
+                SizedBox(height: 2.h),
                 Text(
                   "We'll notify you when an update occurs.",
                   style: TextStyle(
-                    fontSize: 15.sp,
+                    fontSize: 18.sp,
                     color: Colors.grey,
                   ),
                   textAlign: TextAlign.center,

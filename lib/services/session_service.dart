@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Session Service - Manages authentication state and tokens
-/// Provides single source of truth for auth data across the app
+/// Provides single source of truth for auth data across the app with in-memory caching
 class SessionService {
   // Storage keys
   static const String _authTokenKey = 'auth_token';
@@ -10,15 +10,54 @@ class SessionService {
   static const String _roleKey = 'role';
   static const String _userIdKey = 'user_id';
   static const String _userEmailKey = 'user_email';
+  static const String _targetRoleKey = 'target_role';
+
+  // In-Memory Cache to prevent asynchronous SharedPreferences race conditions during login/logout
+  static String? _cachedRole;
+  static String? _cachedTargetRole;
+  static String? _cachedUserId;
+  static String? _cachedUserEmail;
+  static String? _cachedAuthToken;
+  static String? _cachedRefreshToken;
+
+  /// Save target login role
+  static Future<void> saveTargetRole(String role) async {
+    _cachedTargetRole = role;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_targetRoleKey, role);
+  }
+
+  /// Get target login role
+  static Future<String?> getTargetRole() async {
+    if (_cachedTargetRole != null) return _cachedTargetRole;
+    final prefs = await SharedPreferences.getInstance();
+    _cachedTargetRole = prefs.getString(_targetRoleKey);
+    return _cachedTargetRole;
+  }
+
+  /// Clear target login role
+  static Future<void> clearTargetRole() async {
+    _cachedTargetRole = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_targetRoleKey);
+  }
+
+  /// Save active role only
+  static Future<void> saveRoleOnly(String role) async {
+    _cachedRole = role;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_roleKey, role);
+  }
 
   /// Save authentication token (Firebase/JWT)
-  ///
-  /// [token] - Access token from login/register response
-  /// [refreshToken] - Optional refresh token for token renewal
   static Future<void> saveAuthToken(
     String token, {
     String? refreshToken,
   }) async {
+    _cachedAuthToken = token;
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      _cachedRefreshToken = refreshToken;
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_authTokenKey, token);
     if (refreshToken != null && refreshToken.isNotEmpty) {
@@ -27,36 +66,28 @@ class SessionService {
   }
 
   /// Get stored authentication token
-  ///
-  /// Returns: Access token or null if not set
   static Future<String?> getAuthToken() async {
+    if (_cachedAuthToken != null) return _cachedAuthToken;
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_authTokenKey);
+    _cachedAuthToken = prefs.getString(_authTokenKey);
+    return _cachedAuthToken;
   }
 
   /// Get stored refresh token
-  ///
-  /// Returns: Refresh token or null if not set
   static Future<String?> getRefreshToken() async {
+    if (_cachedRefreshToken != null) return _cachedRefreshToken;
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_refreshTokenKey);
+    _cachedRefreshToken = prefs.getString(_refreshTokenKey);
+    return _cachedRefreshToken;
   }
 
   /// Check if user is authenticated
-  ///
-  /// Returns: true if auth token exists, false otherwise
   static Future<bool> isAuthenticated() async {
     final token = await getAuthToken();
     return token != null && token.isNotEmpty;
   }
 
   /// Save complete session after login/register
-  ///
-  /// [role] - 'employee' or 'employer'
-  /// [userId] - User ID from backend
-  /// [email] - User email
-  /// [authToken] - Access token
-  /// [refreshToken] - Optional refresh token
   static Future<void> saveSession({
     required String role,
     required String userId,
@@ -64,6 +95,14 @@ class SessionService {
     required String authToken,
     String? refreshToken,
   }) async {
+    _cachedRole = role;
+    _cachedUserId = userId;
+    _cachedUserEmail = email;
+    _cachedAuthToken = authToken;
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      _cachedRefreshToken = refreshToken;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isLoggedInKey, true);
     await prefs.setString(_roleKey, role);
@@ -76,53 +115,65 @@ class SessionService {
   }
 
   /// Get stored user role
-  ///
-  /// Returns: 'employee', 'employer', or null if not set
   static Future<String?> getRole() async {
+    if (_cachedRole != null) return _cachedRole;
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_roleKey);
+    _cachedRole = prefs.getString(_roleKey);
+    return _cachedRole;
   }
 
   /// Get stored user ID
-  ///
-  /// Returns: User ID or null if not set
   static Future<String?> getUserId() async {
+    if (_cachedUserId != null) return _cachedUserId;
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_userIdKey);
+    _cachedUserId = prefs.getString(_userIdKey);
+    return _cachedUserId;
   }
 
   /// Get stored user email
-  ///
-  /// Returns: Email or null if not set
   static Future<String?> getUserEmail() async {
+    if (_cachedUserEmail != null) return _cachedUserEmail;
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_userEmailKey);
+    _cachedUserEmail = prefs.getString(_userEmailKey);
+    return _cachedUserEmail;
   }
 
   /// Update auth token (when refreshing)
-  ///
-  /// [newToken] - New access token
   static Future<void> updateAuthToken(String newToken) async {
+    _cachedAuthToken = newToken;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_authTokenKey, newToken);
   }
 
   /// Clear all authentication data (logout)
-  ///
-  /// Removes: auth token, refresh token, user ID, email, role, login status
   static Future<void> clearAuth() async {
+    _cachedRole = null;
+    _cachedTargetRole = null;
+    _cachedUserId = null;
+    _cachedUserEmail = null;
+    _cachedAuthToken = null;
+    _cachedRefreshToken = null;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_authTokenKey);
     await prefs.remove(_refreshTokenKey);
     await prefs.remove(_userIdKey);
     await prefs.remove(_userEmailKey);
     await prefs.remove(_roleKey);
+    await prefs.remove(_targetRoleKey);
     await prefs.setBool(_isLoggedInKey, false);
   }
 
   /// Clear entire session (legacy method, kept for compatibility)
   @Deprecated('Use clearAuth instead')
   static Future<void> clearSession() async {
+    _cachedRole = null;
+    _cachedTargetRole = null;
+    _cachedUserId = null;
+    _cachedUserEmail = null;
+    _cachedAuthToken = null;
+    _cachedRefreshToken = null;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }

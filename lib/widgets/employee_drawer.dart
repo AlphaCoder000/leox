@@ -245,7 +245,7 @@ class EmployeeDrawer extends StatelessWidget {
                   child: Text(
                     "Logout",
                     style: TextStyle(
-                      fontSize: 19.sp,
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
                       color: Colors.redAccent,
                     ),

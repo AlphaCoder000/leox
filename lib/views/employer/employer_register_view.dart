@@ -94,6 +94,12 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
       if (!mounted) return;
       
       if (auth.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(auth.errorMessage!),
+            backgroundColor: Colors.red,
+          ),
+        );
         CustomPopup.show(
           context,
           type: CustomPopupType.error,
@@ -101,6 +107,12 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
           message: auth.errorMessage!,
         );
       } else if (auth.isLoggedIn) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registered successfully! Welcome to LeoOpus.'),
+            backgroundColor: Colors.green,
+          ),
+        );
         await CustomPopup.show(
           context,
           type: CustomPopupType.success,
@@ -113,6 +125,12 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
       }
     } catch (e) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
       CustomPopup.show(
         context,
         type: CustomPopupType.error,
@@ -199,7 +217,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                   ),
                   child: Column(
                     children: [
-                      _buildTextField("Company Name", _companyController),
+                      _buildTextField("Company Name", _companyController, hintText: "Enter company name"),
                       const SizedBox(height: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +261,13 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                                 child: TextField(
                                   controller: _contactNumberController,
                                   keyboardType: TextInputType.phone,
+                                  style: TextStyle(fontSize: 16.sp),
                                   decoration: InputDecoration(
+                                    hintText: "Enter contact number",
+                                    hintStyle: TextStyle(
+                                      fontSize: 16.sp,
+                                      color: Theme.of(context).hintColor.withValues(alpha: 0.6),
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
                                       borderSide: BorderSide(color: theme.dividerColor),
@@ -262,13 +286,14 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField("Company Address", _addressController),
+                      _buildTextField("Company Address", _addressController, hintText: "Enter company address"),
                       const SizedBox(height: 16),
-                      _buildTextField("Email", _emailController),
+                      _buildTextField("Email", _emailController, hintText: "Enter email address"),
                       const SizedBox(height: 16),
-                      _buildTextField("Company LinkedIn (Optional)", _linkedinController),
+                      _buildTextField("Company LinkedIn (Optional)", _linkedinController, hintText: "Enter LinkedIn profile URL (optional)"),
                       const SizedBox(height: 16),
                       _buildTextField("Password", _passwordController, 
+                          hintText: "Enter password",
                           isPassword: true, 
                           obscureText: _obscurePassword, 
                           onToggleVisibility: () {
@@ -278,6 +303,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           }),
                       const SizedBox(height: 16),
                       _buildTextField("Confirm Password", _confirmPasswordController, 
+                          hintText: "Confirm password",
                           isPassword: true, 
                           obscureText: _obscureConfirmPassword, 
                           onToggleVisibility: () {
@@ -334,6 +360,12 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                           await provider.signUpWithGoogle();
                           
                           if (provider.errorMessage != null && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(provider.errorMessage!),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                             CustomPopup.show(
                               context,
                               type: CustomPopupType.error,
@@ -341,6 +373,12 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
                               message: provider.errorMessage!,
                             );
                           } else if (provider.isLoggedIn && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Registered successfully with Google!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
                             await CustomPopup.show(
                               context,
                               type: CustomPopupType.success,
@@ -416,6 +454,7 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
   Widget _buildTextField(
     String label,
     TextEditingController controller, {
+    String? hintText,
     bool isPassword = false,
     bool obscureText = false,
     VoidCallback? onToggleVisibility,
@@ -435,7 +474,13 @@ class _EmployerRegisterViewState extends State<EmployerRegisterView> {
         TextField(
           controller: controller,
           obscureText: isPassword ? obscureText : false,
+          style: TextStyle(fontSize: 16.sp),
           decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(
+              fontSize: 16.sp,
+              color: Theme.of(context).hintColor.withValues(alpha: 0.6),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(color: Theme.of(context).dividerColor),

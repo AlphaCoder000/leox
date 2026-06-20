@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Flutter: pub get",
+      "type": "shell",
+      "command": "flutter pub get",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter: build apk",
+      "type": "shell",
+      "command": "flutter build apk",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter: test",
+      "type": "shell",
+      "command": "flutter test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: assembleDebug",
+      "type": "shell",
+      "command": "./gradlew assembleDebug",
+      "options": {
+        "cwd": "${workspaceFolder}/android"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

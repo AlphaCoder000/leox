@@ -82,14 +82,14 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                           children: [
                             Icon(
                               Icons.label_outline_rounded,
-                              size: 13.sp,
+                              size: 16.sp,
                               color: primaryBlue,
                             ),
                             SizedBox(width: 1.5.w),
                             Text(
                               widget.service.category,
                               style: TextStyle(
-                                fontSize: 12.5.sp,
+                                fontSize: 16.sp,
                                 color: primaryBlue,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -101,7 +101,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                       Text(
                         widget.service.title,
                         style: TextStyle(
-                          fontSize: 22.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                           color: textOnSurface,
                           height: 1.2,
@@ -140,7 +140,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                                       Text(
                                         "Contractor Provider",
                                         style: TextStyle(
-                                          fontSize: 12.sp,
+                                          fontSize: 16.sp,
                                           fontWeight: FontWeight.w600,
                                           color: secondaryText,
                                         ),
@@ -149,7 +149,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                                       Text(
                                         companyName,
                                         style: TextStyle(
-                                          fontSize: 15.sp,
+                                          fontSize: 17.sp,
                                           fontWeight: FontWeight.bold,
                                           color: textOnSurface,
                                         ),
@@ -159,7 +159,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                                         Text(
                                           companyAddress,
                                           style: TextStyle(
-                                            fontSize: 12.sp,
+                                            fontSize: 16.sp,
                                             fontWeight: FontWeight.w500,
                                             color: secondaryText,
                                           ),
@@ -202,13 +202,13 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                           Icon(
                             Icons.payments_outlined,
                             color: primaryBlue,
-                            size: 20.sp,
+                            size: 18.sp,
                           ),
                           SizedBox(width: 2.5.w),
                           Text(
                             "Estimated Budget",
                             style: TextStyle(
-                              fontSize: 15.sp,
+                              fontSize: 17.sp,
                               fontWeight: FontWeight.bold,
                               color: textOnSurface,
                             ),
@@ -218,7 +218,7 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                       Text(
                         widget.service.priceRange.isNotEmpty ? widget.service.priceRange : "₹${widget.service.price}",
                         style: TextStyle(
-                          fontSize: 18.sp,
+                          fontSize: 17.sp,
                           fontWeight: FontWeight.w900,
                           color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
                         ),
@@ -243,8 +243,8 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                 child: Text(
                   widget.service.description,
                   style: TextStyle(
-                    fontSize: 14.5.sp,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.9),
+                    fontSize: 16.sp,
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 1.0),
                     height: 1.5,
                   ),
                 ),
@@ -266,8 +266,8 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                   child: Text(
                     widget.service.priceJustification,
                     style: TextStyle(
-                      fontSize: 14.5.sp,
-                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.9),
+                      fontSize: 16.sp,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 1.0),
                       height: 1.5,
                     ),
                   ),
@@ -287,10 +287,10 @@ class _McServiceDetailsViewState extends State<McServiceDetailsView> {
                 child: TextField(
                   controller: _messageController,
                   maxLines: 3,
-                  style: TextStyle(fontSize: 14.5.sp, color: textOnSurface),
+                  style: TextStyle(fontSize: 16.sp, color: textOnSurface),
                   decoration: InputDecoration(
                     hintText: "Add Specific Requirements, Requests, Timing Preferences, Questions and Queries here...",
-                    hintStyle: TextStyle(fontSize: 13.5.sp, color: secondaryText),
+                    hintStyle: TextStyle(fontSize: 16.sp, color: secondaryText),
                     contentPadding: EdgeInsets.all(4.w),
                     border: InputBorder.none,
                   ),

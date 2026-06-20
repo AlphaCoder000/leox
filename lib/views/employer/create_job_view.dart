@@ -19,6 +19,7 @@ class _CreateJobViewState extends State<CreateJobView> {
   final titleCtrl = TextEditingController();
   final companyCtrl = TextEditingController();
   final locationCtrl = TextEditingController();
+  final deptCtrl = TextEditingController();
   final descCtrl = TextEditingController();
   final reqCtrl = TextEditingController();
   final startSalaryCtrl = TextEditingController();
@@ -39,6 +40,7 @@ class _CreateJobViewState extends State<CreateJobView> {
       titleCtrl.text = j.title;
       companyCtrl.text = j.companyName;
       locationCtrl.text = j.location;
+      deptCtrl.text = j.department;
       descCtrl.text = j.description;
       reqCtrl.text = j.requirements.join('\n');
       
@@ -80,6 +82,7 @@ class _CreateJobViewState extends State<CreateJobView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final jobsProvider = context.read<EmployerJobsProvider>();
     final isEditing = widget.jobToEdit != null;
 
@@ -112,10 +115,18 @@ class _CreateJobViewState extends State<CreateJobView> {
                 validator: "Location is required",
               ),
 
+              _field(
+                label: "Department *",
+                controller: deptCtrl,
+                validator: "Department is required",
+              ),
+
               DropdownButtonFormField<String>(
                 value: category,
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
                 decoration: InputDecoration(
                   labelText: "Job Category *",
+                  labelStyle: TextStyle(fontSize: 16.sp),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -158,7 +169,11 @@ class _CreateJobViewState extends State<CreateJobView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: jobType,
-                      decoration: const InputDecoration(labelText: "Job Type"),
+                      style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
+                      decoration: InputDecoration(
+                        labelText: "Job Type",
+                        labelStyle: TextStyle(fontSize: 16.sp),
+                      ),
                       items: const [
                         DropdownMenuItem(value: "Full-time", child: Text("Full-time")),
                         DropdownMenuItem(value: "Part-time", child: Text("Part-time")),
@@ -172,7 +187,11 @@ class _CreateJobViewState extends State<CreateJobView> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: experience,
-                      decoration: const InputDecoration(labelText: "Experience"),
+                      style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
+                      decoration: InputDecoration(
+                        labelText: "Experience",
+                        labelStyle: TextStyle(fontSize: 16.sp),
+                      ),
                       items: const [
                         DropdownMenuItem(value: "Entry", child: Text("Entry")),
                         DropdownMenuItem(value: "Mid-Level", child: Text("Mid-Level")),
@@ -189,7 +208,11 @@ class _CreateJobViewState extends State<CreateJobView> {
               
               DropdownButtonFormField<String>(
                 value: status,
-                decoration: const InputDecoration(labelText: "Status"),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
+                decoration: InputDecoration(
+                  labelText: "Status",
+                  labelStyle: TextStyle(fontSize: 16.sp),
+                ),
                 items: const [
                   DropdownMenuItem(value: "Open", child: Text("Open")),
                   DropdownMenuItem(value: "Closed", child: Text("Closed")),
@@ -300,7 +323,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                           title: titleCtrl.text.trim(),
                           companyName: companyCtrl.text.trim(),
                           location: locationCtrl.text.trim(),
-                          department: widget.jobToEdit?.department ?? '',
+                          department: deptCtrl.text.trim(),
                           category: category == "Other" ? otherCategoryCtrl.text.trim() : category,
                           jobType: jobType,
                           experienceLevel: experience,
@@ -402,9 +425,15 @@ class _CreateJobViewState extends State<CreateJobView> {
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
+        style: TextStyle(fontSize: 16.sp),
         decoration: InputDecoration(
           labelText: label,
-          hintText: "Enter ${label.toLowerCase()}",
+          labelStyle: TextStyle(fontSize: 16.sp),
+          hintText: "Enter ${label.replaceAll(' *', '').toLowerCase()}",
+          hintStyle: TextStyle(
+            fontSize: 16.sp,
+            color: Theme.of(context).hintColor.withValues(alpha: 0.6),
+          ),
           helperText: helperText,
           alignLabelWithHint: maxLines > 1,
           border: OutlineInputBorder(
@@ -429,6 +458,7 @@ class _CreateJobViewState extends State<CreateJobView> {
     titleCtrl.dispose();
     companyCtrl.dispose();
     locationCtrl.dispose();
+    deptCtrl.dispose();
     descCtrl.dispose();
     reqCtrl.dispose();
     startSalaryCtrl.dispose();

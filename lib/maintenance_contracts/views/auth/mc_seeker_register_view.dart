@@ -50,6 +50,12 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
       if (!mounted) return;
 
       if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registered successfully! Welcome to LeoOpus.'),
+            backgroundColor: Colors.green,
+          ),
+        );
         await CustomPopup.show(
           context,
           type: CustomPopupType.success,
@@ -62,6 +68,12 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+          ),
+        );
         CustomPopup.show(
           context,
           type: CustomPopupType.error,
@@ -79,6 +91,12 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
     if (!mounted) return;
 
     if (error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registered successfully with Google!'),
+          backgroundColor: Colors.green,
+        ),
+      );
       await CustomPopup.show(
         context,
         type: CustomPopupType.success,
@@ -91,6 +109,12 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } else if (error != "Sign-In cancelled by user") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
       CustomPopup.show(
         context,
         type: CustomPopupType.error,
@@ -158,11 +182,12 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                       ),
                       SizedBox(height: 3.h),
 
-                      _buildTextField(
+                       _buildTextField(
                         _nameController,
                         "Full Name",
                         Icons.person,
                         false,
+                        hintText: "Enter your full name",
                       ),
                       SizedBox(height: 2.h),
                       _buildTextField(
@@ -170,6 +195,7 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                         "Email Address",
                         Icons.email_outlined,
                         false,
+                        hintText: "Enter email address",
                       ),
                       SizedBox(height: 2.h),
                       Row(
@@ -232,14 +258,21 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                               keyboardType: TextInputType.phone,
                               style: TextStyle(
                                 color: theme.colorScheme.onSurface,
+                                fontSize: 16.sp,
                               ),
                               decoration: InputDecoration(
+                                hintText: "Enter contact number",
+                                hintStyle: TextStyle(
+                                  fontSize: 16.sp,
+                                  color: theme.hintColor.withValues(alpha: 0.6),
+                                ),
                                 labelText: "Contact Number",
                                 labelStyle: TextStyle(
                                   color:
                                       isDark
                                           ? Colors.grey[400]
                                           : Colors.grey[700],
+                                  fontSize: 16.sp,
                                 ),
                                 prefixIcon: const Icon(
                                   Icons.phone_outlined,
@@ -276,17 +309,24 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                         "Full Address",
                         Icons.home_work_outlined,
                         false,
+                        hintText: "Enter full address",
                       ),
                       SizedBox(height: 2.h),
 
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
                         decoration: InputDecoration(
+                          hintText: "Enter password",
+                          hintStyle: TextStyle(
+                            fontSize: 16.sp,
+                            color: theme.hintColor.withValues(alpha: 0.6),
+                          ),
                           labelText: "Password",
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey[400] : Colors.grey[700],
+                            fontSize: 16.sp,
                           ),
                           prefixIcon: const Icon(
                             Icons.lock_outline,
@@ -330,11 +370,17 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
-                        style: TextStyle(color: theme.colorScheme.onSurface),
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16.sp),
                         decoration: InputDecoration(
+                          hintText: "Confirm password",
+                          hintStyle: TextStyle(
+                            fontSize: 16.sp,
+                            color: theme.hintColor.withValues(alpha: 0.6),
+                          ),
                           labelText: "Confirm Password",
                           labelStyle: TextStyle(
                             color: isDark ? Colors.grey[400] : Colors.grey[700],
+                            fontSize: 16.sp,
                           ),
                           prefixIcon: const Icon(
                             Icons.lock_outline,
@@ -494,19 +540,26 @@ class _McSeekerRegisterViewState extends State<McSeekerRegisterView> {
     TextEditingController controller,
     String label,
     IconData icon,
-    bool obscure,
-  ) {
+    bool obscure, {
+    String? hintText,
+  }) {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16.sp),
       decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(
+          fontSize: 16.sp,
+          color: Theme.of(context).hintColor.withValues(alpha: 0.6),
+        ),
         labelText: label,
         labelStyle: TextStyle(
           color:
               Theme.of(context).brightness == Brightness.dark
                   ? Colors.grey[400]
                   : Colors.grey[700],
+          fontSize: 16.sp,
         ),
         prefixIcon: Icon(icon, color: const Color(0xFF0EA5E9)),
         enabledBorder: OutlineInputBorder(

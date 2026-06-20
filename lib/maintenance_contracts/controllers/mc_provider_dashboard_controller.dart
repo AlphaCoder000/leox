@@ -21,25 +21,29 @@ class McProviderDashboardController extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   StreamSubscription<QuerySnapshot>? _requestsSubscription;
+  StreamSubscription<QuerySnapshot>? _servicesSubscription;
 
   Future<void> fetchMyServices(String providerId) async {
     _isLoading = true;
     notifyListeners();
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('mc_services')
-          .where('providerId', isEqualTo: providerId)
-          .get();
-      
+    _servicesSubscription?.cancel();
+
+    _servicesSubscription = _firestore
+        .collection('mc_services')
+        .where('providerId', isEqualTo: providerId)
+        .snapshots()
+        .listen((snapshot) {
       _services = snapshot.docs
-          .map((doc) => McServiceModel.fromJson(doc.data() as Map<String, dynamic>, doc.id))
+          .map((doc) => McServiceModel.fromJson(doc.data(), doc.id))
           .toList();
-    } catch (e) {
-      debugPrint("Error fetching provider services: $e");
-    } finally {
       _isLoading = false;
       notifyListeners();
-    }
+      debugPrint("[McProviderDashboardController] Real-time services updated: ${_services.length}");
+    }, onError: (e) {
+      debugPrint("Error in services stream: $e");
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
   Future<void> fetchIncomingRequests(String providerId) async {
@@ -88,7 +92,6 @@ class McProviderDashboardController extends ChangeNotifier {
   Future<void> addService(McServiceModel service) async {
     try {
       await _firestore.collection('mc_services').add(service.toJson());
-      await fetchMyServices(service.providerId);
     } catch (e) {
       debugPrint("Error adding service: $e");
     }
@@ -97,7 +100,6 @@ class McProviderDashboardController extends ChangeNotifier {
   Future<void> deleteService(String serviceId, String providerId) async {
     try {
       await _firestore.collection('mc_services').doc(serviceId).delete();
-      await fetchMyServices(providerId);
     } catch (e) {
       debugPrint("Error deleting service: $e");
     }
@@ -106,7 +108,6 @@ class McProviderDashboardController extends ChangeNotifier {
   Future<void> updateService(McServiceModel service) async {
     try {
       await _firestore.collection('mc_services').doc(service.id).update(service.toJson());
-      await fetchMyServices(service.providerId);
     } catch (e) {
       debugPrint("Error updating service: $e");
     }
@@ -123,7 +124,6 @@ class McProviderDashboardController extends ChangeNotifier {
   Future<void> updateServiceStatus(String serviceId, String newStatus, String providerId) async {
     try {
       await _firestore.collection('mc_services').doc(serviceId).update({'status': newStatus});
-      await fetchMyServices(providerId);
     } catch (e) {
       debugPrint("Error updating service status: $e");
     }
@@ -132,6 +132,7 @@ class McProviderDashboardController extends ChangeNotifier {
   @override
   void dispose() {
     _requestsSubscription?.cancel();
+    _servicesSubscription?.cancel();
     super.dispose();
   }
 }
