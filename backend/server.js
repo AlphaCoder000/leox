@@ -6,17 +6,31 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Initialize Firebase Admin
-const serviceAccount = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-};
+// Initialize Firebase Admin safely
+let firebaseAdminInitialized = false;
+try {
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  if (privateKey && !privateKey.includes('YOUR_PRIVATE_KEY_HERE') && privateKey.trim().length > 50) {
+    const serviceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      privateKey: privateKey.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    };
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
-});
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
+    });
+    firebaseAdminInitialized = true;
+    console.log('✅ Firebase Admin SDK initialized successfully');
+  } else {
+    console.warn('⚠️ Warning: Firebase credentials are not configured or are placeholder in backend/.env');
+    console.warn('⚠️ Firebase Admin dependent APIs will run in simulation/mock mode.');
+  }
+} catch (e) {
+  console.error('❌ Failed to initialize Firebase Admin SDK:', e.message);
+  console.warn('⚠️ Backend server will run, but Firebase database access is in mock simulation mode.');
+}
 
 const app = express();
 const upload = multer({
@@ -32,11 +46,19 @@ const upload = multer({
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:8080', 'http://127.0.0.1:3000'], // Flutter dev server
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://localhost:8081',
+    'http://localhost:8082',
+    'http://localhost:8083',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use('/uploads', express.static('uploads'));
+app.use('/api/subscription', require('./routes/subscription'));
 
 // Routes
 app.post('/api/parse-resume', upload.single('resume'), async (req, res) => {

@@ -95,6 +95,12 @@ class MockEmployerJobsProvider extends _i1.Mock
   );
 
   @override
+  void dispose() => super.noSuchMethod(
+    Invocation.method(#dispose, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
@@ -103,12 +109,6 @@ class MockEmployerJobsProvider extends _i1.Mock
   @override
   void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void dispose() => super.noSuchMethod(
-    Invocation.method(#dispose, []),
     returnValueForMissingStub: null,
   );
 

@@ -79,9 +79,9 @@ class MockEmployeeAuthProvider extends _i1.Mock
           as _i3.Future<void>);
 
   @override
-  _i3.Future<void> verifyOtp(String? otp) =>
+  _i3.Future<void> verifyOtp(String? otp, {String? name}) =>
       (super.noSuchMethod(
-            Invocation.method(#verifyOtp, [otp]),
+            Invocation.method(#verifyOtp, [otp], {#name: name}),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -117,6 +117,15 @@ class MockEmployeeAuthProvider extends _i1.Mock
               #password: password,
               #name: name,
             }),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> sendPasswordResetEmail(String? email) =>
+      (super.noSuchMethod(
+            Invocation.method(#sendPasswordResetEmail, [email]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -249,16 +258,22 @@ class MockEmployeeProfileProvider extends _i1.Mock
           as _i3.Future<bool>);
 
   @override
-  void addSkill(String? skill) => super.noSuchMethod(
-    Invocation.method(#addSkill, [skill]),
-    returnValueForMissingStub: null,
-  );
+  _i3.Future<void> addSkill(String? skill) =>
+      (super.noSuchMethod(
+            Invocation.method(#addSkill, [skill]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
 
   @override
-  void removeSkill(String? skill) => super.noSuchMethod(
-    Invocation.method(#removeSkill, [skill]),
-    returnValueForMissingStub: null,
-  );
+  _i3.Future<void> removeSkill(String? skill) =>
+      (super.noSuchMethod(
+            Invocation.method(#removeSkill, [skill]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
 
   @override
   _i3.Future<bool> deleteAccount() =>

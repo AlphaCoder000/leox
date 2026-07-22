@@ -10,6 +10,33 @@ import 'package:leox/providers/employee_providers/employee_auth_provider.dart';
 import 'package:leox/providers/employee_providers/employee_profile_provider.dart';
 import 'package:leox/providers/employee_providers/employee_jobs_provider.dart';
 import 'package:leox/models/job_model.dart';
+import 'package:leox/providers/subscription_provider.dart';
+import 'package:leox/models/subscription_model.dart';
+import 'package:leox/models/subscription_plan_model.dart';
+
+// Minimal fake that grants full trial access — prevents ProviderNotFoundError
+// when navigation reaches a SubscriptionGate-wrapped view.
+class _FakeSubProvider extends ChangeNotifier implements SubscriptionProvider {
+  @override
+  SubscriptionModel? get currentSubscription => SubscriptionModel(
+    userId: 'test_uid_employee',
+    planId: 'employee_free_trial',
+    role: 'employee',
+    status: 'trial',
+    trialUsed: false,
+    trialEndDate: DateTime.now().add(const Duration(days: 20)),
+    endDate: DateTime.now().add(const Duration(days: 20)),
+    isComplimentary: false,
+  );
+  @override bool get isActive => true;
+  @override List<SubscriptionPlanModel> get plans => [];
+  @override bool get isLoading => false;
+  @override String? get errorMessage => null;
+  @override bool hasFeature(String f) => true; // full trial access
+  @override void listenToSubscription(String uid, String role) {}
+  @override Future<Map<String, dynamic>?> createCheckoutOrder({required String planId, required String billingCycle, String? couponCode, String? gstNumber}) async => null;
+  @override Future<bool> verifyPaymentSignature({required String razorpayOrderId, required String razorpayPaymentId, required String razorpaySignature, required String planId, required String billingCycle, String? couponCode, String? gstNumber}) async => false;
+}
 
 @GenerateMocks([EmployeeAuthProvider, EmployeeProfileProvider])
 void main() {
@@ -30,6 +57,7 @@ void main() {
               ChangeNotifierProvider<EmployeeAuthProvider>.value(value: mockAuth),
               ChangeNotifierProvider<EmployeeProfileProvider>.value(value: mockProfile),
               ChangeNotifierProvider<EmployeeJobsProvider>(create: (_) => FakeEmployeeJobsProvider()),
+              ChangeNotifierProvider<SubscriptionProvider>(create: (_) => _FakeSubProvider()),
             ],
             child: MaterialApp(
               home: Scaffold(

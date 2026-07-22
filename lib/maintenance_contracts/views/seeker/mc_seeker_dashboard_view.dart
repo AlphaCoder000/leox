@@ -7,6 +7,10 @@ import 'mc_seeker_catalog_view.dart';
 import 'mc_seeker_profile_view.dart';
 import 'mc_seeker_bookings_view.dart';
 import '../../../../providers/theme_povider.dart';
+import '../../../../providers/subscription_provider.dart';
+import '../../../../widgets/premium_paywall.dart';
+
+import '../../../../widgets/subscription_status_badge.dart';
 
 class McSeekerDashboardView extends StatefulWidget {
   const McSeekerDashboardView({super.key});
@@ -25,8 +29,21 @@ class _McSeekerDashboardViewState extends State<McSeekerDashboardView> {
     _pages = [
       const McSeekerCatalogView(),
       const McSeekerBookingsView(),
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: PremiumPaywall(
+          featureKey: 'book_services',
+          onAuthorized: () {},
+          isFullScreen: false,
+        ),
+      ),
     ];
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        context.read<SubscriptionProvider>().listenToSubscription(uid, 'seeker');
+      }
+
       final authCtrl = context.read<McSeekerAuthController>();
       String? seekerId = authCtrl.currentSeeker?.id;
 
@@ -52,6 +69,8 @@ class _McSeekerDashboardViewState extends State<McSeekerDashboardView> {
       appBar: AppBar(
         title: const Text("Seeker Hub", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         actions: [
+          const SubscriptionStatusBadge(),
+          const SizedBox(width: 8),
           Consumer<ThemeProvider>(
             builder: (context, themeProvider, _) => IconButton(
               icon: Icon(
@@ -95,9 +114,11 @@ class _McSeekerDashboardViewState extends State<McSeekerDashboardView> {
         selectedItemColor: const Color(0xFF0EA5E9),
         unselectedItemColor: Colors.grey,
         backgroundColor: Theme.of(context).cardColor,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.handyman), label: "Catalog"),
           BottomNavigationBarItem(icon: Icon(Icons.event_note), label: "My Bookings"),
+          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: "Subscription"),
         ],
       ),
     );

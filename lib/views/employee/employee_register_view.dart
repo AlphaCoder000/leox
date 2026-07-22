@@ -7,6 +7,7 @@ import 'package:leox/utils/email_validator_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/widgets/custom_popup.dart';
+import 'package:leox/services/session_service.dart';
 
 class EmployeeRegisterView extends StatefulWidget {
   const EmployeeRegisterView({super.key});
@@ -268,6 +269,7 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                     _label(context, "Verification Code"),
                     const SizedBox(height: 8),
                     _inputField(
+                      controller: otpController,
                       keyboardType: TextInputType.number,
                       hintText: "Enter 6-digit OTP",
                       inputFormatters: [
@@ -298,35 +300,62 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                     builder: (context, auth, child) {
                       return ElevatedButton(
                         onPressed: auth.isLoading ? null : () async {
+                          final provider = context.read<EmployeeAuthProvider>();
                           if (!isEmailSelected && !isOtpSent) {
-                            setState(() => isOtpSent = true);
-                            
+                            // Phone OTP request
+                            if (nameController.text.trim().isEmpty) {
+                              _showError('Please enter your full name');
+                              return;
+                            }
+                            if (phoneController.text.trim().isEmpty) {
+                              _showError('Please enter your phone number');
+                              return;
+                            }
+                            final phone = "$selectedCountryCode${phoneController.text.trim()}";
+                            await SessionService.saveTargetRole('employee');
+                            await provider.sendOtp(phone);
+                            if (provider.errorMessage == null) {
+                              setState(() => isOtpSent = true);
+                              if (context.mounted) {
+                                CustomPopup.show(
+                                  context,
+                                  type: CustomPopupType.info,
+                                  title: 'OTP Sent',
+                                  message: 'Verification code has been sent to your phone number.',
+                                );
+                              }
+                            } else {
+                              if (context.mounted) {
+                                CustomPopup.show(
+                                  context,
+                                  type: CustomPopupType.error,
+                                  title: 'Failed to send OTP',
+                                  message: provider.errorMessage!,
+                                );
+                              }
+                            }
                           } else if (!isEmailSelected && isOtpSent) {
-                            
-                          } else {
-                            final provider = context.read<EmployeeAuthProvider>();
-                            // Firebase email registration
-                            await _registerWithEmail();
-                            
+                            // Phone OTP verification
+                            if (otpController.text.trim().isEmpty) {
+                              _showError('Please enter the verification code');
+                              return;
+                            }
+                            await provider.verifyOtp(
+                              otpController.text.trim(),
+                              name: nameController.text.trim(),
+                            );
                             if (!context.mounted) return;
-                            
                             if (provider.errorMessage != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(provider.errorMessage!),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
                               CustomPopup.show(
                                 context,
                                 type: CustomPopupType.error,
-                                title: 'Registration Failed',
+                                title: 'Verification Failed',
                                 message: provider.errorMessage!,
                               );
                             } else if (provider.isLoggedIn) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Registered successfully! Welcome to LeoOpus.'),
+                                  content: Text('Registered successfully! Welcome to LEO OPUS.'),
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -334,12 +363,34 @@ class _EmployeeRegisterViewState extends State<EmployeeRegisterView> {
                                 context,
                                 type: CustomPopupType.success,
                                 title: 'Registration Successful!',
-                                message: 'Welcome to LeoOpus! Your employee account has been created successfully.',
+                                message: 'Welcome to LEO OPUS! Your employee account has been created successfully.',
                                 buttonLabel: 'Go to Dashboard',
                               );
                               if (context.mounted) {
                                 Navigator.of(context).popUntil((route) => route.isFirst);
                               }
+                            }
+                          } else {
+                            // Firebase email registration
+                            await _registerWithEmail();
+                            if (!context.mounted) return;
+                            
+                            if (provider.errorMessage != null) {
+                              CustomPopup.show(
+                                context,
+                                type: CustomPopupType.error,
+                                title: 'Registration Failed',
+                                message: provider.errorMessage!,
+                              );
+                            } else if (provider.isLoggedIn) {
+                              // User is registered, verification email has been sent.
+                              // They will be redirected to the EmailVerificationView automatically by main.dart
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Registration successful! Verification email sent.'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
                             }
                           }
                         },

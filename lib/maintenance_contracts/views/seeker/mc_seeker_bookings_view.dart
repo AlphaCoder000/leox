@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../widgets/subscription_gate.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
 import '../../models/mc_request_model.dart';
 
@@ -20,10 +21,13 @@ class McSeekerBookingsView extends StatelessWidget {
     final requests = List<McRequestModel>.from(dashboardController.myRequests)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-    return Scaffold(
-      body: requests.isEmpty
-          ? _buildEmptyState(context)
-          : _buildBookingsList(requests, context),
+    return SubscriptionGate(
+      featureKey: 'view_bookings',
+      child: Scaffold(
+        body: requests.isEmpty
+            ? _buildEmptyState(context)
+            : _buildBookingsList(requests, context),
+      ),
     );
   }
 

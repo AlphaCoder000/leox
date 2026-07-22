@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import '../../../widgets/subscription_gate.dart';
 import '../../controllers/mc_provider_dashboard_controller.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import '../../models/mc_service_model.dart';
@@ -15,20 +16,23 @@ class McServiceManagementView extends StatelessWidget {
     final dashboardController = context.watch<McProviderDashboardController>();
     final providerId = context.read<McProviderAuthController>().currentProvider?.id ?? '';
 
-    return Scaffold(
-      body: dashboardController.services.isEmpty
-          ? _buildEmptyState(context)
-          : _buildServicesList(context, dashboardController.services, providerId),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => McAddServiceView(providerId: providerId)),
-        ),
-        backgroundColor: const Color(0xFF0EA5E9),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(
-          "Add Service",
-          style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+    return SubscriptionGate(
+      featureKey: 'add_services',
+      child: Scaffold(
+        body: dashboardController.services.isEmpty
+            ? _buildEmptyState(context)
+            : _buildServicesList(context, dashboardController.services, providerId),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => McAddServiceView(providerId: providerId)),
+          ),
+          backgroundColor: const Color(0xFF0EA5E9),
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: Text(
+            "Add Service",
+            style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );

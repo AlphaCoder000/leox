@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +21,10 @@ class EmployerDashboardProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  // Stream Subscriptions for real-time sync
+  StreamSubscription? _jobsSubscription;
+  StreamSubscription? _appsSubscription;
+
   // ======== PRIVATE METHODS ========
   void _setLoading(bool value) {
     _isLoading = value;
@@ -33,65 +38,76 @@ class EmployerDashboardProvider extends ChangeNotifier {
 
   // ======== DATA LOADING METHODS ========
 
-  /// Load dashboard data from Firestore
-  Future<void> loadDashboard() async {
+  /// Setup real-time listeners for dashboard statistics
+  void initializeDashboardListeners() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      _setError('User not authenticated');
+      return;
+    }
+
+    // Cancel existing subscriptions if any
+    _jobsSubscription?.cancel();
+    _appsSubscription?.cancel();
+
     _setLoading(true);
     _setError(null);
 
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        _setError('User not authenticated');
-        return;
-      }
-
-      // Load jobs count
-      final jobsSnapshot = await FirebaseFirestore.instance
-          .collection('jobs')
-          .where('employerId', isEqualTo: user.uid)
-          .get();
-      
-      // Load applications count from employer's subcollection (Web App style)
-      final applicationsSnapshot = await FirebaseFirestore.instance
-          .collection('employers')
-          .doc(user.uid)
-          .collection('applications')
-          .get();
-
-      // Calculate statistics
+    // 1. Listen to jobs count in real-time
+    _jobsSubscription = FirebaseFirestore.instance
+        .collection('jobs')
+        .where('employerId', isEqualTo: user.uid)
+        .snapshots()
+        .listen((jobsSnapshot) {
       totalJobs = jobsSnapshot.docs.length;
-      totalCandidates = applicationsSnapshot.docs.length;
+      notifyListeners();
+    }, onError: (e) {
+      debugPrint('[EmployerDashboardProvider] Jobs stream error: $e');
+      _setError('Failed to sync jobs count');
+    });
+
+    // 2. Listen to applications count and statuses in real-time
+    _appsSubscription = FirebaseFirestore.instance
+        .collection('employers')
+        .doc(user.uid)
+        .collection('applications')
+        .snapshots()
+        .listen((appsSnapshot) {
+      totalCandidates = appsSnapshot.docs.length;
       
       // Count by status from the subcollection
-      shortlisted = applicationsSnapshot.docs
+      shortlisted = appsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'shortlisted')
           .length;
       
-      hired = applicationsSnapshot.docs
+      hired = appsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'hired')
           .length;
       
-      reviewed = applicationsSnapshot.docs
+      reviewed = appsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'reviewed')
           .length;
       
-      rejected = applicationsSnapshot.docs
+      rejected = appsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'rejected')
           .length;
       
-      pending = applicationsSnapshot.docs
+      pending = appsSnapshot.docs
           .where((doc) => doc.data()['status'] == 'pending')
           .length;
 
-      debugPrint('[EmployerDashboardProvider] Dashboard loaded from subcollections: '
-            'jobs=$totalJobs, candidates=$totalCandidates');
-
-    } catch (e) {
-      debugPrint('[EmployerDashboardProvider] Error loading dashboard: $e');
-      _setError('Failed to load dashboard data');
-    } finally {
+      notifyListeners();
       _setLoading(false);
-    }
+    }, onError: (e) {
+      debugPrint('[EmployerDashboardProvider] Applications stream error: $e');
+      _setError('Failed to sync applications stats');
+      _setLoading(false);
+    });
+  }
+
+  /// Load dashboard data (migrated to real-time initialization)
+  Future<void> loadDashboard() async {
+    initializeDashboardListeners();
   }
 
   // ======== HELPERS ========
@@ -103,6 +119,13 @@ class EmployerDashboardProvider extends ChangeNotifier {
 
   /// Refresh dashboard data
   Future<void> refresh() async {
-    await loadDashboard();
+    initializeDashboardListeners();
+  }
+
+  @override
+  void dispose() {
+    _jobsSubscription?.cancel();
+    _appsSubscription?.cancel();
+    super.dispose();
   }
 }

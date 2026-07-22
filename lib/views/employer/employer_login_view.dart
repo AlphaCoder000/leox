@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
 import 'package:leox/views/employer/employer_register_view.dart';
 import 'package:leox/views/general/role_option_view.dart';
-import 'package:leox/utils/error_handler_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/widgets/custom_popup.dart';
@@ -191,6 +190,20 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                           onToggleVisibility: () {
                             setState(() { _obscurePassword = !_obscurePassword; });
                           }),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => _showForgotPasswordDialog(context),
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
                     ] else ...[
                       if (!isOtpSent) ...[
                         _label(context, "Phone Number"),
@@ -263,20 +276,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                             LengthLimitingTextInputFormatter(6),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Center(
-                          child: TextButton(
-                            onPressed: () async {
-                            
-                              ErrorHandlerUI.showErrorSnackbar(
-                                context,
-                                'OTP login not implemented for employers',
-                              );
-                            },
-                            child: const Text("Verify & Sign In"),
-                          ),
-                        ),
-                      ],
+                       ],
                     ],
                     const SizedBox(height: 32),
                     Consumer<EmployerAuthProvider>(
@@ -297,32 +297,55 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                           passwordController.text,
                                         );
                                       } else {
-                                        // Phone Login Logic
-                                        CustomPopup.show(
-                                          context,
-                                          type: CustomPopupType.warning,
-                                          title: 'Not Implemented',
-                                          message: 'OTP login not implemented for employers.',
-                                        );
+                                        if (!isOtpSent) {
+                                          if (phoneController.text.trim().isEmpty) {
+                                            CustomPopup.show(
+                                              context,
+                                              type: CustomPopupType.warning,
+                                              title: 'Phone Required',
+                                              message: 'Please enter your phone number.',
+                                            );
+                                            return;
+                                          }
+                                          final phone = "$selectedCountryCode${phoneController.text.trim()}";
+                                          await SessionService.saveTargetRole('employer');
+                                          await provider.sendOtp(phone);
+                                          if (provider.errorMessage == null) {
+                                            setState(() => isOtpSent = true);
+                                            if (context.mounted) {
+                                              CustomPopup.show(
+                                                context,
+                                                type: CustomPopupType.info,
+                                                title: 'OTP Sent',
+                                                message: 'Verification code has been sent to your phone number.',
+                                              );
+                                            }
+                                          }
+                                        } else {
+                                          if (otpController.text.trim().isEmpty) {
+                                            CustomPopup.show(
+                                              context,
+                                              type: CustomPopupType.warning,
+                                              title: 'OTP Required',
+                                              message: 'Please enter the verification code.',
+                                            );
+                                            return;
+                                          }
+                                          await provider.verifyOtp(otpController.text.trim());
+                                        }
                                       }
  
                                       if (provider.errorMessage != null && context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(provider.errorMessage!),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
                                         CustomPopup.show(
                                           context,
                                           type: CustomPopupType.error,
-                                          title: 'Login Failed',
+                                          title: 'Authentication Alert',
                                           message: provider.errorMessage!,
                                         );
                                       } else if (provider.isLoggedIn && context.mounted) {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(
-                                            content: Text('Logged in successfully!'),
+                                            content: Text('Logged in successfully! Welcome to LEO OPUS.'),
                                             backgroundColor: Colors.green,
                                           ),
                                         );
@@ -330,7 +353,7 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
                                           context,
                                           type: CustomPopupType.success,
                                           title: 'Welcome Back!',
-                                          message: 'You have logged in successfully.',
+                                          message: 'Welcome to LEO OPUS! You have logged in successfully.',
                                           buttonLabel: 'Go to Dashboard',
                                         );
                                         if (context.mounted) {
@@ -518,6 +541,97 @@ class _EmployerLoginViewState extends State<EmployerLoginView> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final emailResetController = TextEditingController(text: emailController.text);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+        title: Text(
+          "Reset Password",
+          style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Enter your registered email and we will send you a link to reset your password.",
+              style: TextStyle(fontSize: 11.sp, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailResetController,
+              keyboardType: TextInputType.emailAddress,
+              style: TextStyle(color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
+                hintText: "Enter your email address",
+                hintStyle: TextStyle(color: theme.hintColor),
+                prefixIcon: const Icon(Icons.email_outlined),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: theme.dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel", style: TextStyle(color: theme.colorScheme.primary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailResetController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Please enter your email")),
+                );
+                return;
+              }
+              Navigator.pop(context); // Close dialog first
+
+              try {
+                final provider = context.read<EmployerAuthProvider>();
+                await provider.sendPasswordResetEmail(email);
+                if (context.mounted) {
+                  CustomPopup.show(
+                    context,
+                    type: CustomPopupType.success,
+                    title: "Reset Link Sent",
+                    message: "A password reset link has been sent to $email. Please check your inbox and spam folder.",
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  CustomPopup.show(
+                    context,
+                    type: CustomPopupType.error,
+                    title: "Error Sending Link",
+                    message: e.toString().replaceAll("Exception: ", ""),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text("Send Link", style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

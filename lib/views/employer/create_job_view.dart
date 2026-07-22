@@ -3,6 +3,7 @@ import 'package:leox/models/job_model.dart';
 import 'package:leox/providers/employer_jobs_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import '../../widgets/subscription_gate.dart';
 
 class CreateJobView extends StatefulWidget {
   final JobModel? jobToEdit;
@@ -88,8 +89,10 @@ class _CreateJobViewState extends State<CreateJobView> {
 
     return Scaffold(
       appBar: AppBar(title: Text(isEditing ? "Edit Job" : "Create New Job")),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
+      body: SubscriptionGate(
+        featureKey: 'post_jobs',
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(4.w),
         child: Form(
           key: _formKey,
           child: Column(
@@ -394,6 +397,7 @@ class _CreateJobViewState extends State<CreateJobView> {
           ),
         ),
       ),
+     ),
     );
   }
 

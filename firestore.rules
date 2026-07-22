@@ -131,7 +131,37 @@ service cloud.firestore {
       allow delete: if request.auth.uid == resource.data.seekerId; // Users can only delete their own reviews
     }
 
-    // --- STORAGE RULES (If applicable here, though this is firestore.rules) ---
-    // Note: Storage rules are separate.
+    // --- SUBSCRIPTION & PROMOTION SYSTEM RULES ---
+    
+    // Helper to check if user has custom admin claim
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    match /subscription_plans/{planId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /subscriptions/{userId} {
+      allow read: if isAuthenticated() && (userId.split('_')[0] == request.auth.uid || isAdmin());
+      // Allow initial trial creation client-side, but lock down all updates to admin-only
+      allow create: if isAuthenticated() && userId.split('_')[0] == request.auth.uid && request.resource.data.status == 'trial';
+      allow update, delete: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin(); // Strict backend write-only
+    }
+
+    match /coupons/{couponId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
   }
 }

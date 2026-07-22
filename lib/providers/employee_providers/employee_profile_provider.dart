@@ -305,24 +305,50 @@ class EmployeeProfileProvider extends ChangeNotifier {
     }
   }
 
-  void addSkill(String skill) {
-  if (_profile == null) return;
-
-  if (!_profile!.skills.contains(skill)) {
-    _profile!.skills.add(skill);
-    _profileCompletion = _calculateProfileCompletion(_profile!);
-    _generateCompletionSuggestions();
-    notifyListeners();
-  }
-}
-
-  void removeSkill(String skill) {
+  Future<void> addSkill(String skill) async {
     if (_profile == null) return;
 
-    _profile!.skills.remove(skill);
-    _profileCompletion = _calculateProfileCompletion(_profile!);
-    _generateCompletionSuggestions();
-    notifyListeners();
+    if (!_profile!.skills.contains(skill)) {
+      _profile!.skills.add(skill);
+      _profileCompletion = _calculateProfileCompletion(_profile!);
+      _generateCompletionSuggestions();
+      notifyListeners();
+
+      try {
+        final user = _auth.currentUser;
+        if (user != null) {
+          await _firestore.collection('employees').doc(user.uid).update({
+            'skills': _profile!.skills,
+          });
+          debugPrint('[EmployeeProfileProvider] Permanently added skill: $skill to Firestore');
+        }
+      } catch (e) {
+        debugPrint('[EmployeeProfileProvider] Error adding skill to Firestore: $e');
+      }
+    }
+  }
+
+  Future<void> removeSkill(String skill) async {
+    if (_profile == null) return;
+
+    if (_profile!.skills.contains(skill)) {
+      _profile!.skills.remove(skill);
+      _profileCompletion = _calculateProfileCompletion(_profile!);
+      _generateCompletionSuggestions();
+      notifyListeners();
+
+      try {
+        final user = _auth.currentUser;
+        if (user != null) {
+          await _firestore.collection('employees').doc(user.uid).update({
+            'skills': _profile!.skills,
+          });
+          debugPrint('[EmployeeProfileProvider] Permanently removed skill: $skill from Firestore');
+        }
+      } catch (e) {
+        debugPrint('[EmployeeProfileProvider] Error removing skill from Firestore: $e');
+      }
+    }
   }
 
   /// Delete Employee Account entirely

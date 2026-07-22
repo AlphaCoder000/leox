@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../widgets/subscription_gate.dart';
 import '../../controllers/mc_seeker_dashboard_controller.dart';
 import 'mc_service_details_view.dart';
 import 'package:leox/utils/app_theme.dart';
@@ -41,10 +42,12 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
       return title.contains(query) || category.contains(query) || description.contains(query);
     }).toList();
 
-    return Scaffold(
-      body: services.isEmpty
-          ? _buildEmptyState(context)
-          : Column(
+    return SubscriptionGate(
+      featureKey: 'book_services',
+      child: Scaffold(
+        body: services.isEmpty
+            ? _buildEmptyState(context)
+            : Column(
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
@@ -105,6 +108,7 @@ class _McSeekerCatalogViewState extends State<McSeekerCatalogView> {
                 ),
               ],
             ),
+      ),
     );
   }
 

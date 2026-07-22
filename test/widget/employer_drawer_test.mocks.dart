@@ -99,6 +99,46 @@ class MockEmployerAuthProvider extends _i1.Mock
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> sendOtp(String? phone) =>
+      (super.noSuchMethod(
+            Invocation.method(#sendOtp, [phone]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> verifyOtp(
+    String? otp, {
+    String? companyName,
+    String? address,
+    String? linkedin,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #verifyOtp,
+              [otp],
+              {
+                #companyName: companyName,
+                #address: address,
+                #linkedin: linkedin,
+              },
+            ),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> sendPasswordResetEmail(String? email) =>
+      (super.noSuchMethod(
+            Invocation.method(#sendPasswordResetEmail, [email]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   _i3.Future<void> logout() =>
       (super.noSuchMethod(
             Invocation.method(#logout, []),

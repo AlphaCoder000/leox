@@ -8,6 +8,10 @@ import 'mc_provider_profile_view.dart';
 import 'mc_service_management_view.dart';
 import 'mc_request_management_view.dart';
 import '../../../providers/theme_povider.dart';
+import '../../../providers/subscription_provider.dart';
+import '../../../widgets/premium_paywall.dart';
+
+import '../../../widgets/subscription_status_badge.dart';
 
 class McProviderDashboardView extends StatefulWidget {
   const McProviderDashboardView({super.key});
@@ -22,6 +26,11 @@ class _McProviderDashboardViewState extends State<McProviderDashboardView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        context.read<SubscriptionProvider>().listenToSubscription(uid, 'provider');
+      }
+
       final authCtrl = context.read<McProviderAuthController>();
       String? providerId = authCtrl.currentProvider?.id;
       
@@ -48,6 +57,8 @@ class _McProviderDashboardViewState extends State<McProviderDashboardView> {
       appBar: AppBar(
         title: const Text("Provider Portal", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         actions: [
+          const SubscriptionStatusBadge(),
+          const SizedBox(width: 8),
           Consumer<ThemeProvider>(
             builder: (context, themeProvider, _) => IconButton(
               icon: Icon(
@@ -96,6 +107,14 @@ class _McProviderDashboardViewState extends State<McProviderDashboardView> {
           ),
           const McServiceManagementView(),
           const McRequestManagementView(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: PremiumPaywall(
+              featureKey: 'add_services',
+              onAuthorized: () {},
+              isFullScreen: false,
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -104,10 +123,12 @@ class _McProviderDashboardViewState extends State<McProviderDashboardView> {
         selectedItemColor: const Color(0xFF0EA5E9),
         unselectedItemColor: Colors.grey,
         backgroundColor: Theme.of(context).cardColor,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Overview"),
           BottomNavigationBarItem(icon: Icon(Icons.build), label: "Services"),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Requests"),
+          BottomNavigationBarItem(icon: Icon(Icons.credit_card), label: "Subscription"),
         ],
       ),
     );

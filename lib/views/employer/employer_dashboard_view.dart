@@ -9,6 +9,10 @@ import 'package:leox/views/employer/candidates_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/providers/theme_povider.dart';
+import 'package:leox/providers/subscription_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:leox/widgets/subscription_status_badge.dart';
 
 import '../../providers/employer_dashboard_provider.dart';
 import '../../widgets/employer_drawer.dart';
@@ -30,6 +34,10 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
     // Load dashboard data and profile when view initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          context.read<SubscriptionProvider>().listenToSubscription(uid, 'employer');
+        }
         context.read<EmployerDashboardProvider>().loadDashboard();
         context.read<EmployerProfileProvider>().loadProfile();
       }
@@ -51,6 +59,8 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
         actions: [
+          const SubscriptionStatusBadge(),
+          SizedBox(width: 2.w),
           Consumer<ThemeProvider>(
             builder:
                 (context, themeProvider, _) => IconButton(
@@ -266,40 +276,43 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                   ),
                   SizedBox(height: 1.5.h),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _quickActionButton(
-                          context,
-                          title: "Post Job",
-                          subtitle: "Create new listing",
-                          icon: Icons.add_circle_outline_rounded,
-                          color: theme.colorScheme.primary,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const CreateJobView()),
-                            );
-                          },
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: _quickActionButton(
+                            context,
+                            title: "Post Job",
+                            subtitle: "Create new listing",
+                            icon: Icons.add_circle_outline_rounded,
+                            color: theme.colorScheme.primary,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const CreateJobView()),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 3.5.w),
-                      Expanded(
-                        child: _quickActionButton(
-                          context,
-                          title: "View Job Posting",
-                          subtitle: "Manage active jobs",
-                          icon: Icons.pageview_outlined,
-                          color: const Color(0xFF10B981),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const EmployerJobsListView()),
-                            );
-                          },
+                        SizedBox(width: 3.5.w),
+                        Expanded(
+                          child: _quickActionButton(
+                            context,
+                            title: "View Job Posting",
+                            subtitle: "Manage active jobs",
+                            icon: Icons.pageview_outlined,
+                            color: const Color(0xFF10B981),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const EmployerJobsListView()),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
                   SizedBox(height: 2.5.h),
@@ -657,6 +670,8 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 SizedBox(height: 1.5.h),
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
@@ -666,8 +681,10 @@ class _EmployerDashboardViewState extends State<EmployerDashboardView> {
                 SizedBox(height: 0.5.h),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: 15.sp,
                     color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.65),
                     fontWeight: FontWeight.w500,
                   ),

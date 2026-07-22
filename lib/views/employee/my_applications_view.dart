@@ -39,20 +39,24 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final applicationProvider = context.watch<JobApplicationProvider>();
 
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF030712) : theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('My Applications'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: Colors.white,
+        title: const Text('My Applications', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          indicatorColor: colorScheme.primary,
+          labelColor: colorScheme.primary,
+          unselectedLabelColor: isDark ? Colors.grey.shade600 : Colors.grey,
           tabs: [
             Tab(
               text: 'All (${applicationProvider.getApplicationCountByStatus('all')})',
@@ -142,240 +146,262 @@ class _MyApplicationsViewState extends State<MyApplicationsView> with TickerProv
   }
 
   Widget _buildApplicationCard(JobApplicationModel application) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final detailsBg = isDark ? const Color(0xFF1E293B) : Colors.grey[100];
+    final letterBg = isDark ? const Color(0xFF0F172A) : Colors.grey[50];
+    final letterBorder = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[200];
     
     return Card(
       margin: EdgeInsets.only(bottom: 2.h),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(3.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with job title and status
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => JobApplicationDetailsView(
+                application: CandidateModel.fromJobApplication(application),
+                isEmployer: false,
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: EdgeInsets.all(3.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with job title and status
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          application.jobTitle,
+                          style: TextStyle(
+                            fontSize: 18.sp, fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        SizedBox(height: 0.3.h),
+                        Text(
+                          application.companyName,
+                          style: TextStyle(
+                            fontSize: 14.sp, fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.grey.shade400 : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Status Badge
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+                    decoration: BoxDecoration(
+                      color: application.statusColor(),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      application.statusDisplay,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.sp, fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: 1.5.h),
+              
+              // Job Details
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(2.w),
+                decoration: BoxDecoration(
+                  color: detailsBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (application.jobDepartment.isNotEmpty) ...[
                       Text(
-                        application.jobTitle,
+                        'Department: ${application.jobDepartment}',
+                        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                    if (application.jobType.isNotEmpty) ...[
+                      SizedBox(height: 0.3.h),
+                      Text(
+                        'Type: ${application.jobType}',
+                        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                    if (application.jobLocation.isNotEmpty) ...[
+                      SizedBox(height: 0.3.h),
+                      Text(
+                        'Location: ${application.jobLocation}',
+                        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                    if (application.salary.isNotEmpty) ...[
+                      SizedBox(height: 0.3.h),
+                      Text(
+                        'Salary: ${application.salary}',
                         style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold,
+                          fontSize: 12.sp, fontWeight: FontWeight.w600,
                           color: colorScheme.primary,
                         ),
                       ),
-                      SizedBox(height: 0.3.h),
-                      Text(
-                        application.companyName,
-                        style: TextStyle(
-                          fontSize: 14.sp, fontWeight: FontWeight.bold,
-                          color: Colors.grey[600],
-                        ),
-                      ),
                     ],
-                  ),
-                ),
-                
-                // Status Badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
-                  decoration: BoxDecoration(
-                    color: application.statusColor(),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    application.statusDisplay,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.sp, fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            
-            SizedBox(height: 1.5.h),
-            
-            // Job Details
-            Container(
-              padding: EdgeInsets.all(2.w),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (application.jobDepartment.isNotEmpty) ...[
-                    Text(
-                      'Department: ${application.jobDepartment}',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-                    ),
                   ],
-                  if (application.jobType.isNotEmpty) ...[
-                    SizedBox(height: 0.3.h),
-                    Text(
-                      'Type: ${application.jobType}',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                  if (application.jobLocation.isNotEmpty) ...[
-                    SizedBox(height: 0.3.h),
-                    Text(
-                      'Location: ${application.jobLocation}',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                  if (application.salary.isNotEmpty) ...[
-                    SizedBox(height: 0.3.h),
-                    Text(
-                      'Salary: ${application.salary}',
-                      style: TextStyle(
-                        fontSize: 12.sp, fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            
-            // Applied Date
-            SizedBox(height: 1.h),
-            Row(
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 3.w, color: Colors.grey[600]),
-                SizedBox(width: 1.w),
-                Text(
-                  'Applied on ${application.appliedAt.day}/${application.appliedAt.month}/${application.appliedAt.year}',
-                  style: TextStyle(
-                    fontSize: 12.sp, fontWeight: FontWeight.bold,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            
-            // Cover Letter Preview
-            if (application.coverLetter.isNotEmpty) ...[
-              SizedBox(height: 1.h),
-              Text(
-                'Cover Letter:',
-                style: TextStyle(
-                  fontSize: 13.sp, fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 0.5.h),
-              Container(
-                padding: EdgeInsets.all(2.w),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Text(
-                  application.coverLetter.length > 150
-                      ? '${application.coverLetter.substring(0, 150)}...'
-                      : application.coverLetter,
-                  style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold,),
-                ),
-              ),
-            ],
-            
-            // Resume Info
-            if (application.resumeUrl != null && application.resumeUrl!.isNotEmpty) ...[
+              
+              // Applied Date
               SizedBox(height: 1.h),
               Row(
                 children: [
-                  Icon(Icons.description_outlined, size: 3.w, color: colorScheme.primary),
+                  Icon(Icons.calendar_today_outlined, size: 3.w, color: isDark ? Colors.grey.shade400 : Colors.grey[600]),
                   SizedBox(width: 1.w),
-                  Expanded(
-                    child: Text(
-                      'Resume: ${application.resumeName ?? 'No resume'}',
-                      style: TextStyle(
-                        fontSize: 12.sp, fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
+                  Text(
+                    'Applied on ${application.appliedAt.day}/${application.appliedAt.month}/${application.appliedAt.year}',
+                    style: TextStyle(
+                      fontSize: 12.sp, fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.grey.shade400 : Colors.grey[600],
                     ),
                   ),
                 ],
               ),
-            ],
-            
-            SizedBox(height: 1.5.h),
-            
-             // Action Buttons
-            Row(
-              children: [
-                // Details Button
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => JobApplicationDetailsView(
-                            application: CandidateModel.fromJobApplication(application),
-                            isEmployer: false,
-                          ),
+              
+              // Cover Letter Preview
+              if (application.coverLetter.isNotEmpty) ...[
+                SizedBox(height: 1.h),
+                Text(
+                  'Cover Letter:',
+                  style: TextStyle(
+                    fontSize: 13.sp, fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 0.5.h),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(2.w),
+                  decoration: BoxDecoration(
+                    color: letterBg,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: letterBorder!),
+                  ),
+                  child: Text(
+                    application.coverLetter.length > 150
+                        ? '${application.coverLetter.substring(0, 150)}...'
+                        : application.coverLetter,
+                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold,),
+                  ),
+                ),
+              ],
+              
+              // Resume Info
+              if (application.resumeUrl != null && application.resumeUrl!.isNotEmpty) ...[
+                SizedBox(height: 1.h),
+                Row(
+                  children: [
+                    Icon(Icons.description_outlined, size: 3.w, color: colorScheme.primary),
+                    SizedBox(width: 1.w),
+                    Expanded(
+                      child: Text(
+                        'Resume: ${application.resumeName ?? 'No resume'}',
+                        style: TextStyle(
+                          fontSize: 12.sp, fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.info_outline, size: 16),
-                    label: Text(
-                      'Details',
-                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: colorScheme.primary),
-                      foregroundColor: colorScheme.primary,
-                      padding: EdgeInsets.symmetric(vertical: 1.h),
-                    ),
-                  ),
+                  ],
                 ),
-                SizedBox(width: 2.w),
-
-                // View Resume Button
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _viewResume(application),
-                    icon: const Icon(Icons.description, size: 16),
-                    label: Text(
-                      'Resume',
-                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.blueGrey),
-                      foregroundColor: Colors.blueGrey,
-                      padding: EdgeInsets.symmetric(vertical: 1.h),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 2.w),
-                
-                // Delete Application Button (only for pending applications)
-                if (application.status == 'pending')
+              ],
+              
+              SizedBox(height: 1.5.h),
+              
+               // Action Buttons
+              Row(
+                children: [
+                  // Details Button
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => _deleteApplication(application),
-                      icon: const Icon(Icons.delete_outline, size: 16),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => JobApplicationDetailsView(
+                              application: CandidateModel.fromJobApplication(application),
+                              isEmployer: false,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.info_outline, size: 16),
                       label: Text(
-                        'Withdraw',
+                        'Details',
                         style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red),
-                        foregroundColor: Colors.red,
+                        side: BorderSide(color: colorScheme.primary),
+                        foregroundColor: colorScheme.primary,
                         padding: EdgeInsets.symmetric(vertical: 1.h),
                       ),
                     ),
                   ),
-              ],
-            ),
-          ],
+                  SizedBox(width: 2.w),
+  
+                  // View Resume Button
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _viewResume(application),
+                      icon: const Icon(Icons.description, size: 16),
+                      label: Text(
+                        'Resume',
+                        style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.blueGrey),
+                        foregroundColor: Colors.blueGrey,
+                        padding: EdgeInsets.symmetric(vertical: 1.h),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 2.w),
+                  
+                  // Delete Application Button (only for pending applications)
+                  if (application.status == 'pending')
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _deleteApplication(application),
+                        icon: const Icon(Icons.delete_outline, size: 16),
+                        label: Text(
+                          'Withdraw',
+                          style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.red),
+                          foregroundColor: Colors.red,
+                          padding: EdgeInsets.symmetric(vertical: 1.h),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

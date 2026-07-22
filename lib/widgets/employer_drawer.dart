@@ -10,6 +10,7 @@ import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/employer/employer_jobs_list_view.dart';
 import 'package:leox/views/employer/employer_profile_view.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
+import 'premium_paywall.dart';
 
 class EmployerDrawer extends StatelessWidget {
   final EmployerDrawerItem selectedItem;
@@ -119,11 +120,7 @@ class EmployerDrawer extends StatelessWidget {
                   activeIcon: Icons.smart_toy_rounded,
                   title: "Resume Matcher",
                   isSelected: selectedItem == EmployerDrawerItem.aiMatcher,
-                  onTap:
-                      () => _navigate(
-                        context,
-                        const EmployerAiResumeMatcherView(),
-                      ),
+                  onTap: () => _navigate(context, const EmployerAiResumeMatcherView()),
                 ),
 
                 _drawerItem(
@@ -144,6 +141,27 @@ class EmployerDrawer extends StatelessWidget {
                   title: "My Profile",
                   isSelected: selectedItem == EmployerDrawerItem.profile,
                   onTap: () => _navigate(context, const EmployerProfileView()),
+                ),
+
+                _drawerItem(
+                  context,
+                  icon: Icons.credit_card_outlined,
+                  activeIcon: Icons.credit_card,
+                  title: "Subscription",
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PremiumPaywall(
+                          featureKey: 'post_jobs',
+                          onAuthorized: () {},
+                          isFullScreen: true,
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
                 Divider(height: 4.h, color: _drawerDivider),

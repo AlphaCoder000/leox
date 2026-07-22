@@ -288,7 +288,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
   }
 
   // 🔹 VERIFY OTP
-  Future<void> verifyOtp(String otp) async {
+  Future<void> verifyOtp(String otp, {String? name}) async {
     _setLoading(true);
     _setError(null);
 
@@ -305,6 +305,12 @@ Future<void> _checkRoleWithRetry(String uid) async {
       // Save session with Firebase user data
       final user = userCredential.user;
       if (user != null) {
+        // Auto-create profile if registering for the first time
+        final profileDoc = await _firestore.collection('employees').doc(user.uid).get();
+        if (!profileDoc.exists) {
+          await _createEmployeeProfile(user, name: name);
+        }
+
         final idToken = await user.getIdToken();
         await SessionService.saveSession(
           role: "employee",
@@ -514,6 +520,10 @@ Future<void> _checkRoleWithRetry(String uid) async {
       // Create employee profile in Firestore
       await _createEmployeeProfile(credential.user!, name: name);
 
+      // Send verification email
+      await credential.user?.sendEmailVerification();
+      debugPrint('[EmployeeAuthProvider] Sent verification email to ${credential.user?.email}');
+
       // Save session with Firebase user data
       final idToken = await credential.user?.getIdToken();
       await SessionService.saveSession(
@@ -611,7 +621,7 @@ Future<void> _checkRoleWithRetry(String uid) async {
       );
 
       // Show success message
-      _showSuccessMessage('Registration successful! Welcome to Leox');
+      _showSuccessMessage('Registration successful! Welcome to LEO OPUS');
     } catch (e) {
       debugPrint('[EmployeeAuthProvider] Error creating employee profile: $e');
       // Don't fail registration if profile creation fails
@@ -635,6 +645,24 @@ Future<void> _checkRoleWithRetry(String uid) async {
   void _showSuccessMessage(String message) {
     _setSuccessMessage(message);
     debugPrint('[EmployeeAuthProvider] Success: $message');
+  }
+
+  /// Send password reset link to user email
+  Future<void> sendPasswordResetEmail(String email) async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+      debugPrint('[EmployeeAuthProvider] Password reset email sent to $email');
+    } on FirebaseAuthException catch (e) {
+      _setError(e.message ?? 'Failed to send password reset email');
+      rethrow;
+    } catch (e) {
+      _setError('Failed to send password reset email: $e');
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // ======== LOGOUT ========

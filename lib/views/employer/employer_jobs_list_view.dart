@@ -4,6 +4,7 @@ import 'package:leox/providers/employer_jobs_provider.dart';
 import 'package:leox/views/employer/create_job_view.dart';
 import 'package:leox/widgets/employer_drawer.dart';
 import 'package:leox/widgets/employer_job_card.dart';
+import 'package:leox/widgets/subscription_gate.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
@@ -53,14 +54,16 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
         label: const Text("Create Job"),
       ),
 
-      body: Column(
-        children: [
+      body: SubscriptionGate(
+        featureKey: 'post_jobs',
+        child: Column(
+          children: [
           Padding(
             padding: EdgeInsets.all(3.w),
             child: TextField(
               decoration: InputDecoration(
                 hintText: "Search jobs by title or category...",
-                hintStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: const Color.fromARGB(255, 40, 38, 38)),
+                hintStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500, color: Theme.of(context).hintColor),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: query.isNotEmpty
                     ? IconButton(
@@ -139,6 +142,7 @@ class _EmployerJobsListViewState extends State<EmployerJobsListView> {
           ),
         ],
       ),
+     ),
     );
   }
 }

@@ -7,8 +7,34 @@ import 'package:sizer/sizer.dart';
 import 'package:leox/widgets/employer_drawer.dart';
 import 'package:leox/constants/employer_drawer_item.dart';
 import 'package:leox/providers/employer_auth_provider.dart';
-
+import 'package:leox/providers/subscription_provider.dart';
+import 'package:leox/models/subscription_model.dart';
+import 'package:leox/models/subscription_plan_model.dart';
 import 'employer_drawer_test.mocks.dart';
+
+// Grants full trial access — prevents ProviderNotFoundError when navigation
+// reaches a SubscriptionGate-wrapped view.
+class _FakeSubProvider extends ChangeNotifier implements SubscriptionProvider {
+  @override
+  SubscriptionModel? get currentSubscription => SubscriptionModel(
+    userId: 'test_uid_employer',
+    planId: 'employer_free_trial',
+    role: 'employer',
+    status: 'trial',
+    trialUsed: false,
+    trialEndDate: DateTime.now().add(const Duration(days: 20)),
+    endDate: DateTime.now().add(const Duration(days: 20)),
+    isComplimentary: false,
+  );
+  @override bool get isActive => true;
+  @override List<SubscriptionPlanModel> get plans => [];
+  @override bool get isLoading => false;
+  @override String? get errorMessage => null;
+  @override bool hasFeature(String f) => true;
+  @override void listenToSubscription(String uid, String role) {}
+  @override Future<Map<String, dynamic>?> createCheckoutOrder({required String planId, required String billingCycle, String? couponCode, String? gstNumber}) async => null;
+  @override Future<bool> verifyPaymentSignature({required String razorpayOrderId, required String razorpayPaymentId, required String razorpaySignature, required String planId, required String billingCycle, String? couponCode, String? gstNumber}) async => false;
+}
 
 @GenerateMocks([EmployerAuthProvider])
 void main() {
@@ -25,6 +51,7 @@ void main() {
           return MultiProvider(
             providers: [
               ChangeNotifierProvider<EmployerAuthProvider>.value(value: mockAuth),
+              ChangeNotifierProvider<SubscriptionProvider>(create: (_) => _FakeSubProvider()),
             ],
             child: MaterialApp(
               home: Scaffold(

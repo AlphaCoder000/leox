@@ -6,6 +6,7 @@ import 'package:leox/services/session_service.dart';
 import 'package:leox/views/employee/employee_dashboard_view.dart';
 import 'package:leox/views/employer/employer_dashboard_view.dart';
 import 'package:leox/views/general/welcome_view.dart';
+import 'package:leox/views/general/email_verification_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,6 +25,7 @@ import 'providers/employer_candidates_provider.dart';
 import 'providers/employee_providers/employee_dashboard_provider.dart';
 import 'providers/job_application_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/subscription_provider.dart';
 
 // Maintenance Contracts imports
 import 'maintenance_contracts/controllers/mc_provider_auth_controller.dart';
@@ -60,7 +62,7 @@ void main() async {
   }
 
   // Configure API Service
-  ApiService.setBaseUrl('http://localhost:3000/api');  // Back to port 3000
+  ApiService.setBaseUrl('http://localhost:3000/api');  // Point to localhost for adb reverse
   
   try {
     await Firebase.initializeApp(
@@ -106,6 +108,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => McSeekerAuthController()),
         ChangeNotifierProvider(create: (_) => McProviderDashboardController()),
         ChangeNotifierProvider(create: (_) => McSeekerDashboardController()),
+        ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
       ],
       child: const MyApp(),
     ),
@@ -185,6 +188,12 @@ class _MainAppContent extends StatelessWidget {
         if (user == null) {
           debugPrint('[Main] No user found, showing WelcomeView');
           return const WelcomeView();
+        }
+
+        // 2.1 Email Verification Check (Skip for Google/Phone users who are auto-verified/don't have email)
+        if (!user.emailVerified && user.email != null && user.email!.isNotEmpty) {
+          debugPrint('[Main] User email not verified, showing EmailVerificationView');
+          return EmailVerificationView(user: user);
         }
 
         // 3. Logged in -> Check role in Firestore (with robust fallback & retry)

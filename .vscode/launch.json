@@ -7,14 +7,15 @@
             "type": "dart",
             "program": "lib/main.dart",
             "args": [
-                "--no-enable-impeller",
+                "--no-enable-impeller"
             ]
         },
         {
-            "name": "leox (Chrome)",
+            "name": "Web Admin Panel (Chrome)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
+            "cwd": "${workspaceFolder}/web_admin",
             "args": [
                 "-d",
                 "chrome",
@@ -23,13 +24,35 @@
             ]
         },
         {
-            "name": "leox (Windows)",
+            "name": "Web Admin (Local Web Server)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
+            "cwd": "${workspaceFolder}/web_admin",
             "args": [
                 "-d",
-                "windows"
+                "web-server",
+                "--web-port",
+                "8080",
+                "--web-hostname",
+                "localhost"
+            ]
+        },
+        {
+            "name": "Node.js Backend",
+            "request": "launch",
+            "type": "node",
+            "program": "${workspaceFolder}/backend/server.js",
+            "cwd": "${workspaceFolder}/backend"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "LEO OPUS Full Stack",
+            "configurations": [
+                "Node.js Backend",
+                "leox (Android)",
+                "Web Admin Panel (Chrome)"
             ]
         }
     ]

@@ -35,6 +35,9 @@ class EmployerAuthProvider extends ChangeNotifier {
   String? _userEmail;
   String? get userEmail => _userEmail;
 
+  String? _verificationId;
+  String? get verificationId => _verificationId;
+
   EmployerAuthProvider() {
     _initializeAuthState();
   }
@@ -308,6 +311,10 @@ Future<void> _checkRoleWithRetry(String uid) async {
         linkedin: linkedin,
       );
 
+      // Send verification email
+      await credential.user?.sendEmailVerification();
+      debugPrint('[EmployerAuthProvider] Sent verification email to ${credential.user?.email}');
+
       // Save session with Firebase user data
       final idToken = await credential.user?.getIdToken();
       await SessionService.saveSession(
@@ -459,6 +466,140 @@ Future<void> _checkRoleWithRetry(String uid) async {
     }
   }
 
+  // 🔹 SEND OTP
+  Future<void> sendOtp(String phone) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+
+          final user = _auth.currentUser;
+          if (user != null) {
+            // Check if profile exists, otherwise auto-create
+            final doc = await _firestore.collection('employers').doc(user.uid).get();
+            if (!doc.exists) {
+              await _createEmployerProfile(user, contactNumber: phone);
+            }
+
+            final idToken = await user.getIdToken();
+            await SessionService.saveSession(
+              role: "employer",
+              userId: user.uid,
+              email: user.email ?? "",
+              authToken: idToken ?? "",
+            );
+          }
+
+          debugPrint(
+            '[EmployerAuthProvider] Phone OTP verification successful',
+          );
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          String errorMessage = 'Phone verification failed';
+          switch (e.code) {
+            case 'invalid-phone-number':
+              errorMessage = 'Invalid phone number';
+              break;
+            case 'too-many-requests':
+              errorMessage = 'Too many OTP requests. Try again later';
+              break;
+            case 'quota-exceeded':
+              errorMessage = 'SMS quota exceeded';
+              break;
+          }
+          _setError(errorMessage);
+          debugPrint(
+            '[EmployerAuthProvider] OTP send error: ${e.code} - $errorMessage',
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _setLoading(false);
+          debugPrint('[EmployerAuthProvider] OTP sent to $phone');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _verificationId = verificationId;
+          debugPrint('[EmployerAuthProvider] OTP auto-retrieval timeout');
+        },
+      );
+    } catch (e) {
+      _setError('Failed to send OTP: $e');
+      debugPrint('[EmployerAuthProvider] Unexpected OTP send error: $e');
+      _setLoading(false);
+    }
+  }
+
+  // 🔹 VERIFY OTP
+  Future<void> verifyOtp(String otp, {String? companyName, String? address, String? linkedin}) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId!,
+        smsCode: otp,
+      );
+
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
+      final user = userCredential.user;
+      if (user != null) {
+        // Auto-create profile if registering for the first time
+        final profileDoc = await _firestore.collection('employers').doc(user.uid).get();
+        if (!profileDoc.exists) {
+          await _createEmployerProfile(
+            user,
+            companyName: companyName,
+            contactNumber: user.phoneNumber,
+            address: address,
+            linkedin: linkedin,
+          );
+        }
+
+        final idToken = await user.getIdToken();
+        await SessionService.saveSession(
+          role: "employer",
+          userId: user.uid,
+          email: user.email ?? "",
+          authToken: idToken ?? "",
+        );
+      }
+
+      debugPrint('[EmployerAuthProvider] OTP verification successful');
+      _verificationId = null;
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'OTP verification failed';
+      switch (e.code) {
+        case 'invalid-verification-code':
+          errorMessage = 'Invalid OTP code';
+          break;
+        case 'session-expired':
+          errorMessage = 'OTP has expired. Please request a new one';
+          break;
+        case 'quota-exceeded':
+          errorMessage = 'Too many failed attempts. Try again later';
+          break;
+      }
+      _setError(errorMessage);
+      debugPrint(
+        '[EmployerAuthProvider] OTP verification error: ${e.code} - $errorMessage',
+      );
+    } catch (e) {
+      _setError('OTP verification failed: $e');
+      debugPrint(
+        '[EmployerAuthProvider] Unexpected OTP verification error: $e',
+      );
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Create employer profile in Firestore
   Future<void> _createEmployerProfile(
     User user, {
@@ -506,6 +647,24 @@ Future<void> _checkRoleWithRetry(String uid) async {
         '[EmployerAuthProvider] Error creating employer profile: $e',
       );
       rethrow;
+    }
+  }
+
+  /// Send password reset link to user email
+  Future<void> sendPasswordResetEmail(String email) async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+      debugPrint('[EmployerAuthProvider] Password reset email sent to $email');
+    } on FirebaseAuthException catch (e) {
+      _setError(e.message ?? 'Failed to send password reset email');
+      rethrow;
+    } catch (e) {
+      _setError('Failed to send password reset email: $e');
+      rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 

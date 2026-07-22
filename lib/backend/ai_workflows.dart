@@ -57,27 +57,59 @@ class AIWorkflows {
     Map<String, dynamic>? resumeData,
   }) async {
     try {
-      debugPrint('[AIWorkflows] Matching resume to job');
+      debugPrint('[AIWorkflows] Matching resume to job via backend API...');
       
-      // Use Gemini Service for matching
-      final result = await GeminiService.matchResumeToJob(
-        resumeText: resumeText ?? '',
-        jobDescription: jobDescription,
+      final authToken = await SessionService.getAuthToken();
+      final response = await ApiService.post(
+        '/ai/match-resume',
+        body: {
+          'resumeText': resumeText ?? '',
+          'jobDescription': jobDescription,
+        },
+        authToken: authToken,
       );
+
+      if (response['success'] == true) {
+        final data = response['data'] ?? {};
+        data['success'] = true;
+        return data;
+      }
       
-      return result;
+      if (response['rateLimited'] == true) {
+        return {
+          'success': false,
+          'rateLimited': true,
+          'error': response['message'] ?? 'AI matching rate limited. Queued for background processing.',
+          'overallScore': 0.0,
+          'skillsMatch': 0.0,
+          'experienceMatch': 0.0,
+          'educationMatch': 0.0,
+          'analysis': response['message'] ?? 'Queued for background processing.',
+        };
+      }
+      
+      throw Exception(response['error'] ?? 'Backend evaluation failed');
       
     } catch (e) {
-      debugPrint('[AIWorkflows] Error matching resume to job: $e');
-      return {
-        'success': false,
-        'error': e.toString(),
-        'overallScore': 0.0,
-        'skillsMatch': 0.0,
-        'experienceMatch': 0.0,
-        'educationMatch': 0.0,
-        'analysis': 'Error occurred during matching',
-      };
+      debugPrint('[AIWorkflows] Backend matching failed or offline ($e). Falling back to direct client-side Gemini...');
+      try {
+        final result = await GeminiService.matchResumeToJob(
+          resumeText: resumeText ?? '',
+          jobDescription: jobDescription,
+        );
+        return result;
+      } catch (fallbackError) {
+        debugPrint('[AIWorkflows] Direct client-side matching also failed: $fallbackError');
+        return {
+          'success': false,
+          'error': 'Error generating AI Match: $fallbackError',
+          'overallScore': 0.0,
+          'skillsMatch': 0.0,
+          'experienceMatch': 0.0,
+          'educationMatch': 0.0,
+          'analysis': 'Failed to evaluate resume after fallback.',
+        };
+      }
     }
   }
 

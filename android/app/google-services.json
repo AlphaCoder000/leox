@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "340682426505-c45v7bp4s8861qmucbsuo26lrug3apk9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.leox",
+            "certificate_hash": "86ba717fda74ac9528f81cdc372c53f29972a235"
+          }
+        },
+        {
           "client_id": "340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -36,7 +44,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com",
+              "client_id": "340682426505-5rselmtbhgv410nggmc3el07qe1hatf7.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

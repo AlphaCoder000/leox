@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import '../../widgets/subscription_gate.dart';
 import '../../providers/ai_resume_matcher_provider.dart';
 import '../../providers/job_application_provider.dart';
 import '../../widgets/employee_drawer.dart';
@@ -101,8 +102,10 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
+      body: SubscriptionGate(
+        featureKey: 'resume_matching',
+        child: Container(
+          decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -176,6 +179,7 @@ class _EmployeeAiResumeMatcherViewBodyState extends State<_EmployeeAiResumeMatch
           ),
         ),
       ),
+     ),
     );
   }
 

@@ -13,6 +13,7 @@ import '../../providers/job_application_provider.dart';
 import '../../models/candidate_model.dart';
 import '../../utils/error_handler_ui.dart';
 import '../../widgets/employer_drawer.dart';
+import '../../widgets/subscription_gate.dart';
 import '../common/application_details_view.dart';
 
 class CandidatesView extends StatefulWidget {
@@ -60,39 +61,18 @@ class _CandidatesViewState extends State<CandidatesView>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       drawer: const EmployerDrawer(selectedItem: EmployerDrawerItem.candidates),
-      body: CustomScrollView(
-        slivers: [
-          // 🔹 APP BAR
-          SliverAppBar(
-            expandedHeight: 7.h,
-            floating: false,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: colorScheme.primary,
-            foregroundColor: Colors.white,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Candidates',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.primary.withValues(alpha: 0.8),
-                      colorScheme.secondary.withValues(alpha: 0.9),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+      appBar: AppBar(
+        title: Text(
+          'Candidates',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
           ),
+        ),
+      ),
+      body: SubscriptionGate(
+        featureKey: 'view_candidates',
+        child: CustomScrollView(
+          slivers: [
 
           // 🔹 SEARCH & FILTER SECTION
           SliverToBoxAdapter(
@@ -250,6 +230,7 @@ class _CandidatesViewState extends State<CandidatesView>
           ),
         ],
       ),
+     ),
     );
   }
 

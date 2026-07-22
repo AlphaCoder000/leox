@@ -190,6 +190,20 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
                           onToggleVisibility: () {
                             setState(() { _obscurePassword = !_obscurePassword; });
                           }),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => _showForgotPasswordDialog(context),
+                          child: Text(
+                            "Forgot Password?",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
                     ] else ...[
                       if (!isOtpSent) ...[
                         _label(context, "Phone Number"),
@@ -520,6 +534,97 @@ class _EmployeeLoginViewState extends State<EmployeeLoginView> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final emailResetController = TextEditingController(text: emailController.text);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+        title: Text(
+          "Reset Password",
+          style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Enter your registered email and we will send you a link to reset your password.",
+              style: TextStyle(fontSize: 11.sp, color: isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailResetController,
+              keyboardType: TextInputType.emailAddress,
+              style: TextStyle(color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
+                hintText: "Enter your email address",
+                hintStyle: TextStyle(color: theme.hintColor),
+                prefixIcon: const Icon(Icons.email_outlined),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: theme.dividerColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel", style: TextStyle(color: theme.colorScheme.primary)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailResetController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Please enter your email")),
+                );
+                return;
+              }
+              Navigator.pop(context); // Close dialog first
+
+              try {
+                final provider = context.read<EmployeeAuthProvider>();
+                await provider.sendPasswordResetEmail(email);
+                if (context.mounted) {
+                  CustomPopup.show(
+                    context,
+                    type: CustomPopupType.success,
+                    title: "Reset Link Sent",
+                    message: "A password reset link has been sent to $email. Please check your inbox and spam folder.",
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  CustomPopup.show(
+                    context,
+                    type: CustomPopupType.error,
+                    title: "Error Sending Link",
+                    message: e.toString().replaceAll("Exception: ", ""),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text("Send Link", style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

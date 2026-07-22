@@ -9,6 +9,7 @@ import 'package:leox/views/employee/employee_profile_view.dart';
 import 'package:leox/views/common/notifications_view.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'premium_paywall.dart';
 
 enum EmployeeDrawerItem { dashboard, jobs, notifications, aiMatcher, profile }
 
@@ -123,9 +124,7 @@ class EmployeeDrawer extends StatelessWidget {
                   activeIcon: Icons.smart_toy,
                   title: "Resume Matcher",
                   isSelected: selectedItem == EmployeeDrawerItem.aiMatcher,
-                  onTap: () {
-                    _navigate(context, const EmployeeAiResumeMatcherView());
-                  },
+                  onTap: () => _navigate(context, const EmployeeAiResumeMatcherView()),
                 ),
 
                 _drawerItem(
@@ -134,9 +133,27 @@ class EmployeeDrawer extends StatelessWidget {
                   activeIcon: Icons.person,
                   title: "My Profile",
                   isSelected: selectedItem == EmployeeDrawerItem.profile,
+                  onTap: () => _navigate(context, const EmployeeProfileView()),
+                ),
+
+                _drawerItem(
+                  context,
+                  icon: Icons.credit_card_outlined,
+                  activeIcon: Icons.credit_card,
+                  title: "Subscription",
+                  isSelected: false,
                   onTap: () {
-                    // For now, just navigate to dashboard (since profile view is not ready)
-                    _navigate(context, const EmployeeProfileView());
+                    Navigator.pop(context); // Close drawer
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PremiumPaywall(
+                          featureKey: 'resume_matching',
+                          onAuthorized: () {},
+                          isFullScreen: true,
+                        ),
+                      ),
+                    );
                   },
                 ),
 

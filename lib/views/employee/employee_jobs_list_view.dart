@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../widgets/subscription_gate.dart';
+
 import '../../providers/employee_providers/employee_jobs_provider.dart';
 import '../../widgets/employee_drawer.dart';
 import '../../widgets/employee_job_card.dart';
@@ -35,8 +37,10 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
     return Scaffold(
       drawer: const EmployeeDrawer(selectedItem: EmployeeDrawerItem.jobs),
       appBar: AppBar(title: const Text("Jobs", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),)),
-      body: Padding(
-        padding: EdgeInsets.all(2.w),
+      body: SubscriptionGate(
+        featureKey: 'view_jobs',
+        child: Padding(
+          padding: EdgeInsets.all(2.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -126,6 +130,7 @@ class _EmployeeJobsListViewState extends State<EmployeeJobsListView> {
           ],
         ),
       ),
+    ),
     );
   }
 }

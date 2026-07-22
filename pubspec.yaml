@@ -29,6 +29,7 @@ dependencies:
   syncfusion_flutter_pdf: ^31.1.19
 
   http: any
+  razorpay_flutter: ^1.4.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -5,7 +5,10 @@ import 'package:leox/providers/employee_providers/employee_profile_provider.dart
 import 'package:leox/utils/error_handler_ui.dart';
 import 'package:leox/views/employee/employee_profile_view.dart';
 import 'package:leox/views/employee/employee_jobs_list_view.dart';
+import 'package:leox/views/employee/my_applications_view.dart';
 import 'package:leox/widgets/employee_drawer.dart';
+import 'package:leox/widgets/subscription_status_badge.dart';
+
 import '../../models/candidate_model.dart';
 import '../common/application_details_view.dart';
 import 'package:leox/widgets/stat_card.dart';
@@ -15,6 +18,8 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:leox/providers/theme_povider.dart';
 import 'package:leox/utils/app_theme.dart';
+import 'package:leox/providers/subscription_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EmployeeDashboardView extends StatefulWidget {
   const EmployeeDashboardView({super.key});
@@ -32,6 +37,10 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
 
     // Load dashboard data after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        context.read<SubscriptionProvider>().listenToSubscription(uid, 'employee');
+      }
       context.read<EmployeeDashboardProvider>().loadDashboard();
     });
   }
@@ -59,6 +68,8 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
       appBar: AppBar(
         title: const Text("Dashboard", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21)),
         actions: [
+          const SubscriptionStatusBadge(),
+          SizedBox(width: 2.w),
           Consumer<ThemeProvider>(
             builder:
                 (context, themeProvider, _) => IconButton(
@@ -402,16 +413,30 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView>
 
                 // 🔹 RECENT APPLICATIONS HEADER
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.work_history_outlined, size: 15.sp, color: colorScheme.primary),
-                    SizedBox(width: 1.5.w),
-                    Text(
-                      "Recent Applications Feed",
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: textOnSurface,
-                      ),
+                    Row(
+                      children: [
+                        Icon(Icons.work_history_outlined, size: 15.sp, color: colorScheme.primary),
+                        SizedBox(width: 1.5.w),
+                        Text(
+                          "Recent Applications Feed",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: textOnSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MyApplicationsView()),
+                        );
+                      },
+                      child: const Text("View All"),
                     ),
                   ],
                 ),

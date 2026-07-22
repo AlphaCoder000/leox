@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../widgets/subscription_gate.dart';
 import '../../controllers/mc_provider_dashboard_controller.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import '../../models/mc_request_model.dart';
@@ -17,10 +18,13 @@ class McRequestManagementView extends StatelessWidget {
 
     final requests = dashboardController.requests;
 
-    return Scaffold(
-      body: requests.isEmpty
-          ? _buildEmptyState(context)
-          : _buildRequestsList(requests, dashboardController, providerId, context),
+    return SubscriptionGate(
+      featureKey: 'manage_bookings',
+      child: Scaffold(
+        body: requests.isEmpty
+            ? _buildEmptyState(context)
+            : _buildRequestsList(requests, dashboardController, providerId, context),
+      ),
     );
   }
 
