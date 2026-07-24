@@ -57,12 +57,17 @@ void main() async {
       GeminiService.init(geminiKey);
       debugPrint('[Main] Gemini Service initialized');
     }
+    
+    // Configure API Service with environment variable
+    final apiUrl = dotenv.env['API_BASE_URL'] ?? 'https://leox-backend-340682426505.asia-south1.run.app/api';
+    ApiService.setBaseUrl(apiUrl);
+    debugPrint('[Main] API Service configured with URL: $apiUrl');
   } catch (e) {
     debugPrint('[Main] Error loading .env file: $e');
+    // Fallback to production URL if .env fails
+    ApiService.setBaseUrl('https://leox-backend-340682426505.asia-south1.run.app/api');
+    debugPrint('[Main] API Service configured with fallback URL');
   }
-
-  // Configure API Service
-  ApiService.setBaseUrl('http://localhost:3000/api');  // Point to localhost for adb reverse
   
   try {
     await Firebase.initializeApp(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../providers/subscription_provider.dart';
 import '../models/subscription_plan_model.dart';
 import '../widgets/custom_popup.dart';
@@ -320,8 +321,9 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
     }
 
     // 2. Open Razorpay Checkouts
+    final razorpayKey = dotenv.env['RAZORPAY_KEY_ID'] ?? orderDetails['key'] ?? 'rzp_test_dummykeyid';
     final options = {
-      'key': orderDetails['key'] ?? 'rzp_test_dummykeyid', // Razorpay public key ID
+      'key': razorpayKey, // Razorpay public key ID
       'amount': orderDetails['amount'], // Amount in paise
       'name': 'LEO OPUS Premium',
       'order_id': orderDetails['orderId'],

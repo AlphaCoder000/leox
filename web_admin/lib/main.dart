@@ -9,6 +9,9 @@ import 'dart:convert';
 import 'package:leox/models/subscription_plan_model.dart';
 import 'package:leox/models/subscription_model.dart';
 
+// Backend API Configuration
+const String _apiBaseUrl = 'https://leox-backend-340682426505.asia-south1.run.app/api';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const AdminApp());
@@ -219,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkSetupStatus() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3000/api/subscription/admin/setup-status'),
+        Uri.parse('$_apiBaseUrl/subscription/admin/setup-status'),
       ).timeout(const Duration(seconds: 4));
       
       final result = jsonDecode(response.body);
@@ -238,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('[Login] Error checking admin bootstrap status: $e');
       if (mounted) {
         setState(() {
-          _localError = "Cannot connect to backend server. Please verify it is running on http://localhost:3000";
+          _localError = "Cannot connect to backend server. Please verify backend is running.";
         });
       }
     }
@@ -268,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/subscription/admin/login'),
+        Uri.parse('$_apiBaseUrl/subscription/admin/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -317,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/subscription/admin/register'),
+        Uri.parse('$_apiBaseUrl/subscription/admin/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -1387,7 +1390,7 @@ class _UserManagementViewState extends State<UserManagementView> with SingleTick
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
 
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/subscription/admin/modify'),
+        Uri.parse('$_apiBaseUrl/subscription/admin/modify'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -2108,7 +2111,7 @@ class _AdminsViewState extends State<AdminsView> {
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/subscription/admin/register'),
+        Uri.parse('$_apiBaseUrl/subscription/admin/register'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -2161,7 +2164,7 @@ class _AdminsViewState extends State<AdminsView> {
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/subscription/admin/grant-role'),
+        Uri.parse('$_apiBaseUrl/subscription/admin/grant-role'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

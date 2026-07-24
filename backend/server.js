@@ -52,7 +52,10 @@ app.use(cors({
     'http://localhost:8081',
     'http://localhost:8082',
     'http://localhost:8083',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'https://leox-backend-340682426505.asia-south1.run.app',
+    'https://studio-7488920972-4ef9c.web.app',
+    'https://studio-7488920972-4ef9c.firebaseapp.com'
   ],
   credentials: true,
 }));
