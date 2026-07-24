@@ -885,7 +885,8 @@ const seedPlans = async () => {
     console.error('[Seeding] Error seeding default subscription plans:', error);
   }
 };
-seedPlans();
+// Disabled seeding due to protobuf compatibility issues in Cloud Run
+// Plans should be seeded manually via Firebase Console or separate script
 
 // --- GEMINI AI INTEGRATION AND QUEUEING ---
 const https = require('https');
