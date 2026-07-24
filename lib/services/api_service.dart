@@ -18,7 +18,7 @@ class ApiException implements Exception {
 /// Base API Service for Next.js backend communication
 class ApiService {
   /// Base URL for Next.js API (configure per environment)
-  static String baseUrl = 'http://localhost:3000/api';
+  static String baseUrl = 'https://leox-backend-340682426505.asia-south1.run.app/api';
 
   /// Request timeout duration
   static const Duration timeoutDuration = Duration(minutes: 5);
