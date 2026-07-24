@@ -19,15 +19,25 @@ const db = admin.apps.length > 0 ? admin.firestore() : null;
 const requireAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.error('[AuthMiddleware] Missing or invalid authorization header');
     return res.status(401).json({ success: false, error: 'Unauthorized: Missing token' });
   }
   const token = authHeader.split('Bearer ')[1];
+  
+  // Check if Firebase Admin is initialized
+  if (admin.apps.length === 0) {
+    console.error('[AuthMiddleware] Firebase Admin not initialized');
+    return res.status(500).json({ success: false, error: 'Server configuration error: Firebase not initialized' });
+  }
+  
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = decodedToken;
+    console.log('[AuthMiddleware] User authenticated successfully:', decodedToken.uid);
     next();
   } catch (error) {
     console.error('[AuthMiddleware] Invalid token:', error.message);
+    console.error('[AuthMiddleware] Token verification error details:', error.code, error.stack);
     return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token' });
   }
 };
