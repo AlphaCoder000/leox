@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: leox-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_PROJECT_ID
+        value: studio-7488920972-4ef9c

@@ -1,0 +1,41 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/leox/leox-backend:$SHORT_SHA
+      - -t
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/leox/leox-backend:latest
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - asia-south1-docker.pkg.dev/$PROJECT_ID/leox/leox-backend
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - leox-backend
+      - --image=asia-south1-docker.pkg.dev/$PROJECT_ID/leox/leox-backend:$SHORT_SHA
+      - --region=asia-south1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --service-account=firebase-adminsdk-fbsvc@studio-7488920972-4ef9c.iam.gserviceaccount.com
+      - --port=8080
+      - --memory=512Mi
+      - --cpu=1
+      - --min-instances=0
+      - --max-instances=10
+      - --set-env-vars=FIREBASE_PROJECT_ID=studio-7488920972-4ef9c,NODE_ENV=production
+      - --remove-env-vars=FIREBASE_PRIVATE_KEY,FIREBASE_PRIVATE_KEY_ID,FIREBASE_CLIENT_EMAIL,FIREBASE_USE_SERVICE_ACCOUNT_KEY
+
+images:
+  - asia-south1-docker.pkg.dev/$PROJECT_ID/leox/leox-backend:$SHORT_SHA
+  - asia-south1-docker.pkg.dev/$PROJECT_ID/leox/leox-backend:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY

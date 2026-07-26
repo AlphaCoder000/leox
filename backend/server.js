@@ -1,36 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Initialize Firebase Admin safely
-let firebaseAdminInitialized = false;
-try {
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-  if (privateKey && !privateKey.includes('YOUR_PRIVATE_KEY_HERE') && privateKey.trim().length > 50) {
-    const serviceAccount = {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      privateKey: privateKey.replace(/\\n/g, '\n'),
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    };
+const {
+  admin,
+  initializeFirebase,
+  getFirebaseInitStatus,
+  probeFirebaseConnectivity,
+} = require('./config/firebase');
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
-    });
-    firebaseAdminInitialized = true;
-    console.log('✅ Firebase Admin SDK initialized successfully');
-  } else {
-    console.warn('⚠️ Warning: Firebase credentials are not configured or are placeholder in backend/.env');
-    console.warn('⚠️ Firebase Admin dependent APIs will run in simulation/mock mode.');
-  }
-} catch (e) {
-  console.error('❌ Failed to initialize Firebase Admin SDK:', e.message);
-  console.warn('⚠️ Backend server will run, but Firebase database access is in mock simulation mode.');
-}
+initializeFirebase();
 
 const app = express();
 const upload = multer({
@@ -47,6 +29,7 @@ const upload = multer({
 // Middleware
 app.use(cors({
   origin: [
+    'https://your-app-name.onrender.com',
     'http://localhost:3000',
     'http://localhost:8080',
     'http://localhost:8081',
@@ -72,28 +55,29 @@ app.post('/api/parse-resume', upload.single('resume'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    // Upload file to Firebase Storage
-    const fileName = `resume_${Date.now()}_${file.originalname}`;
-    const bucket = admin.storage().bucket();
-    const fileUpload = bucket.file(fileName);
+    if (admin.apps.length > 0) {
+      // Upload file to Firebase Storage
+      const fileName = `resume_${Date.now()}_${file.originalname}`;
+      const bucket = admin.storage().bucket();
+      const fileUpload = bucket.file(fileName);
 
-    const stream = fileUpload.createWriteStream({
-      metadata: {
-        contentType: file.mimetype,
+      const stream = fileUpload.createWriteStream({
         metadata: {
-          originalName: file.originalname,
-          uploadedAt: new Date().toISOString(),
+          contentType: file.mimetype,
+          metadata: {
+            originalName: file.originalname,
+            uploadedAt: new Date().toISOString(),
+          },
         },
-      },
-    });
+      });
 
-    stream.end(file.buffer);
+      stream.end(file.buffer);
 
-    // Get file URL
-    const [fileUrl] = await fileUpload.getSignedUrl({
-      action: 'read',
-      expires: '03-01-2025', // 1 year expiry
-    });
+      await fileUpload.getSignedUrl({
+        action: 'read',
+        expires: '03-01-2025', // 1 year expiry
+      });
+    }
 
     // Parse resume (mock implementation - replace with actual AI parsing)
     const mockParsedData = {
@@ -197,11 +181,18 @@ app.post('/api/match-resume', upload.single('resume'), async (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK',
+app.get('/api/health', async (req, res) => {
+  const firebase = getFirebaseInitStatus();
+  const deep = req.query.deep === 'true';
+  const connectivity = deep ? await probeFirebaseConnectivity() : null;
+  const healthy = firebase.initialized && (!deep || connectivity?.ok);
+
+  res.status(healthy ? 200 : 503).json({
+    status: healthy ? 'OK' : 'DEGRADED',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    firebase,
+    connectivity,
   });
 });
 
