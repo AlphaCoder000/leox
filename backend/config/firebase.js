@@ -40,7 +40,19 @@ function normalizePrivateKey(rawKey) {
 }
 
 function parseServiceAccountJson(rawJson) {
-  if (!rawJson || typeof rawJson !== 'string') {
+  if (!rawJson) {
+    return null;
+  }
+
+  if (typeof rawJson === 'object' && rawJson !== null) {
+    const normalized = { ...rawJson };
+    if (normalized.private_key) {
+      normalized.private_key = normalizePrivateKey(normalized.private_key);
+    }
+    return normalized;
+  }
+
+  if (typeof rawJson !== 'string') {
     return null;
   }
 
@@ -108,7 +120,7 @@ function parseServiceAccountJson(rawJson) {
     // Ignore and fall through to the generic error below.
   }
 
-  initError = `Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON: ${rawJson.slice(0, 80)}...`;
+  initError = `Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON: ${typeof rawJson === 'string' ? rawJson.slice(0, 80) : String(rawJson)}`;
   return null;
 }
 
