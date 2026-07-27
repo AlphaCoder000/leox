@@ -44,16 +44,72 @@ function parseServiceAccountJson(rawJson) {
     return null;
   }
 
-  try {
-    const parsed = JSON.parse(rawJson);
-    if (parsed.private_key) {
-      parsed.private_key = normalizePrivateKey(parsed.private_key);
+  const attempts = [];
+  const trimmed = rawJson.trim();
+
+  if (trimmed) {
+    attempts.push(trimmed);
+
+    if (
+      (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+      (trimmed.startsWith("'") && trimmed.endsWith("'"))
+    ) {
+      attempts.push(trimmed.slice(1, -1));
     }
-    return parsed;
-  } catch (error) {
-    initError = `Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON: ${error.message}`;
-    return null;
   }
+
+  const tryParse = (value) => {
+    if (!value || typeof value !== 'string') {
+      return null;
+    }
+
+    const candidates = [value];
+
+    if (value.includes('\n')) {
+      candidates.push(value.replace(/\\n/g, '\n'));
+    }
+
+    candidates.push(value.replace(/\r?\n/g, '\\n'));
+
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate);
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+      } catch (error) {
+        // Try the next candidate.
+      }
+    }
+
+    return null;
+  };
+
+  for (const candidate of attempts) {
+    const parsed = tryParse(candidate);
+    if (parsed) {
+      if (parsed.private_key) {
+        parsed.private_key = normalizePrivateKey(parsed.private_key);
+      }
+      return parsed;
+    }
+  }
+
+  try {
+    const decoded = Buffer.from(trimmed, 'base64').toString('utf8');
+    const parsed = tryParse(decoded);
+    if (parsed) {
+      if (parsed.private_key) {
+        parsed.private_key = normalizePrivateKey(parsed.private_key);
+      }
+      return parsed;
+    }
+  } catch (error) {
+    // Ignore and fall through to the generic error below.
+  }
+
+  initError = `Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON: ${rawJson.slice(0, 80)}...`;
+  return null;
 }
 
 function buildServiceAccountFromEnv() {
