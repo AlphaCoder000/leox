@@ -3,7 +3,7 @@ services:
     name: leox-backend
     runtime: node
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: node server-simple.js
     envVars:
       - key: PORT
         value: 3000
