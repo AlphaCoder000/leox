@@ -175,6 +175,21 @@ app.post('/api/match-resume', upload.single('resume'), async (req, res) => {
   }
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'LeoRecruit Backend API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: [
+      'GET /api/health - Health check',
+      'GET /api/test - Test endpoint',
+      'POST /api/parse-resume - Parse resume files',
+      'POST /api/match-resume - Match resume to job description'
+    ]
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
