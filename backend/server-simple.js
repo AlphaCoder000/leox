@@ -18,7 +18,14 @@ const upload = multer({
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:8080', 'http://127.0.0.1:3000'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:3000',
+    'https://leox-kjzy.onrender.com',
+    'https://studio-7488920972-4ef9c.web.app',
+    'https://studio-7488920972-4ef9c.firebaseapp.com'
+  ],
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
