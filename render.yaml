@@ -3,23 +3,9 @@ services:
     name: leox-backend
     runtime: node
     buildCommand: cd backend && npm install
-    startCommand: cd backend && node server.js
+    startCommand: cd backend && node server-simple.js
     envVars:
       - key: PORT
         value: 3000
       - key: NODE_ENV
         value: production
-      - key: FIREBASE_PROJECT_ID
-        value: studio-7488920972-4ef9c
-      - key: FIREBASE_CLIENT_EMAIL
-        value: firebase-adminsdk-fbsvc@studio-7488920972-4ef9c.iam.gserviceaccount.com
-      - key: FIREBASE_PRIVATE_KEY
-        value: REPLACE_WITH_FIREBASE_PRIVATE_KEY
-      - key: RAZORPAY_KEY_ID
-        value: rzp_test_TEtiqwUIhnWfVg
-      - key: RAZORPAY_KEY_SECRET
-        value: 96u9x1V0WVZGJQcyx3pdn0Kt
-      - key: OPENAI_API_KEY
-        value: REPLACE_WITH_OPENAI_API_KEY
-      - key: OPENAI_MODEL
-        value: gpt-4-turbo
