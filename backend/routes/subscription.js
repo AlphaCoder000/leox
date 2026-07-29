@@ -146,6 +146,13 @@ router.post('/create-order', requireAuth, async (req, res) => {
     // Razorpay amount is in lowest currency unit (paise for INR)
     const amountInPaise = Math.round(finalPrice * 100);
 
+    if (amountInPaise < 100 && amountInPaise > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Razorpay minimum transaction amount is 100 paise (INR 1.00). Please apply a coupon or choose a different billing cycle.',
+      });
+    }
+
     if (amountInPaise <= 0) {
       // 100% discount, bypass payment gateway
       return res.json({
@@ -173,6 +180,7 @@ router.post('/create-order', requireAuth, async (req, res) => {
     const hasRealKeys = process.env.RAZORPAY_KEY_ID && 
                         !process.env.RAZORPAY_KEY_ID.includes('dummy') &&
                         process.env.RAZORPAY_KEY_ID.startsWith('rzp_');
+    const isLiveMode = hasRealKeys && process.env.RAZORPAY_KEY_ID.startsWith('rzp_live_');
 
     if (hasRealKeys) {
       try {
@@ -187,7 +195,17 @@ router.post('/create-order', requireAuth, async (req, res) => {
         });
       } catch (rzpError) {
         console.error('[CreateOrder] Razorpay API error:', rzpError);
-        // Fallback to simulation if Razorpay call fails (e.g., test key rate limits)
+        
+        // If it's live keys, do NOT fall back to simulation - return 500 error instead
+        if (isLiveMode) {
+          return res.status(500).json({
+            success: false,
+            error: 'Razorpay order creation failed. Please try again.',
+            details: rzpError.message,
+          });
+        }
+
+        // Fallback to simulation only if using test keys and Razorpay call fails
         res.json({
           success: true,
           orderId: 'order_test_' + Math.random().toString(36).substring(2, 9),
@@ -242,9 +260,21 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
       });
     }
 
+    const isLiveMode = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID.startsWith('rzp_live_');
+
     // Direct activation if free bypass or simulated test bypass
     if (razorpayOrderId === 'free_plan_bypass' || razorpayOrderId.startsWith('order_test_')) {
       const isSim = razorpayOrderId.startsWith('order_test_');
+      
+      // If we are in live/production mode, block simulated test bypasses
+      if (isSim && isLiveMode) {
+        console.warn(`[VerifyPayment] Blocked simulated payment attempt in Live mode for user ${userId}`);
+        return res.status(400).json({
+          success: false,
+          error: 'Simulated payments are not allowed in Live production mode.',
+        });
+      }
+
       await activateUserSubscription(
         userId, 
         planId, 
