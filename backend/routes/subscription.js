@@ -5,9 +5,14 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 
 // Initialize Razorpay Client (Credentials must be set in backend/.env)
+// Helper to strip surrounding quotes if present in env configuration
+const cleanKeyId = (process.env.RAZORPAY_KEY_ID || 'rzp_test_dummykeyid').replace(/['"]/g, '').trim();
+const cleanKeySecret = (process.env.RAZORPAY_KEY_SECRET || 'dummyprivatesecretkey').replace(/['"]/g, '').trim();
+
+// Initialize Razorpay Client (Credentials must be set in backend/.env)
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummykeyid',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummyprivatesecretkey',
+  key_id: cleanKeyId,
+  key_secret: cleanKeySecret,
 });
 
 // Get Firestore client only if Firebase app has been initialized
@@ -177,10 +182,10 @@ router.post('/create-order', requireAuth, async (req, res) => {
       },
     };
 
-    const hasRealKeys = process.env.RAZORPAY_KEY_ID && 
-                        !process.env.RAZORPAY_KEY_ID.includes('dummy') &&
-                        process.env.RAZORPAY_KEY_ID.startsWith('rzp_');
-    const isLiveMode = hasRealKeys && process.env.RAZORPAY_KEY_ID.startsWith('rzp_live_');
+    const hasRealKeys = cleanKeyId && 
+                        !cleanKeyId.includes('dummy') &&
+                        cleanKeyId.startsWith('rzp_');
+    const isLiveMode = hasRealKeys && cleanKeyId.startsWith('rzp_live_');
 
     if (hasRealKeys) {
       try {
@@ -190,7 +195,7 @@ router.post('/create-order', requireAuth, async (req, res) => {
           orderId: order.id,
           amount: order.amount,
           currency: order.currency,
-          key: process.env.RAZORPAY_KEY_ID,
+          key: cleanKeyId,
           isSimulated: false,
         });
       } catch (rzpError) {
@@ -211,7 +216,7 @@ router.post('/create-order', requireAuth, async (req, res) => {
           orderId: 'order_test_' + Math.random().toString(36).substring(2, 9),
           amount: amountInPaise,
           currency: planData.currency || 'INR',
-          key: process.env.RAZORPAY_KEY_ID,
+          key: cleanKeyId,
           isSimulated: true,
           warning: 'Razorpay API failed, using simulation: ' + (rzpError.error?.description || rzpError.message),
         });
@@ -223,7 +228,7 @@ router.post('/create-order', requireAuth, async (req, res) => {
         orderId: 'order_test_' + Math.random().toString(36).substring(2, 9),
         amount: amountInPaise,
         currency: planData.currency || 'INR',
-        key: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummykeyid',
+        key: cleanKeyId || 'rzp_test_dummykeyid',
         isSimulated: true,
       });
     }
@@ -260,7 +265,7 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
       });
     }
 
-    const isLiveMode = process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_ID.startsWith('rzp_live_');
+    const isLiveMode = cleanKeyId && cleanKeyId.startsWith('rzp_live_');
 
     // Direct activation if free bypass or simulated test bypass
     if (razorpayOrderId === 'free_plan_bypass' || razorpayOrderId.startsWith('order_test_')) {
@@ -296,7 +301,7 @@ router.post('/verify-payment', requireAuth, async (req, res) => {
     }
 
     // 1. Verify Signature
-    const keySecret = process.env.RAZORPAY_KEY_SECRET || 'dummyprivatesecretkey';
+    const keySecret = cleanKeySecret || 'dummyprivatesecretkey';
     const generated_signature = crypto
       .createHmac('sha256', keySecret)
       .update(razorpayOrderId + '|' + razorpayPaymentId)
