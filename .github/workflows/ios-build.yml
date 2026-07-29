@@ -1,0 +1,50 @@
+name: iOS Build
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - render-deploy
+  pull_request:
+    branches:
+      - main
+      - dev
+      - render-deploy
+  workflow_dispatch: # Allows manual trigger from the GitHub UI
+
+jobs:
+  build:
+    name: Build Unsigned iOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS App Bundle
+        run: flutter build ios --no-codesign --release
+
+      - name: Package App Bundle into IPA
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r Runner.ipa Payload
+          mkdir -p ../ipa
+          mv Runner.ipa ../ipa/
+
+      - name: Upload Unsigned IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-ipa
+          path: build/ios/ipa/Runner.ipa
