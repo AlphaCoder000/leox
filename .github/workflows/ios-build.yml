@@ -31,6 +31,58 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Remove static Podfile to allow clean generation
+        run: rm -f ios/Podfile
+
+      - name: Generate iOS configuration files
+        run: flutter build ios --config-only
+
+      - name: Patch Podfile configuration
+        run: |
+          python3 -c "
+          import os
+          path = 'ios/Podfile'
+          if os.path.exists(path):
+              with open(path, 'r') as f:
+                  content = f.read()
+              
+              # Set platform deployment target to 13.0 (matches Flutter's minimum target)
+              content = content.replace('# platform :ios, \'12.0\'', 'platform :ios, \'13.0\'')
+              content = content.replace('# platform :ios, \'11.0\'', 'platform :ios, \'13.0\'')
+              content = content.replace('platform :ios, \'11.0\'', 'platform :ios, \'13.0\'')
+              content = content.replace('platform :ios, \'12.0\'', 'platform :ios, \'13.0\'')
+              content = content.replace('platform :ios, \'14.0\'', 'platform :ios, \'13.0\'')
+              
+              # Insert the -G flag stripping logic & IPHONEOS_DEPLOYMENT_TARGET override into the post_install block
+              target_str = 'flutter_additional_ios_build_settings(target)'
+              replacement = '''flutter_additional_ios_build_settings(target)
+              target.build_configurations.each do |config|
+                # Force deployment target of 13.0 for all Pods to prevent old target build errors
+                config.build_settings[\"IPHONEOS_DEPLOYMENT_TARGET\"] = \"13.0\"
+                
+                # Strip unsupported -G compiler/linker flag from configurations
+                [\"OTHER_CFLAGS\", \"OTHER_LDFLAGS\", \"OTHER_SWIFT_FLAGS\", \"GCC_PREPROCESSOR_DEFINITIONS\"].each do |key|
+                  val = config.build_settings[key]
+                  next if val.nil?
+                  if val.is_a?(Array)
+                    val.delete(\"-G\")
+                  elsif val.is_a?(String)
+                    config.build_settings[key] = val.split(\" \").reject { |s| s == \"-G\" }.join(\" \")
+                  end
+                end
+              end'''
+              
+              if target_str in content and '-G' not in content:
+                  content = content.replace(target_str, replacement)
+                  with open(path, 'w') as f:
+                      f.write(content)
+                  print('✅ Successfully patched Podfile')
+              else:
+                  print('⚠️ Target string not found or already patched')
+          else:
+              print('❌ Podfile not found')
+          "
+
       - name: Build iOS App Bundle
         run: flutter build ios --no-codesign --release
 
