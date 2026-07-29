@@ -7,7 +7,7 @@
     "rules": "storage_rules.rules"
   },
   "hosting": {
-    "public": "build/web",
+    "public": "web_admin/build/web",
     "ignore": [
       "firebase.json",
       "**/.*",
