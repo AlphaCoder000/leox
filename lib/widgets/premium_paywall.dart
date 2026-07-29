@@ -253,6 +253,7 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
     );
 
     if (orderDetails == null) {
+      debugPrint('[Paywall] Order details was null.');
       if (mounted) {
         CustomPopup.show(
           context,
@@ -263,6 +264,8 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
       }
       return;
     }
+
+    debugPrint('[Paywall] Order Details: $orderDetails');
 
     // Check if the order is simulated or free (bypassing payment gateway)
     final isBypass = orderDetails['isSimulated'] == true ||
@@ -356,8 +359,10 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
     final colorScheme = theme.colorScheme;
     final provider = context.watch<SubscriptionProvider>();
 
-    // Filter plans applicable to user's role
-    final rolePlans = provider.plans.where((p) => p.role == (provider.currentSubscription?.role ?? 'employee')).toList();
+    // Filter plans applicable to user's role and exclude free trial/free plans (price = 0)
+    final rolePlans = provider.plans
+        .where((p) => p.role == (provider.currentSubscription?.role ?? 'employee') && p.monthlyPrice > 0)
+        .toList();
 
     // Default to the first plan in list
     if (_selectedPlan == null && rolePlans.isNotEmpty) {
