@@ -113,6 +113,7 @@ class _McProviderDashboardViewState extends State<McProviderDashboardView> {
               featureKey: 'add_services',
               onAuthorized: () {},
               isFullScreen: false,
+              isEmbedded: true,
             ),
           ),
         ],

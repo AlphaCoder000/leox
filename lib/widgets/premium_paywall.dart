@@ -11,12 +11,14 @@ class PremiumPaywall extends StatefulWidget {
   final String featureKey;
   final VoidCallback onAuthorized;
   final bool isFullScreen;
+  final bool isEmbedded;
 
   const PremiumPaywall({
     super.key,
     required this.featureKey,
     required this.onAuthorized,
     this.isFullScreen = false,
+    this.isEmbedded = false,
   });
 
   /// Static helper to check features anywhere in the app
@@ -97,7 +99,9 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
       );
 
       if (verified && mounted) {
-        Navigator.pop(context); // Close paywall sheet
+        if (!widget.isEmbedded) {
+          Navigator.pop(context); // Close paywall sheet
+        }
         CustomPopup.show(
           context,
           type: CustomPopupType.success,
@@ -282,7 +286,9 @@ class _PremiumPaywallState extends State<PremiumPaywall> {
         );
 
         if (verified && mounted) {
-          Navigator.pop(context); // Close paywall view/page
+          if (!widget.isEmbedded) {
+            Navigator.pop(context); // Close paywall view/page
+          }
           CustomPopup.show(
             context,
             type: CustomPopupType.success,

@@ -35,6 +35,7 @@ class _McSeekerDashboardViewState extends State<McSeekerDashboardView> {
           featureKey: 'book_services',
           onAuthorized: () {},
           isFullScreen: false,
+          isEmbedded: true,
         ),
       ),
     ];
