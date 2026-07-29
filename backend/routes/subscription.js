@@ -172,7 +172,7 @@ router.post('/create-order', requireAuth, async (req, res) => {
     const options = {
       amount: amountInPaise,
       currency: planData.currency || 'INR',
-      receipt: `rcpt_${userId}_${Date.now().toString().slice(-8)}`,
+      receipt: `rcpt_${userId.slice(0, 15)}_${Date.now().toString().slice(-8)}`,
       notes: {
         userId: userId,
         planId: planId,
