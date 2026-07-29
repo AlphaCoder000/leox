@@ -93,6 +93,24 @@ jobs:
                   print('⚠️ Target string not found or already patched')
           else:
               print('❌ Podfile not found')
+          
+          # Patch gRPC-Core basic_seq.h parser issue on Xcode 16.3+
+          grpc_path = 'ios/Pods/gRPC-Core/src/core/lib/promise/detail/basic_seq.h'
+          if os.path.exists(grpc_path):
+              with open(grpc_path, 'r') as f:
+                  grpc_content = f.read()
+              
+              target_key = 'Traits::template CallSeqFactory'
+              fixed_key = 'Traits::CallSeqFactory'
+              if target_key in grpc_content:
+                  grpc_content = grpc_content.replace(target_key, fixed_key)
+                  with open(grpc_path, 'w') as f:
+                      f.write(grpc_content)
+                  print('✅ Successfully patched gRPC-Core basic_seq.h')
+              else:
+                  print('⚠️ gRPC-Core basic_seq.h already patched or key not found')
+          else:
+              print('⚠️ gRPC-Core basic_seq.h not found')
           "
 
       - name: Build iOS App Bundle
