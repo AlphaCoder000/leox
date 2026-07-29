@@ -95,8 +95,11 @@ jobs:
               print('❌ Podfile not found')
           
           # Patch gRPC-Core basic_seq.h parser issue on Xcode 16.3+
+          import stat
           grpc_path = 'ios/Pods/gRPC-Core/src/core/lib/promise/detail/basic_seq.h'
           if os.path.exists(grpc_path):
+              # Grant write permission to override read-only file lock
+              os.chmod(grpc_path, stat.S_IWRITE | stat.S_IREAD)
               with open(grpc_path, 'r') as f:
                   grpc_content = f.read()
               
