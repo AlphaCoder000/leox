@@ -1,6 +1,9 @@
 platform :ios, '11.0'
 
 # CocoaPods helpers.
+flutter_ios_podfile_setup = File.join(File.dirname(File.expand_path(__FILE__)), 'Flutter', 'podhelper.rb')
+require flutter_ios_podfile_setup
+
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
