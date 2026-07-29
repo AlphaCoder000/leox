@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkSetupStatus() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3000/api/subscription/admin/setup-status'),
+        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/setup-status'),
       ).timeout(const Duration(seconds: 4));
       
       final result = jsonDecode(response.body);
