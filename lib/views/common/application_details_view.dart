@@ -287,22 +287,40 @@ class _JobApplicationDetailsViewState extends State<JobApplicationDetailsView> {
         children: [
           Row(
             children: [
-              CircularProgressIndicator(
-                value: widget.application.matchScore / 100,
-                backgroundColor: Colors.grey.withValues(alpha: 0.2),
-                color: _getScoreColor(widget.application.matchScore),
-                strokeWidth: 8,
-              ),
+              if (widget.application.matchScore < 0)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.info_outline,
+                    color: Colors.amber,
+                    size: 32,
+                  ),
+                )
+              else
+                CircularProgressIndicator(
+                  value: widget.application.matchScore / 100,
+                  backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                  color: _getScoreColor(widget.application.matchScore),
+                  strokeWidth: 8,
+                ),
               SizedBox(width: 4.w),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${widget.application.matchScore.toInt()}% Match',
+                    widget.application.matchScore < 0
+                        ? 'Evaluation Pending'
+                        : '${widget.application.matchScore.toInt()}% Match',
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: _getScoreColor(widget.application.matchScore),
+                      color: widget.application.matchScore < 0
+                          ? Colors.amber
+                          : _getScoreColor(widget.application.matchScore),
                     ),
                   ),
                   Text(

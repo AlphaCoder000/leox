@@ -311,6 +311,44 @@ class McSeekerAuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateSeekerProfile({
+    required String userName,
+    required String phone,
+    required String address,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      await _firestore.collection('mc_seekers').doc(user.uid).update({
+        'userName': userName,
+        'phone': phone,
+        'address': address,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      
+      // Update local state
+      if (_currentSeeker != null) {
+        _currentSeeker = McSeekerModel(
+          id: _currentSeeker!.id,
+          userName: userName,
+          email: _currentSeeker!.email,
+          phone: phone,
+          address: address,
+          profilePicture: _currentSeeker!.profilePicture,
+        );
+      }
+    } catch (e) {
+      debugPrint("Error updating seeker profile: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<String?> deleteAccount() async {
     _isLoading = true;
     notifyListeners();

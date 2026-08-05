@@ -24,6 +24,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
   late TextEditingController _headlineController;
   late TextEditingController _bioController;
   late TextEditingController _skillController;
+  late TextEditingController _phoneController;
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
     _headlineController = TextEditingController();
     _bioController = TextEditingController();
     _skillController = TextEditingController();
+    _phoneController = TextEditingController();
   }
 
   @override
@@ -44,6 +46,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
     _headlineController.dispose();
     _bioController.dispose();
     _skillController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -95,6 +98,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
     _lastNameController.text = profile?.lastName ?? '';
     _headlineController.text = profile?.headline ?? '';
     _bioController.text = profile?.bio ?? '';
+    _phoneController.text = profile?.phone ?? '';
 
     showModalBottomSheet(
       context: context,
@@ -168,6 +172,18 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                       ),
                     ),
                   ),
+                  SizedBox(height: 1.5.h),
+                  TextField(
+                    controller: _phoneController,
+                    decoration: InputDecoration(
+                      labelText: "Phone Number",
+                      hintText: "Enter your phone number",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
                   SizedBox(height: 2.5.h),
                   Row(
                     children: [
@@ -196,6 +212,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                             email: currentProfile.email,
                                             firstName: _firstNameController.text.trim(),
                                             lastName: _lastNameController.text.trim(),
+                                            phone: _phoneController.text.trim(),
                                             headline: _headlineController.text.trim(),
                                             bio: _bioController.text.trim(),
                                             skills: currentProfile.skills,
@@ -230,6 +247,7 @@ class _EmployeeProfileViewState extends State<EmployeeProfileView>
                                                     email: currentProfile.email,
                                                     firstName: _firstNameController.text.trim(),
                                                     lastName: _lastNameController.text.trim(),
+                                                    phone: _phoneController.text.trim(),
                                                     headline: _headlineController.text.trim(),
                                                     bio: _bioController.text.trim(),
                                                     skills: currentProfile.skills,

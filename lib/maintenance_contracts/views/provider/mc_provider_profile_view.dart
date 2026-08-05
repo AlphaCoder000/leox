@@ -5,13 +5,29 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../controllers/mc_provider_auth_controller.dart';
 import '../../models/mc_provider_model.dart';
 
-class McProviderProfileView extends StatelessWidget {
+class McProviderProfileView extends StatefulWidget {
   const McProviderProfileView({super.key});
+
+  @override
+  State<McProviderProfileView> createState() => _McProviderProfileViewState();
+}
+
+class _McProviderProfileViewState extends State<McProviderProfileView> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authController = context.read<McProviderAuthController>();
+    final user = FirebaseAuth.instance.currentUser;
+    if (authController.currentProvider == null && user != null) {
+      authController.fetchProviderProfile(user.uid);
+    }
+  }
 
   Future<void> _pickImage(BuildContext context) async {
     final picker = ImagePicker();
@@ -349,6 +365,12 @@ class McProviderProfileView extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (provider != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined),
+                    color: theme.colorScheme.primary,
+                    onPressed: () => _openEditSheet(context, provider),
+                  ),
               ],
             ),
           ],
@@ -581,4 +603,148 @@ class McProviderProfileView extends StatelessWidget {
       ),
     );
   }
+
+  void _openEditSheet(BuildContext context, McProviderModel provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _EditProviderProfileSheet(provider: provider),
+    );
+  }
 }
+
+class _EditProviderProfileSheet extends StatefulWidget {
+  final McProviderModel provider;
+  const _EditProviderProfileSheet({required this.provider});
+
+  @override
+  State<_EditProviderProfileSheet> createState() => _EditProviderProfileSheetState();
+}
+
+class _EditProviderProfileSheetState extends State<_EditProviderProfileSheet> {
+  late TextEditingController _companyNameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _locationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _companyNameController = TextEditingController(text: widget.provider.companyName);
+    _phoneController = TextEditingController(text: widget.provider.phone);
+    _locationController = TextEditingController(text: widget.provider.location);
+  }
+
+  @override
+  void dispose() {
+    _companyNameController.dispose();
+    _phoneController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 4.w,
+        right: 4.w,
+        top: 4.w,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Edit Profile",
+            style: TextStyle(
+              fontSize: 23.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          TextField(
+            controller: _companyNameController,
+            decoration: InputDecoration(
+              labelText: "Company Name",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          SizedBox(height: 1.5.h),
+          TextField(
+            controller: _phoneController,
+            decoration: InputDecoration(
+              labelText: "Phone Number",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            keyboardType: TextInputType.phone,
+          ),
+          SizedBox(height: 1.5.h),
+          TextField(
+            controller: _locationController,
+            decoration: InputDecoration(
+              labelText: "Location",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          SizedBox(height: 2.5.h),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+              ),
+              SizedBox(width: 2.w),
+              Expanded(
+                child: Consumer<McProviderAuthController>(
+                  builder: (context, auth, _) {
+                    return ElevatedButton(
+                      onPressed: auth.isLoading
+                          ? null
+                          : () async {
+                              final name = _companyNameController.text.trim();
+                              final phone = _phoneController.text.trim();
+                              final location = _locationController.text.trim();
+                              if (name.isNotEmpty && phone.isNotEmpty && location.isNotEmpty) {
+                                await auth.updateProviderProfile(
+                                  companyName: name,
+                                  phone: phone,
+                                  location: location,
+                                );
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Profile updated successfully')),
+                                  );
+                                }
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('All fields are required')),
+                                );
+                              }
+                            },
+                      child: const Text("Save"),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.h),
+        ],
+      ),
+    );
+  }
+}
+

@@ -15,9 +15,22 @@ import 'package:sizer/sizer.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:leox/models/employer_profile_model.dart';
 
-class EmployerProfileView extends StatelessWidget {
-
+class EmployerProfileView extends StatefulWidget {
   const EmployerProfileView({super.key});
+
+  @override
+  State<EmployerProfileView> createState() => _EmployerProfileViewState();
+}
+
+class _EmployerProfileViewState extends State<EmployerProfileView> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final profileProvider = context.read<EmployerProfileProvider>();
+    if (profileProvider.profile.email.isEmpty && !profileProvider.isLoading) {
+      profileProvider.loadProfile();
+    }
+  }
 
   Future<void> _pickImage(BuildContext context) async {
     final picker = ImagePicker();
@@ -28,14 +41,9 @@ class EmployerProfileView extends StatelessWidget {
     }
   }
 
-
-
   @override
-
   Widget build(BuildContext context) {
-
     final theme = Theme.of(context);
-
     final profile = context.watch<EmployerProfileProvider>().profile;
 
 

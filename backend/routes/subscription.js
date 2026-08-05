@@ -791,7 +791,15 @@ const seedPlans = async () => {
       console.warn('[Seeding] Skipping database plans seeding - Firebase Admin not initialized.');
       return;
     }
-    console.log('[Seeding] Ensuring default and free trial subscription plans exist in Firestore...');
+    
+    // Check if plans already exist in collection
+    const snapshot = await db.collection('subscription_plans').limit(1).get();
+    if (!snapshot.empty) {
+      console.log('[Seeding] Subscription plans already exist in database. Skipping seeding.');
+      return;
+    }
+
+    console.log('[Seeding] Ensuring default subscription plans exist in Firestore...');
     const defaultPlans = [
       {
         id: 'employer_monthly',
@@ -804,19 +812,6 @@ const seedPlans = async () => {
         trialDurationDays: 30,
         features: { post_jobs: true, resume_matching: true, view_candidates: true },
         isRecommended: true,
-        isActive: true,
-      },
-      {
-        id: 'employer_free_trial',
-        name: 'Employer 1-Month Free Trial',
-        role: 'employer',
-        description: 'First month free trial for all new employer accounts.',
-        monthlyPrice: 0.00,
-        yearlyPrice: 0.00,
-        currency: 'INR',
-        trialDurationDays: 30,
-        features: { post_jobs: true, resume_matching: true, view_candidates: true },
-        isRecommended: false,
         isActive: true,
       },
       {
@@ -833,19 +828,6 @@ const seedPlans = async () => {
         isActive: true,
       },
       {
-        id: 'employee_free_trial',
-        name: 'Employee 1-Month Free Trial',
-        role: 'employee',
-        description: 'First month free trial for all new employee accounts.',
-        monthlyPrice: 0.00,
-        yearlyPrice: 0.00,
-        currency: 'INR',
-        trialDurationDays: 30,
-        features: { view_jobs: true, apply_jobs: true, resume_matching: true },
-        isRecommended: false,
-        isActive: true,
-      },
-      {
         id: 'provider_monthly',
         name: 'Provider Pro Plan',
         role: 'provider',
@@ -856,19 +838,6 @@ const seedPlans = async () => {
         trialDurationDays: 30,
         features: { add_services: true, manage_bookings: true },
         isRecommended: true,
-        isActive: true,
-      },
-      {
-        id: 'provider_free_trial',
-        name: 'Provider 1-Month Free Trial',
-        role: 'provider',
-        description: 'First month free trial for all new provider accounts.',
-        monthlyPrice: 0.00,
-        yearlyPrice: 0.00,
-        currency: 'INR',
-        trialDurationDays: 30,
-        features: { add_services: true, manage_bookings: true },
-        isRecommended: false,
         isActive: true,
       },
       {
@@ -883,19 +852,6 @@ const seedPlans = async () => {
         features: { book_services: true, view_bookings: true },
         isRecommended: true,
         isActive: true,
-      },
-      {
-        id: 'seeker_free_trial',
-        name: 'Seeker 1-Month Free Trial',
-        role: 'seeker',
-        description: 'First month free trial for all new seeker accounts.',
-        monthlyPrice: 0.00,
-        yearlyPrice: 0.00,
-        currency: 'INR',
-        trialDurationDays: 30,
-        features: { book_services: true, view_bookings: true },
-        isRecommended: false,
-        isActive: true,
       }
     ];
 
@@ -905,7 +861,7 @@ const seedPlans = async () => {
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     }
-    console.log('[Seeding] Seeded/updated default and trial plans successfully.');
+    console.log('[Seeding] Seeded default plans successfully.');
   } catch (error) {
     console.error('[Seeding] Error seeding default subscription plans:', error);
   }

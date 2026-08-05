@@ -106,6 +106,7 @@ class EmployeeProfileProvider extends ChangeNotifier {
         'lastName': updatedProfile.lastName,
         'headline': updatedProfile.headline,
         'bio': updatedProfile.bio,
+        'phone': updatedProfile.phone,
         'skills': updatedProfile.skills,
         'resumeUrl': updatedProfile.resumeUrl,
         'updatedAt': Timestamp.now(),

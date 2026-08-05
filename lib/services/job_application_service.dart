@@ -199,9 +199,13 @@ class JobApplicationService {
           aiMatchReasoning = result['analysis'] ?? 'AI Match analysis successful';
           debugPrint('[JobApplicationService] AI Match Score: $aiMatchScore');
         } else {
+          aiMatchScore = -1.0;
+          aiMatchReasoning = 'AI Resume Matcher is currently unavailable. Your application has been submitted successfully and the employer can review your resume manually.';
           debugPrint('[JobApplicationService] Failed to generate AI match score: ${result['error']}');
         }
       } catch (e) {
+        aiMatchScore = -1.0;
+        aiMatchReasoning = 'AI Resume Matcher is currently unavailable. Your application has been submitted successfully and the employer can review your resume manually.';
         debugPrint('[JobApplicationService] Error calculating AI match: $e');
       }
 

@@ -54,6 +54,13 @@ class FakeMcProviderAuthController extends ChangeNotifier implements McProviderA
   Future<String?> deleteAccount() async {
     return null;
   }
+
+  @override
+  Future<void> updateProviderProfile({
+    required String companyName,
+    required String phone,
+    required String location,
+  }) async {}
 }
 
 void main() {

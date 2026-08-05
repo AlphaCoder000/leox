@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../controllers/mc_seeker_auth_controller.dart';
@@ -39,6 +40,16 @@ class _McSeekerProfileViewState extends State<McSeekerProfileView> {
     // Initialize with empty values
     selectedServiceId = null;
     selectedServiceTitle = null;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authController = context.read<McSeekerAuthController>();
+    final user = FirebaseAuth.instance.currentUser;
+    if (authController.currentSeeker == null && user != null) {
+      authController.fetchSeekerProfile(user.uid);
+    }
   }
 
   Future<void> _pickImage(BuildContext context) async {
@@ -369,6 +380,11 @@ class _McSeekerProfileViewState extends State<McSeekerProfileView> {
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  color: theme.colorScheme.primary,
+                  onPressed: () => _openEditSheet(context, seeker),
                 ),
               ],
             ),
@@ -768,4 +784,146 @@ class _McSeekerProfileViewState extends State<McSeekerProfileView> {
     );
   }
 
+  void _openEditSheet(BuildContext context, McSeekerModel seeker) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _EditSeekerProfileSheet(seeker: seeker),
+    );
+  }
+}
+
+class _EditSeekerProfileSheet extends StatefulWidget {
+  final McSeekerModel seeker;
+  const _EditSeekerProfileSheet({required this.seeker});
+
+  @override
+  State<_EditSeekerProfileSheet> createState() => _EditSeekerProfileSheetState();
+}
+
+class _EditSeekerProfileSheetState extends State<_EditSeekerProfileSheet> {
+  late TextEditingController _userNameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
+
+  @override
+  void initState() {
+    super.initState();
+    _userNameController = TextEditingController(text: widget.seeker.userName);
+    _phoneController = TextEditingController(text: widget.seeker.phone);
+    _addressController = TextEditingController(text: widget.seeker.address);
+  }
+
+  @override
+  void dispose() {
+    _userNameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 4.w,
+        right: 4.w,
+        top: 4.w,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Edit Profile",
+            style: TextStyle(
+              fontSize: 23.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          TextField(
+            controller: _userNameController,
+            decoration: InputDecoration(
+              labelText: "Username",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          SizedBox(height: 1.5.h),
+          TextField(
+            controller: _phoneController,
+            decoration: InputDecoration(
+              labelText: "Phone Number",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            keyboardType: TextInputType.phone,
+          ),
+          SizedBox(height: 1.5.h),
+          TextField(
+            controller: _addressController,
+            decoration: InputDecoration(
+              labelText: "Address",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          SizedBox(height: 2.5.h),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+              ),
+              SizedBox(width: 2.w),
+              Expanded(
+                child: Consumer<McSeekerAuthController>(
+                  builder: (context, auth, _) {
+                    return ElevatedButton(
+                      onPressed: auth.isLoading
+                          ? null
+                          : () async {
+                              final name = _userNameController.text.trim();
+                              final phone = _phoneController.text.trim();
+                              final address = _addressController.text.trim();
+                              if (name.isNotEmpty && phone.isNotEmpty && address.isNotEmpty) {
+                                await auth.updateSeekerProfile(
+                                  userName: name,
+                                  phone: phone,
+                                  address: address,
+                                );
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Profile updated successfully')),
+                                  );
+                                }
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('All fields are required')),
+                                );
+                              }
+                            },
+                      child: const Text("Save"),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.h),
+        ],
+      ),
+    );
+  }
 }

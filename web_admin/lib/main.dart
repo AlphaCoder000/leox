@@ -1311,6 +1311,35 @@ class _PlanManagementViewState extends State<PlanManagementView> with SingleTick
                             icon: const Icon(Icons.edit_outlined),
                             onPressed: () => _showPlanDialog(context, plan),
                           ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (dialogContext) => AlertDialog(
+                                  title: const Text("Delete Plan"),
+                                  content: Text("Are you sure you want to delete the plan \"${plan.name}\"?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(dialogContext),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        Navigator.pop(dialogContext);
+                                        await fs.collection('subscription_plans').doc(plan.id).delete();
+                                      },
+                                      child: const Text("Delete"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -1616,6 +1645,19 @@ class _UserManagementViewState extends State<UserManagementView> with SingleTick
                       final name = profile?['name'] ?? profile?['userName'] ?? profile?['companyName'] ?? 'No Name / Pending Setup';
                       final email = profile?['email'] ?? 'No Email Profile';
 
+                      final createdAtVal = profile?['createdAt'];
+                      String registeredDate = 'Unknown';
+                      if (createdAtVal != null) {
+                        if (createdAtVal is Timestamp) {
+                          registeredDate = createdAtVal.toDate().toLocal().toString().split(' ')[0];
+                        } else if (createdAtVal is String) {
+                          final parsed = DateTime.tryParse(createdAtVal);
+                          if (parsed != null) {
+                            registeredDate = parsed.toLocal().toString().split(' ')[0];
+                          }
+                        }
+                      }
+
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 8),
                         child: Padding(
@@ -1635,6 +1677,14 @@ class _UserManagementViewState extends State<UserManagementView> with SingleTick
                                   const SizedBox(height: 4),
                                   Text(
                                     "Email: $email | UID: ${sub.userId}",
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Registered: $registeredDate",
                                     style: TextStyle(
                                       color: Colors.grey[600],
                                       fontSize: 12,

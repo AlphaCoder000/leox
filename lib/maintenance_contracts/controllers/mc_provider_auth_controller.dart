@@ -314,6 +314,45 @@ class McProviderAuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateProviderProfile({
+    required String companyName,
+    required String phone,
+    required String location,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      await _firestore.collection('mc_providers').doc(user.uid).update({
+        'companyName': companyName,
+        'phone': phone,
+        'location': location,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      
+      // Update local state
+      if (_currentProvider != null) {
+        _currentProvider = McProviderModel(
+          id: _currentProvider!.id,
+          companyName: companyName,
+          email: _currentProvider!.email,
+          phone: phone,
+          location: location,
+          rating: _currentProvider!.rating,
+          profilePicture: _currentProvider!.profilePicture,
+        );
+      }
+    } catch (e) {
+      debugPrint("Error updating provider profile: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<String?> deleteAccount() async {
     _isLoading = true;
     notifyListeners();
