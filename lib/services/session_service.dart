@@ -1,4 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+
 
 /// Session Service - Manages authentication state and tokens
 /// Provides single source of truth for auth data across the app with in-memory caching
@@ -67,6 +70,19 @@ class SessionService {
 
   /// Get stored authentication token
   static Future<String?> getAuthToken() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final token = await user.getIdToken();
+        if (token != null) {
+          _cachedAuthToken = token;
+          return token;
+        }
+      }
+    } catch (e) {
+      debugPrint('[SessionService] Error getting Firebase ID token: $e');
+    }
+
     if (_cachedAuthToken != null) return _cachedAuthToken;
     final prefs = await SharedPreferences.getInstance();
     _cachedAuthToken = prefs.getString(_authTokenKey);
