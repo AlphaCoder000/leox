@@ -61,7 +61,7 @@ class AIWorkflows {
       
       final authToken = await SessionService.getAuthToken();
       final response = await ApiService.post(
-        '/ai/match-resume',
+        '/subscription/ai/match-resume',
         body: {
           'resumeText': resumeText ?? '',
           'jobDescription': jobDescription,

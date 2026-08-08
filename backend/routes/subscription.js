@@ -998,9 +998,11 @@ router.post('/ai/match-resume', requireAuth, async (req, res) => {
     } catch (_) {
       let cleanText = responseText.trim();
       if (cleanText.includes('```json')) {
-        cleanText = cleanText.split('```json').last().split('```').first();
+        const parts = cleanText.split('```json');
+        cleanText = parts[parts.length - 1].split('```')[0];
       } else if (cleanText.includes('```')) {
-        cleanText = cleanText.split('```').last().split('```').first();
+        const parts = cleanText.split('```');
+        cleanText = parts[1] || parts[0];
       }
       matchedData = JSON.parse(cleanText.trim());
     }
