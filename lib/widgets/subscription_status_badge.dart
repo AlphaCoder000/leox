@@ -70,13 +70,13 @@ class SubscriptionStatusBadge extends StatelessWidget {
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: color,
-          width: 1,
+          width: 1.5,
         ),
       ),
       child: Row(
@@ -84,14 +84,14 @@ class SubscriptionStatusBadge extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 14,
+            size: 19,
             color: iconColor ?? color,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(
             text,
             style: TextStyle(
-              fontSize: 9.sp,
+              fontSize: 14.sp,
               fontWeight: FontWeight.bold,
               color: textColor ?? color,
             ),
