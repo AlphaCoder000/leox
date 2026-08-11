@@ -39,7 +39,7 @@ class AppTheme {
         outline: borderColor,
         error: Colors.redAccent,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: white,
         elevation: 0, // "web-like" flat with border or slight shadow handled by widget
         shape: RoundedRectangleBorder(
@@ -115,7 +115,7 @@ class AppTheme {
         outline: Color(0xFF334155),
         error: Colors.redAccent,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
