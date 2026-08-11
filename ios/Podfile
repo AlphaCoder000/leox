@@ -2,6 +2,16 @@
 
 platform :ios, '13.0'
 
+# Include the Flutter pod helper script to define helper methods (like flutter_install_all_ios_pods)
+flutter_ios_podfile_setup = File.join(File.dirname(File.expand_path(__FILE__)), 'Flutter', 'podhelper.rb')
+require flutter_ios_podfile_setup
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :profile,
+  'Release' => :release,
+}
+
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
