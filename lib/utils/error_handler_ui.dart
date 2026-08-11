@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 /// Error Handler UI
 /// Provides consistent error UI dialogs and snackbars across the app
@@ -12,6 +14,25 @@ class ErrorHandlerUI {
     VoidCallback? onAction,
   }) async {
     if (!context.mounted) return;
+
+    if (Platform.isIOS) {
+      return showCupertinoDialog<void>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onAction?.call();
+              },
+              child: Text(actionLabel),
+            ),
+          ],
+        ),
+      );
+    }
 
     return showDialog<void>(
       context: context,
@@ -47,6 +68,28 @@ class ErrorHandlerUI {
     String cancelLabel = 'Cancel',
   }) async {
     if (!context.mounted) return false;
+
+    if (Platform.isIOS) {
+      final result = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(cancelLabel),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(retryLabel),
+            ),
+          ],
+        ),
+      );
+      return result ?? false;
+    }
 
     final result = await showDialog<bool>(
       context: context,
@@ -102,6 +145,27 @@ class ErrorHandlerUI {
   }) async {
     if (!context.mounted) return;
 
+    if (Platform.isIOS) {
+      return showCupertinoDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () {
+                Navigator.of(context).pop();
+                onLoginRedirect();
+              },
+              child: const Text('Go to Login'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -135,6 +199,44 @@ class ErrorHandlerUI {
     required List<String> errors,
   }) async {
     if (!context.mounted) return;
+
+    if (Platform.isIOS) {
+      return showCupertinoDialog<void>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: errors
+                  .map(
+                    (error) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '• ',
+                            style: TextStyle(color: Colors.amber),
+                          ),
+                          Expanded(child: Text(error)),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return showDialog<void>(
       context: context,

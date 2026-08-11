@@ -1,6 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:leox/services/session_service.dart';
@@ -10,7 +10,7 @@ class EmployerAuthProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com',
-    clientId: '340682426505-a78q5kk98ird4kh2emig2327aonakmbl.apps.googleusercontent.com', // Added Android-specific client ID
+    clientId: kIsWeb ? null : (Platform.isAndroid ? '340682426505-a78q5kk98ird4kh2emig2327aonakmbl.apps.googleusercontent.com' : null),
     scopes: ['email', 'profile'],
   );
 
