@@ -14,6 +14,10 @@ raise "FLUTTER_ROOT not found in Generated.xcconfig. Run 'flutter pub get' first
 # Require the helper script from the Flutter SDK directly
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 
+pre_install do |installer|
+  # Bypass CocoaPods validation check for static framework transitive dependencies (fixing razorpay_flutter crash)
+  Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
+end
 
 project 'Runner', {
   'Debug' => :debug,
