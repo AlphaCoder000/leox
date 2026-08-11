@@ -58,7 +58,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<!-- TODO: Replace this with the REVERSED_CLIENT_ID from your iOS GoogleService-Info.plist -->
+				<string>com.googleusercontent.apps.340682426505-9gpg37b8g1ctmrna8ps3bnlpq2cood0g</string>
 				<string>com.googleusercontent.apps.340682426505-a78q5kk98ird4kh2emig2327aonakmbl</string>
 			</array>
 		</dict>
