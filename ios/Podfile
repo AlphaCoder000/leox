@@ -2,9 +2,18 @@
 
 platform :ios, '13.0'
 
-# Include the Flutter pod helper script to define helper methods (like flutter_install_all_ios_pods)
-flutter_ios_podfile_setup = File.join(File.dirname(File.expand_path(__FILE__)), 'Flutter', 'podhelper.rb')
-require flutter_ios_podfile_setup
+# Read the Flutter SDK root path from the generated configuration file
+flutter_root = nil
+File.foreach(File.join(File.dirname(__FILE__), 'Flutter', 'Generated.xcconfig')) do |line|
+  matches = line.match(/FLUTTER_ROOT=(.*)/)
+  flutter_root = matches[1] if matches
+end
+
+raise "FLUTTER_ROOT not found in Generated.xcconfig. Run 'flutter pub get' first." if flutter_root.nil?
+
+# Require the helper script from the Flutter SDK directly
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
 
 project 'Runner', {
   'Debug' => :debug,
