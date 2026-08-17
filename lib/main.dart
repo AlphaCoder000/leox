@@ -62,7 +62,7 @@ void main() async {
   }
 
   // Configure API Service
-  ApiService.setBaseUrl('https://leo-opus.onrender.com/api');  // Point to localhost for adb reverse
+  ApiService.setBaseUrl('https://leox-kfsm.onrender.com/api');  // Point to localhost for adb reverse
   
   try {
     await Firebase.initializeApp(

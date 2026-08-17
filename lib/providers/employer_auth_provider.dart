@@ -9,7 +9,7 @@ class EmployerAuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com',
+    serverClientId: '340682426505-um8hq1bm6jq9jad584je1mpom2rm9rlo.apps.googleusercontent.com',
     clientId: kIsWeb ? null : (Platform.isAndroid ? '340682426505-a78q5kk98ird4kh2emig2327aonakmbl.apps.googleusercontent.com' : null),
     scopes: ['email', 'profile'],
   );

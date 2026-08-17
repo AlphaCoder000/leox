@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkSetupStatus() async {
     try {
       final response = await http.get(
-        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/setup-status'),
+        Uri.parse('https://leox-kfsm.onrender.com/api/subscription/admin/setup-status'),
       ).timeout(const Duration(seconds: 4));
       
       final result = jsonDecode(response.body);
@@ -238,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('[Login] Error checking admin bootstrap status: $e');
       if (mounted) {
         setState(() {
-          _localError = "Cannot connect to backend server. Please verify your connection or backend status at https://leo-opus.onrender.com";
+          _localError = "Cannot connect to backend server. Please verify your connection or backend status at https://leox-kfsm.onrender.com";
         });
       }
     }
@@ -268,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/login'),
+        Uri.parse('https://leox-kfsm.onrender.com/api/subscription/admin/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -317,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/register'),
+        Uri.parse('https://leox-kfsm.onrender.com/api/subscription/admin/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,
@@ -1416,7 +1416,7 @@ class _UserManagementViewState extends State<UserManagementView> with SingleTick
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
 
       final response = await http.post(
-        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/modify'),
+        Uri.parse('https://leox-kfsm.onrender.com/api/subscription/admin/modify'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -2158,7 +2158,7 @@ class _AdminsViewState extends State<AdminsView> {
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
       final response = await http.post(
-        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/register'),
+        Uri.parse('https://leox-kfsm.onrender.com/api/subscription/admin/register'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -2211,7 +2211,7 @@ class _AdminsViewState extends State<AdminsView> {
     try {
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
       final response = await http.post(
-        Uri.parse('https://leo-opus.onrender.com/api/subscription/admin/grant-role'),
+        Uri.parse('https://leox-kfsm.onrender.com/api/subscription/admin/grant-role'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
