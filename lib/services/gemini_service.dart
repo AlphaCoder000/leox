@@ -84,9 +84,9 @@ class GeminiService {
       parsed['success'] = true;
       return parsed;
     } catch (e) {
-      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (2.5-pro)...');
+      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (1.5-pro)...');
       try {
-        final fallbackModel = _createModel('gemini-2.5-pro');
+        final fallbackModel = _createModel('gemini-1.5-pro');
         final response = await fallbackModel.generateContent([Content.text(prompt)]);
         if (response.text == null) throw Exception('No response from fallback AI');
         final Map<String, dynamic> parsed = _extractJson(response.text!);
@@ -145,9 +145,9 @@ class GeminiService {
       results['success'] = true;
       return results;
     } catch (e) {
-      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (2.5-pro)...');
+      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (1.5-pro)...');
       try {
-        final fallbackModel = _createModel('gemini-2.5-pro');
+        final fallbackModel = _createModel('gemini-1.5-pro');
         final response = await fallbackModel.generateContent([Content.text(prompt)]);
         if (response.text == null) throw Exception('No response from fallback AI');
         final Map<String, dynamic> results = _extractJson(response.text!);
