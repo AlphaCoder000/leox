@@ -14,3 +14,6 @@ NODE_ENV=development
 
 RAZORPAY_KEY_ID="rzp_test_TEtiqwUIhnWfVg"
 RAZORPAY_KEY_SECRET="96u9x1V0WVZGJQcyx3pdn0Kt"
+
+# Gemini AI Configuration
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
