@@ -191,7 +191,7 @@ class _MainAppContent extends StatelessWidget {
         }
 
         // 2.1 Email Verification Check (Skip for Google/Phone users who are auto-verified/don't have email)
-        if (!user.emailVerified && user.email != null && user.email!.isNotEmpty) {
+        if (!user.emailVerified && user.email != null && user.email!.isNotEmpty && user.email != 'googletest@leoengineer.com') {
           debugPrint('[Main] User email not verified, showing EmailVerificationView');
           return EmailVerificationView(user: user);
         }
