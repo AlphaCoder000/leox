@@ -311,6 +311,14 @@ class _MainAppContent extends StatelessWidget {
       debugPrint('[Main] Local cache check failed: $e');
     }
 
+    // 3. Google Reviewer Fallback (if no target role or cached role is found)
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser?.email == 'googletest@leoengineer.com') {
+      debugPrint('[Main] Google test user detected on cache miss. Falling back to "employee" role.');
+      await SessionService.saveRoleOnly('employee');
+      return 'employee';
+    }
+
     debugPrint('[Main] Cache Miss: Proceeding to Firestore verification...');
     
     // Give registration logic a head start (especially important for slow Firestore writes)
