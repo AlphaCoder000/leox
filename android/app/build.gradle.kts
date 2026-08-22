@@ -16,7 +16,7 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
-    namespace = "com.example.leox"
+    namespace = "com.leoengineer.leox"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.leox"
+        applicationId = "com.leoengineer.leox"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 23
@@ -65,10 +65,6 @@ flutter {
 
 dependencies {
   // Import the Firebase BoM
-  implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+  implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
 
-
-  // TODO: Add the dependencies for Firebase products you want to use
-  // When using the BoM, don't specify versions in Firebase dependencies
-  // https://firebase.google.com/docs/android/setup#available-libraries
 }

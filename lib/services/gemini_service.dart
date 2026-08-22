@@ -4,7 +4,7 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 
 /// Gemini Service - Handles AI operations using Google's Generative AI
 class GeminiService {
-  static const String _modelName = 'gemini-2.5-flash';
+  static const String _modelName = 'gemini-3.6-flash';
   
   // Get your free Gemini API key from: https://aistudio.google.com/
   static String? _apiKey;
@@ -84,9 +84,9 @@ class GeminiService {
       parsed['success'] = true;
       return parsed;
     } catch (e) {
-      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (3.1-pro-preview)...');
+      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (2.0-flash)...');
       try {
-        final fallbackModel = _createModel('gemini-3.1-pro-preview');
+        final fallbackModel = _createModel('gemini-2.0-flash');
         final response = await fallbackModel.generateContent([Content.text(prompt)]);
         if (response.text == null) throw Exception('No response from fallback AI');
         final Map<String, dynamic> parsed = _extractJson(response.text!);
@@ -145,9 +145,9 @@ class GeminiService {
       results['success'] = true;
       return results;
     } catch (e) {
-      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (3.1-pro-preview)...');
+      debugPrint('[GeminiService] Primary model failed: $e. Trying fallback (2.0-flash)...');
       try {
-        final fallbackModel = _createModel('gemini-3.1-pro-preview');
+        final fallbackModel = _createModel('gemini-2.0-flash');
         final response = await fallbackModel.generateContent([Content.text(prompt)]);
         if (response.text == null) throw Exception('No response from fallback AI');
         final Map<String, dynamic> results = _extractJson(response.text!);

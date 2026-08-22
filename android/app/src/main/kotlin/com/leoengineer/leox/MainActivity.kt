@@ -1,4 +1,4 @@
-package com.example.leox
+package com.leoengineer.leox
 
 import io.flutter.embedding.android.FlutterActivity
 

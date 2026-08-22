@@ -46,6 +46,49 @@
             {
               "client_id": "340682426505-5rselmtbhgv410nggmc3el07qe1hatf7.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "340682426505-9gpg37b8g1ctmrna8ps3bnlpq2cood0g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.shinnovation.leox"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340682426505:android:6e4f8bbbeb3803fe135e58",
+        "android_client_info": {
+          "package_name": "com.leoengineer.leox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNVp_4-eg-QNAlAWY612osmTcOLVrcGXU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "340682426505-5rselmtbhgv410nggmc3el07qe1hatf7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "340682426505-9gpg37b8g1ctmrna8ps3bnlpq2cood0g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.shinnovation.leox"
+              }
             }
           ]
         }
