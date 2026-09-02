@@ -78,6 +78,7 @@ class _JobApplicationViewState extends State<JobApplicationView> {
   }
 
   Future<void> _submitApplication() async {
+    FocusScope.of(context).unfocus(); // Dismiss keyboard
     final applicationProvider = context.read<JobApplicationProvider>();
     final appCount = applicationProvider.applications
         .where((app) => app.jobId == widget.job.id)
