@@ -67,6 +67,30 @@
       },
       "oauth_client": [
         {
+          "client_id": "340682426505-7ogkmp0g504e2c6ad4s30tgkib60pvvn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.leoengineer.leox",
+            "certificate_hash": "f8096798b46520ded2b3c9af99b6364aaa27b981"
+          }
+        },
+        {
+          "client_id": "340682426505-9g4677t0hvrmojvv08ls0rke48q33f8c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.leoengineer.leox",
+            "certificate_hash": "0405dab3f60e444c5c0c35313160449495ae97dc"
+          }
+        },
+        {
+          "client_id": "340682426505-jeoldg5d5rlhpnpot10ct2hflp25uvr3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.leoengineer.leox",
+            "certificate_hash": "86ba717fda74ac9528f81cdc372c53f29972a235"
+          }
+        },
+        {
           "client_id": "340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com",
           "client_type": 3
         }
