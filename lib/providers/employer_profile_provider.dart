@@ -186,7 +186,10 @@ class EmployerProfileProvider extends ChangeNotifier {
           if (user != null) {
             bool isGoogle = user.providerData.any((p) => p.providerId == 'google.com');
             if (isGoogle) {
-              final googleSignIn = GoogleSignIn();
+              final googleSignIn = GoogleSignIn(
+                clientId: (!kIsWeb && Platform.isIOS) ? '340682426505-9gpg37b8g1ctmrna8ps3bnlpq2cood0g.apps.googleusercontent.com' : null,
+                serverClientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com',
+              );
               final googleUser = await googleSignIn.signInSilently() ?? await googleSignIn.signIn();
               if (googleUser != null) {
                 final googleAuth = await googleUser.authentication;

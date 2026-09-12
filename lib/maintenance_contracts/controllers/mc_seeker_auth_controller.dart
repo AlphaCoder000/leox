@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,6 +11,7 @@ class McSeekerAuthController extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: (!kIsWeb && Platform.isIOS) ? '340682426505-9gpg37b8g1ctmrna8ps3bnlpq2cood0g.apps.googleusercontent.com' : null,
     serverClientId: '340682426505-q2q1h7ooeua23piinorknvbcu0scma06.apps.googleusercontent.com',
     scopes: ['email', 'profile'],
   );
@@ -224,7 +226,15 @@ class McSeekerAuthController extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // Save session in local cache for role tracking
+      // Send email verification link
+      try {
+        await userCredential.user?.sendEmailVerification();
+      } catch (e) {
+        debugPrint('[McSeekerAuthController] Error sending email verification: $e');
+      }
+
+      // Save target role & session in local cache for role tracking
+      await SessionService.saveTargetRole("mc_seeker");
       final idToken = await userCredential.user?.getIdToken();
       await SessionService.saveSession(
         role: "mc_seeker",

@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../controllers/mc_provider_auth_controller.dart';
 import 'mc_provider_login_view.dart';
 import 'package:leox/widgets/custom_popup.dart';
+import 'package:leox/services/session_service.dart';
 
 class McProviderRegisterView extends StatefulWidget {
   const McProviderRegisterView({super.key});
@@ -39,6 +40,7 @@ class _McProviderRegisterViewState extends State<McProviderRegisterView> {
   void _register() async {
     if (_formKey.currentState!.validate()) {
       final authController = context.read<McProviderAuthController>();
+      await SessionService.saveTargetRole('mc_provider');
       final error = await authController.registerWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
@@ -86,6 +88,7 @@ class _McProviderRegisterViewState extends State<McProviderRegisterView> {
 
   void _registerWithGoogle() async {
     final authController = context.read<McProviderAuthController>();
+    await SessionService.saveTargetRole('mc_provider');
     final error = await authController.signUpWithGoogle();
 
     if (!mounted) return;
